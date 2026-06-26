@@ -1,0 +1,23 @@
+{
+  "receipt_version": "semeai_gate_basic_v0.1",
+  "receipt_type": "release_decision",
+  "audit_id": "d51e8b86e394",
+  "timestamp": "2026-06-26T09:57:36",
+  "schema_version": "0.1",
+  "action": "SHOW",
+  "internal_decision": "PROCEED",
+  "show_to_user": true,
+  "reason": "No business context integrity check was requested.",
+  "business_risk": "general_supported_answer",
+  "risk_details": [],
+  "prompt_hash": "cab5dba8c9e61051ee4992572b5e45a88c91fe625a7e1f00697ee56de0858b16",
+  "candidate_hash": "fd0712c3104a05c51901da1f1cee538bde43457920635177d3d7ee1bba5ec2e1",
+  "released_output_hash": "fd0712c3104a05c51901da1f1cee538bde43457920635177d3d7ee1bba5ec2e1",
+  "release_output_present": true,
+  "audit_preserved": true,
+  "canonical_mapping": {
+    "SHOW": "PROCEED",
+    "REVIEW": "NEEDS_REVIEW",
+    "BLOCK": "SILENCE"
+  }
+}

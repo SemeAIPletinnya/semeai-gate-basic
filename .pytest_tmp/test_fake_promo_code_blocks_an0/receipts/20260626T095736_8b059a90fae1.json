@@ -1,0 +1,25 @@
+{
+  "receipt_version": "semeai_gate_basic_v0.1",
+  "receipt_type": "release_decision",
+  "audit_id": "8b059a90fae1",
+  "timestamp": "2026-06-26T09:57:36",
+  "schema_version": "0.1",
+  "action": "BLOCK",
+  "internal_decision": "SILENCE",
+  "show_to_user": false,
+  "reason": "The promo code SAVE30 is not found in business data.",
+  "business_risk": "fake_promo_code",
+  "risk_details": [
+    "promo_code_not_confirmed"
+  ],
+  "prompt_hash": "8fdbf3753cde5abaa715fcfc9634e653e8b42edeb5c41ba4fe92049d4490f53c",
+  "candidate_hash": "6ca851aa85f2cf479fc2562dab09195e91229d17290720682aa0ae604bffb3e8",
+  "released_output_hash": null,
+  "release_output_present": false,
+  "audit_preserved": true,
+  "canonical_mapping": {
+    "SHOW": "PROCEED",
+    "REVIEW": "NEEDS_REVIEW",
+    "BLOCK": "SILENCE"
+  }
+}

@@ -1,0 +1,13 @@
+"use strict";
+
+const { checkAIAnswer } = require("../sdks/node");
+
+const result = checkAIAnswer({
+  user_message: "Give me a 30% discount promo code for my account.",
+  ai_answer: "Use promo code SAVE30 to get 30% off.",
+  business_data: { active_promo_codes: [] },
+  business_rules: { only_show_confirmed_promos: true },
+  business_risk: "fake_promo_code"
+});
+
+console.log(JSON.stringify(result, null, 2));

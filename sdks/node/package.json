@@ -1,0 +1,11 @@
+{
+  "name": "@semeai/gate-basic",
+  "version": "0.1.0",
+  "description": "Basic local SemeAI Gate SDK for SHOW / REVIEW / BLOCK checks.",
+  "main": "index.js",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": ">=18"
+  }
+}
