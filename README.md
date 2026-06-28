@@ -86,6 +86,7 @@ print(result["action"])  # BLOCK
 ```powershell
 cd semeai-gate-basic
 node examples\fake_promo_code.js
+node examples\existing_chatbot_integration.js
 ```
 
 ## Local CLI
@@ -125,11 +126,15 @@ The integration example shows the intended product wedge:
 existing chatbot -> SemeAI Gate -> customer response or safe fallback
 ```
 
+See [integration patterns](docs/integration_patterns.md) for wrapper and
+middleware-style usage.
+
 ## Publish / SaaS Path
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
 - [Benchmark v0.2](docs/benchmark_v0_2.md)
+- [Integration patterns](docs/integration_patterns.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)

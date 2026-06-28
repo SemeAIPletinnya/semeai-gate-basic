@@ -40,3 +40,4 @@ jobs:
       - name: Node example
         run: |
           node examples\fake_promo_code.js
+          node examples\existing_chatbot_integration.js
