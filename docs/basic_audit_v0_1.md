@@ -59,8 +59,7 @@ fake promo action=BLOCK
 
 ## Recommended Next Polish
 
-- choose license;
-- add small screenshot/GIF of static demo;
-- expand benchmark to 50-100 public-safe cases;
-- add `CONTRIBUTING.md`;
-- add CI workflow after GitHub repo is created.
+- continue expanding benchmark coverage beyond 100 public-safe cases;
+- add a small screenshot or GIF of the static demo;
+- collect external pilot feedback;
+- keep examples aligned with the versioned contract.

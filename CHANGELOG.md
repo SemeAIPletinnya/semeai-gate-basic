@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.2.0 - Pilot-Ready Basic Package
+
+First pilot-ready basic release.
+
+Added:
+
+- benchmark v0.3 with 100 deterministic cases;
+- SDK quickstart for Python and the local Node adapter;
+- pilot packet for design partners;
+- pilot playbook for a one-week narrow pilot;
+- integration readiness checklist;
+- partner outreach templates;
+- five-minute demo script.
+
+Validated:
+
+- GitHub Actions CI passes on `master`;
+- contract checker passes;
+- benchmark v0.3 passes 100/100 cases with accuracy 1.0;
+- pytest contract tests pass;
+- Python and Node middleware examples return `BLOCK / SILENCE` with a safe
+  fallback for the fake promo-code case.
+
+Boundaries:
+
+- no gate behavior change;
+- no cloud/API/network behavior;
+- no model runtime;
+- no fine-tuning;
+- no hosted SaaS;
+- no compliance certification claim;
+- no universal hallucination-detection claim.
+
 ## 0.1.3 - Middleware Quickstart and Contract Hardening
 
 Patch release after v0.1.2.

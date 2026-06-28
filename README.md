@@ -137,7 +137,7 @@ remain aligned.
 python tools\run_benchmark.py
 ```
 
-The benchmark is deterministic and local. Current v0.2 coverage includes 50
+The benchmark is deterministic and local. Current v0.3 coverage includes 100
 cases across fake promo codes, unsupported claims, unsafe actions, context
 drift, account-product mismatch, and safe supported answers. It does not call
 an LLM, cloud API, network service, or external telemetry.
@@ -170,11 +170,14 @@ middleware-style usage.
 - [GitHub publish checklist](docs/github_publish_checklist.md)
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
 - [Contract](docs/contract.md)
-- [Benchmark v0.2](docs/benchmark_v0_2.md)
+- [Benchmark v0.3](docs/benchmark_v0_3.md)
 - [Five-minute demo script](docs/demo_script_5_min.md)
 - [Integration patterns](docs/integration_patterns.md)
 - [Integration readiness checklist](docs/integration_checklist.md)
+- [SDK quickstart](docs/sdk_quickstart.md)
+- [Pilot packet](docs/pilot_packet.md)
 - [Pilot playbook](docs/pilot_playbook.md)
+- [Partner outreach templates](docs/partner_outreach_templates.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)

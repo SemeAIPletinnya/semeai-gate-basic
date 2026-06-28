@@ -193,7 +193,7 @@ Expected current basic signal:
 
 ```text
 contract_check=passed
-cases=50 passed=50 failed=0 accuracy=1.0
+cases=100 passed=100 failed=0 accuracy=1.0
 11 passed
 ```
 
