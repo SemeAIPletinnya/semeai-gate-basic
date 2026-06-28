@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.1 - README Flow and Benchmark v0.2
+
+Patch release after the first public basic release.
+
+Added:
+
+- five-second README demo for the fake promo code case;
+- lightweight README SVG flow visual;
+- benchmark v0.2 with 50 deterministic cases;
+- benchmark documentation page;
+- CI trigger support for the repository `master` branch.
+
+Validated:
+
+- GitHub Actions CI passes on `master`;
+- benchmark v0.2 passes 50/50 cases with accuracy 1.0;
+- pytest contract tests pass.
+
+Boundaries:
+
+- no gate behavior change;
+- no cloud/API/network behavior;
+- no model runtime;
+- no fine-tuning;
+- no compliance certification claim.
+
 ## 0.1.0 - Local Basic
 
 Initial local basic release candidate.
