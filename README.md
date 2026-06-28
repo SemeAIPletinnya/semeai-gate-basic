@@ -95,6 +95,15 @@ node examples\existing_chatbot_integration.js
 type examples\fake_promo_code.json | python -m semeai_gate_basic
 ```
 
+## Contract Check
+
+```powershell
+python tools\check_contract.py
+```
+
+This checks that the versioned schema, runtime constants, and contract fixtures
+remain aligned.
+
 ## Benchmark
 
 ```powershell
@@ -133,6 +142,7 @@ middleware-style usage.
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
+- [Contract](docs/contract.md)
 - [Benchmark v0.2](docs/benchmark_v0_2.md)
 - [Integration patterns](docs/integration_patterns.md)
 - [Why SaaS comes later](docs/saas_later.md)

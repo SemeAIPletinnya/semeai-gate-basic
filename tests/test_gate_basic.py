@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from semeai_gate_basic import ACTION_TO_INTERNAL, check_ai_answer, validate_gate_response
+from tools.check_contract import check_contract_examples, check_schema_alignment, load_json
 from tools.run_benchmark import load_cases, run_benchmark
 
 
@@ -152,3 +153,9 @@ def test_benchmark_passes() -> None:
     assert report["case_count"] >= 50
     assert report["failed"] == 0
     assert report["accuracy"] == 1.0
+
+
+def test_contract_schema_and_examples_stay_aligned() -> None:
+    schema = load_json(Path("schemas/semeai_gate_v0_1.json"))
+    assert check_schema_alignment(schema) == []
+    assert check_contract_examples() == []

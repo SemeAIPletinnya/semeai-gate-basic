@@ -49,3 +49,26 @@ Each check writes a local metadata-only receipt by default.
 
 The receipt stores hashes, decision metadata, and audit status. It does not
 store raw user message or raw AI answer text.
+
+## Contract Fixtures
+
+Example request/response payloads live in:
+
+```text
+examples/contracts/
+```
+
+Check schema/runtime alignment with:
+
+```powershell
+python tools\check_contract.py
+```
+
+The contract checker verifies:
+
+- required request fields;
+- required response fields;
+- `schema_version`;
+- `SHOW / REVIEW / BLOCK` action values;
+- `PROCEED / NEEDS_REVIEW / SILENCE` internal decisions;
+- stable action-to-decision mapping.

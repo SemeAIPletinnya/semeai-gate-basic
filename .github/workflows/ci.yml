@@ -37,6 +37,10 @@ jobs:
         run: |
           python tools\run_benchmark.py
 
+      - name: Contract check
+        run: |
+          python tools\check_contract.py
+
       - name: Node example
         run: |
           node examples\fake_promo_code.js

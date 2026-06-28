@@ -1,0 +1,11 @@
+{
+  "user_message": "Can support check my account?",
+  "ai_answer": "Support can review account-specific questions.",
+  "business_data": {
+    "supported_claims": [
+      "Support can review account-specific questions."
+    ]
+  },
+  "business_rules": {},
+  "business_risk": "general_supported_answer"
+}
