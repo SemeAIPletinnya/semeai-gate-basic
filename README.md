@@ -12,6 +12,8 @@ SemeAI Gate returns: BLOCK / SILENCE.
 Result: do not show the fake code; show a safe fallback; preserve audit.
 ```
 
+![SemeAI Gate Basic fake promo flow](docs/assets/semeai-gate-basic-flow.svg)
+
 The host product sends:
 
 - `user_message`
