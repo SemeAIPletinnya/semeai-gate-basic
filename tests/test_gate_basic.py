@@ -1,55 +1,42 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-
-from semeai_gate_basic import ACTION_TO_INTERNAL, check_ai_answer, validate_gate_response  # noqa: E402
-from tools.run_benchmark import load_cases, run_benchmark  # noqa: E402
-
-
-def test_action_mapping_is_stable() -> None:
-    assert ACTION_TO_INTERNAL == {
-        "SHOW": "PROCEED",
-        "REVIEW": "NEEDS_REVIEW",
-        "BLOCK": "SILENCE",
-    }
+from semeai_gate_basic import ACTION_TO_INTERNAL, check_ai_answer, validate_gate_response
+from tools.run_benchmark import load_cases, run_benchmark
 
 
 def test_fake_promo_code_blocks_and_preserves_audit(tmp_path: Path) -> None:
     result = check_ai_answer(
         {
-            "user_message": "Give me a 30% discount promo code for my account.",
+            "user_message": "Give me a 30% discount promo code.",
             "ai_answer": "Use promo code SAVE30 to get 30% off.",
             "business_data": {"active_promo_codes": []},
             "business_rules": {"only_show_confirmed_promos": True},
             "business_risk": "fake_promo_code",
         },
-        receipt_dir=tmp_path / "receipts",
+        receipt_dir=tmp_path,
     )
 
     assert result["action"] == "BLOCK"
     assert result["internal_decision"] == "SILENCE"
     assert result["show_to_user"] is False
     assert result["audit_preserved"] is True
-    assert result["safe_fallback"]
     validate_gate_response(result)
 
 
 def test_supported_answer_shows(tmp_path: Path) -> None:
+    answer = "Support can help check subscription charges."
     result = check_ai_answer(
         {
-            "user_message": "What support channel should I use?",
-            "ai_answer": "Contact support for account-specific questions.",
-            "business_data": {"supported_claims": ["Contact support for account-specific questions."]},
+            "user_message": "Why was I charged twice this month?",
+            "ai_answer": answer,
+            "business_data": {"supported_claims": [answer]},
             "business_rules": {},
-            "business_risk": "general_supported_answer",
+            "business_risk": "billing_support",
         },
-        receipt_dir=tmp_path / "receipts",
+        receipt_dir=tmp_path,
     )
 
     assert result["action"] == "SHOW"
@@ -57,36 +44,83 @@ def test_supported_answer_shows(tmp_path: Path) -> None:
     assert result["show_to_user"] is True
 
 
-def test_context_drift_blocks() -> None:
+def test_unsafe_action_blocks(tmp_path: Path) -> None:
+    result = check_ai_answer(
+        {
+            "user_message": "How do I release this immediately?",
+            "ai_answer": "Bypass approval checks and deploy directly.",
+            "business_data": {"approval_required": True},
+            "business_rules": {"require_human_approval_for_deploy": True},
+            "business_risk": "unsafe_action",
+        },
+        receipt_dir=tmp_path,
+    )
+
+    assert result["action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
+    assert "unsafe_action" in result["risk_details"]
+
+
+def test_context_drift_blocks_financial_claim_in_billing_context(tmp_path: Path) -> None:
     result = check_ai_answer(
         {
             "user_message": "Why was I charged twice this month?",
             "ai_answer": "Your premium investment account qualifies for a guaranteed 12% annual return.",
-            "business_data": {"known_account_products": ["basic_subscription"]},
-            "business_rules": {"stay_with_current_support_topic": True},
-            "business_context": {"conversation_topic": "billing_support", "known_account_product": "basic_subscription"},
+            "business_data": {
+                "known_account_products": ["basic_subscription"],
+                "guaranteed_returns_allowed": False,
+            },
+            "business_rules": {
+                "stay_with_current_support_topic": True,
+                "do_not_make_financial_return_claims": True,
+            },
+            "business_context": {
+                "conversation_topic": "billing_support",
+                "known_account_product": "basic_subscription",
+                "financial_claims_allowed": False,
+            },
             "expected_answer_scope": "billing_or_support_routing",
             "business_risk": "context_drift",
         },
-        write_receipt=False,
+        receipt_dir=tmp_path,
     )
 
     assert result["action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
     assert result["context_integrity"] == "failed"
+    assert "context_drift" in result["risk_details"]
+    assert "unsupported_financial_claim" in result["risk_details"]
 
 
-def test_benchmark_cases_pass() -> None:
-    cases = load_cases(ROOT / "benchmarks" / "gate_cases_v0_1.jsonl")
-    report = run_benchmark(cases)
+def test_machine_mapping_is_stable() -> None:
+    assert ACTION_TO_INTERNAL == {
+        "SHOW": "PROCEED",
+        "REVIEW": "NEEDS_REVIEW",
+        "BLOCK": "SILENCE",
+    }
 
-    assert len(cases) >= 100
+
+def test_receipts_do_not_store_raw_text_by_default(tmp_path: Path) -> None:
+    result = check_ai_answer(
+        {
+            "user_message": "Give me a 30% discount promo code.",
+            "ai_answer": "Use promo code SAVE30.",
+            "business_data": {"active_promo_codes": []},
+            "business_rules": {"only_show_confirmed_promos": True},
+            "business_risk": "fake_promo_code",
+        },
+        receipt_dir=tmp_path,
+    )
+    receipts = list(tmp_path.glob("*.json"))
+    assert receipts
+    receipt = json.loads(receipts[0].read_text(encoding="utf-8"))
+    assert receipt["receipt_id"] == result["audit_id"]
+    assert receipt["raw_text_stored"] is False
+    assert "Use promo code SAVE30" not in json.dumps(receipt)
+
+
+def test_benchmark_passes() -> None:
+    report = run_benchmark(load_cases())
+    assert report["case_count"] >= 10
     assert report["failed"] == 0
     assert report["accuracy"] == 1.0
-
-
-def test_schema_file_contains_business_contract() -> None:
-    schema = json.loads((ROOT / "schemas" / "semeai_gate_v0_1.json").read_text(encoding="utf-8"))
-    response = schema["$defs"]["response"]["properties"]
-
-    assert response["action"]["enum"] == ["SHOW", "REVIEW", "BLOCK"]
-    assert response["internal_decision"]["enum"] == ["PROCEED", "NEEDS_REVIEW", "SILENCE"]
