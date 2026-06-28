@@ -21,6 +21,10 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip pytest
+
       - name: Python compile
         run: |
           python -m py_compile semeai_gate_basic\gate.py semeai_gate_basic\__main__.py tools\run_benchmark.py tests\test_gate_basic.py
