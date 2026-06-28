@@ -7,7 +7,7 @@ name = "semeai-gate-basic"
 version = "0.1.0"
 description = "Local release-control gate for AI answers"
 requires-python = ">=3.10"
-authors = [{ name = "SemeAI" }]
+authors = [{ name = "Anton Semenenko" }, { name = "SemeAI" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
 

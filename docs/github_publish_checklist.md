@@ -19,7 +19,8 @@ Use this checklist before publishing `semeai-gate-basic`.
 ## Suggested Commands
 
 ```powershell
-cd "D:\SemeAi\from git\semeai-gate-basic"
+git clone https://github.com/SemeAIPletinnya/semeai-gate-basic.git
+cd semeai-gate-basic
 python examples\fake_promo_code.py
 node examples\fake_promo_code.js
 python tools\run_benchmark.py

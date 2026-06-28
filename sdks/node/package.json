@@ -4,5 +4,6 @@
   "private": true,
   "description": "Local release-control gate for AI answers",
   "main": "index.js",
+  "author": "Anton Semenenko / SemeAI",
   "license": "Apache-2.0"
 }
