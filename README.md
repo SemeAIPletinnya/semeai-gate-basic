@@ -3,6 +3,15 @@
 SemeAI Gate Basic stops unsupported AI answers before they reach users.
 
 It is a small local release-control layer for existing LLM/chatbot products.
+
+```text
+Customer asks for a discount.
+AI invents: "Use promo code SAVE30."
+Business data says: no active promo codes.
+SemeAI Gate returns: BLOCK / SILENCE.
+Result: do not show the fake code; show a safe fallback; preserve audit.
+```
+
 The host product sends:
 
 - `user_message`
