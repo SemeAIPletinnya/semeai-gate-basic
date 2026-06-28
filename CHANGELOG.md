@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.1.2 - Integration Contract Fixtures
+
+Patch release after v0.1.1.
+
+Added:
+
+- integration patterns guide;
+- Node existing-chatbot integration example;
+- contract fixtures for `SHOW`, `REVIEW`, and `BLOCK` paths;
+- dependency-free contract checker;
+- CI contract check.
+
+Validated:
+
+- GitHub Actions CI passes on `master`;
+- contract checker passes;
+- benchmark v0.2 passes 50/50 cases with accuracy 1.0;
+- pytest contract tests pass.
+
+Boundaries:
+
+- no gate behavior change;
+- no cloud/API/network behavior;
+- no model runtime;
+- no fine-tuning;
+- no compliance certification claim.
+
 ## 0.1.1 - README Flow and Benchmark v0.2
 
 Patch release after the first public basic release.
