@@ -171,6 +171,7 @@ middleware-style usage.
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
 - [Contract](docs/contract.md)
 - [Benchmark v0.2](docs/benchmark_v0_2.md)
+- [Five-minute demo script](docs/demo_script_5_min.md)
 - [Integration patterns](docs/integration_patterns.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
