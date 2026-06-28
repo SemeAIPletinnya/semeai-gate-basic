@@ -80,18 +80,15 @@ python examples\middleware_boundary.py
 node examples\middleware_boundary.js
 ```
 
-Core host-app rule:
+Core host-app branch:
 
 ```python
-customer_response = ai_answer if gate_result["show_to_user"] else gate_result["safe_fallback"]
-```
-
-Or branch by action:
-
-```text
-SHOW   -> show AI answer
-REVIEW -> route to human review
-BLOCK  -> show safe fallback / do not release
+if gate_result["action"] == "SHOW":
+    customer_response = ai_answer
+elif gate_result["action"] == "REVIEW":
+    customer_response = "A support operator should review this answer before release."
+else:
+    customer_response = gate_result["safe_fallback"]
 ```
 
 Use as a local package:

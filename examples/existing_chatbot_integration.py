@@ -27,7 +27,15 @@ gate_result = check_ai_answer(
         "business_risk": "fake_promo_code",
     }
 )
-customer_response = ai_answer if gate_result["show_to_user"] else gate_result["safe_fallback"]
+if gate_result["action"] == "SHOW":
+    customer_response = ai_answer
+    host_next_step = "show_ai_answer"
+elif gate_result["action"] == "REVIEW":
+    customer_response = "A support operator should review this answer before release."
+    host_next_step = "route_to_human_review"
+else:
+    customer_response = gate_result["safe_fallback"]
+    host_next_step = "show_safe_fallback"
 
 print(
     json.dumps(
@@ -35,6 +43,7 @@ print(
             "flow": "existing_chatbot -> semeai_gate -> customer",
             "gate_action": gate_result["action"],
             "internal_decision": gate_result["internal_decision"],
+            "host_next_step": host_next_step,
             "customer_response": customer_response,
             "audit_id": gate_result["audit_id"],
             "audit_preserved": gate_result["audit_preserved"],

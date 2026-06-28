@@ -93,6 +93,11 @@ def check_contract_examples() -> list[str]:
         validate_gate_response(response_example)
     except Exception as exc:  # pragma: no cover - surfaced by CLI output
         errors.append(f"response_block_example.json failed validation: {exc}")
+    if response_example.get("schema_version") != SCHEMA_VERSION:
+        errors.append(
+            "response_block_example.json schema_version mismatch: "
+            f"fixture={response_example.get('schema_version')!r} runtime={SCHEMA_VERSION!r}"
+        )
 
     return errors
 

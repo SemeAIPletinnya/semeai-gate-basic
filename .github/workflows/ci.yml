@@ -27,7 +27,7 @@ jobs:
 
       - name: Python compile
         run: |
-          python -m py_compile semeai_gate_basic\gate.py semeai_gate_basic\__main__.py tools\run_benchmark.py examples\middleware_boundary.py tests\test_gate_basic.py
+          python -m py_compile semeai_gate_basic\gate.py semeai_gate_basic\__main__.py tools\run_benchmark.py tools\check_contract.py examples\existing_chatbot_integration.py examples\middleware_boundary.py tests\test_gate_basic.py
 
       - name: Python tests
         run: |
