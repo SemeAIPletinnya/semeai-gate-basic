@@ -1,14 +1,17 @@
 # SemeAI Gate Basic
 
-SemeAI Gate Basic is a small open-source release-control layer for LLM answers.
+SemeAI Gate Basic stops unsupported AI answers before they reach users.
 
-It sits between an existing chatbot and the user:
+It is a small local release-control layer for existing LLM/chatbot products.
+The host product sends:
 
-```text
-user message -> LLM answer -> SemeAI Gate -> SHOW / REVIEW / BLOCK
-```
+- `user_message`
+- `ai_answer`
+- `business_data`
+- `business_rules`
+- optional `business_context`
 
-The public business actions map to canonical internal release decisions:
+The gate returns one business action:
 
 ```text
 SHOW   = PROCEED
@@ -19,35 +22,44 @@ BLOCK  = SILENCE
 `SILENCE` means release denied, execution withheld, and audit preserved. It does
 not mean deletion.
 
-## What This Basic Version Includes
+## Why
 
-- Python package: `semeai_gate_basic`
-- Node SDK: `sdks/node`
-- JSON schema: `schemas/semeai_gate_v0_1.json`
-- 115 deterministic benchmark cases
-- Local hash-only receipts
-- Examples for fake promo code, context drift, and existing chatbot integration
-- No cloud dependency
-- No external LLM API
-- No private SemeAI memory/archive data
+Production chatbots can confidently invent:
 
-## Quickstart
+- promo codes that do not exist;
+- unsupported account or product terms;
+- unsupported financial claims;
+- unsafe operational actions;
+- answers that drift away from the current business conversation.
 
-```powershell
-cd semeai-gate-basic
-python -m pytest
-python tools\run_benchmark.py
-python examples\fake_promo_code.py
-node examples\fake_promo_code.js
+SemeAI Gate Basic treats the AI answer as a candidate, not a released answer.
+
+```text
+User Message
+-> AI Answer
+-> SemeAI Gate
+-> SHOW / REVIEW / BLOCK
+-> User, Reviewer, or Safe Fallback
+-> Receipt
 ```
 
-## Python Example
+## Python Quickstart
+
+```powershell
+cd "D:\SemeAi\from git\semeai-gate-basic"
+python examples\fake_promo_code.py
+python examples\context_drift.py
+python examples\existing_chatbot_integration.py
+python -m pytest
+```
+
+Use as a local package:
 
 ```python
 from semeai_gate_basic import check_ai_answer
 
 result = check_ai_answer({
-    "user_message": "Give me a 30% discount promo code for my account.",
+    "user_message": "Give me a 30% discount promo code.",
     "ai_answer": "Use promo code SAVE30 to get 30% off.",
     "business_data": {"active_promo_codes": []},
     "business_rules": {"only_show_confirmed_promos": True},
@@ -57,37 +69,80 @@ result = check_ai_answer({
 print(result["action"])  # BLOCK
 ```
 
-## Contract
+## Node Quickstart
 
-Input fields:
+```powershell
+cd "D:\SemeAi\from git\semeai-gate-basic"
+node examples\fake_promo_code.js
+```
 
-- `user_message`
-- `ai_answer`
-- `business_data`
-- `business_rules`
-- `business_context`
-- `hidden_context_marker`
-- `expected_answer_scope`
-- `business_risk`
-- `metadata`
+## Local CLI
 
-Output fields:
+```powershell
+type examples\fake_promo_code.json | python -m semeai_gate_basic
+```
 
-- `schema_version`
-- `action`
-- `internal_decision`
-- `show_to_user`
-- `reason`
-- `business_risk`
-- `context_integrity`
-- `risk_details`
-- `next_step`
-- `audit_id`
-- `audit_preserved`
-- `safe_fallback`
+## Benchmark
 
-## Non-Claims
+```powershell
+python tools\run_benchmark.py
+```
 
-This basic repo is not a foundation model, not AGI, not a certified compliance
-product, not a production SLA, and not universal hallucination detection. It is
-a compact release-control contract and demo implementation.
+The benchmark is deterministic and local. It does not call an LLM, cloud API,
+network service, or external telemetry.
+
+## Static Demo
+
+Open this file in a browser:
+
+```text
+demo/index.html
+```
+
+The demo is intentionally static and local. It shows:
+
+```text
+User Message -> AI Answer -> Business Data -> SemeAI Gate -> SHOW / REVIEW / BLOCK -> Receipt
+```
+
+The integration example shows the intended product wedge:
+
+```text
+existing chatbot -> SemeAI Gate -> customer response or safe fallback
+```
+
+## Publish / SaaS Path
+
+- [GitHub publish checklist](docs/github_publish_checklist.md)
+- [Basic audit v0.1](docs/basic_audit_v0_1.md)
+- [Why SaaS comes later](docs/saas_later.md)
+- [License decision](docs/license_options.md)
+- [Release checklist v0.1](docs/release_checklist_v0_1.md)
+
+## What This Is Not
+
+SemeAI Gate Basic is not:
+
+- a foundation model;
+- a chatbot replacement;
+- AGI;
+- a cloud service;
+- a compliance certification;
+- universal hallucination detection;
+- a replacement for human review.
+
+It is a small release-control adapter for AI answers.
+
+## Core Invariants
+
+- Generation is not release authority.
+- Candidate output is not a released answer.
+- Business action values are `SHOW`, `REVIEW`, `BLOCK`.
+- Internal canonical values are `PROCEED`, `NEEDS_REVIEW`, `SILENCE`.
+- Machine payload values must not be translated.
+- Raw prompt/answer text is not stored in receipts by default.
+- `SILENCE` suppresses release and preserves audit.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).

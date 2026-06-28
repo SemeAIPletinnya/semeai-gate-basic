@@ -5,17 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "semeai-gate-basic"
 version = "0.1.0"
-description = "Basic local release-control gate for LLM answers: SHOW / REVIEW / BLOCK."
-readme = "README.md"
+description = "Local release-control gate for AI answers"
 requires-python = ">=3.10"
 authors = [{ name = "SemeAI" }]
-license = { file = "LICENSE" }
-keywords = ["llm", "guardrails", "release-control", "ai-safety", "audit"]
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Topic :: Software Development :: Libraries :: Python Modules"
-]
+readme = "README.md"
+license = { text = "Apache-2.0" }
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--basetemp=.pytest_tmp"

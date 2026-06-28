@@ -1,34 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://local.semeai/schema/semeai_gate_v0_1.json",
-  "title": "SemeAI Gate Business Contract v0.1",
-  "description": "Versioned local contract for a host product to submit an AI answer for release control.",
+  "$id": "https://local.semeai/schema/semeai_gate_basic_v0_1.json",
+  "title": "SemeAI Gate Basic Contract v0.1",
   "$defs": {
     "request": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "user_message",
-        "ai_answer",
-        "business_data",
-        "business_rules",
-        "business_risk"
-      ],
+      "required": ["user_message", "ai_answer", "business_data", "business_rules", "business_risk"],
       "properties": {
         "user_message": { "type": "string", "minLength": 1 },
         "ai_answer": { "type": "string", "minLength": 1 },
-        "business_data": {
-          "oneOf": [
-            { "type": "object" },
-            { "type": "array" }
-          ]
-        },
+        "business_data": { "oneOf": [{ "type": "object" }, { "type": "array" }] },
         "business_rules": { "type": "object" },
         "business_context": { "type": "object" },
-        "hidden_context_marker": {
-          "type": "string",
-          "description": "Deterministic internal context hint. It is not a user-facing secret."
-        },
         "expected_answer_scope": { "type": "string" },
         "business_risk": { "type": "string", "minLength": 1 },
         "metadata": { "type": "object" }
@@ -58,31 +42,13 @@
         "reason": { "type": "string" },
         "business_risk": { "type": "string" },
         "context_integrity": { "enum": ["ok", "warning", "failed"] },
-        "risk_details": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
+        "risk_details": { "type": "array", "items": { "type": "string" } },
         "next_step": { "type": "string" },
-        "audit_id": { "type": ["string", "null"] },
-        "audit_preserved": { "type": "boolean" },
+        "audit_id": { "type": "string" },
+        "audit_preserved": { "const": true },
         "safe_fallback": { "type": ["string", "null"] },
         "technical_details": { "type": "object" }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "action": { "const": "SHOW" } } },
-          "then": {
-            "properties": {
-              "internal_decision": { "const": "PROCEED" },
-              "show_to_user": { "const": true }
-            }
-          }
-        },
-        {
-          "if": { "properties": { "action": { "enum": ["REVIEW", "BLOCK"] } } },
-          "then": { "properties": { "show_to_user": { "const": false } } }
-        }
-      ]
+      }
     }
   }
 }

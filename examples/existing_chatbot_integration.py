@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
-
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 
-from semeai_gate_basic import check_ai_answer  # noqa: E402
+from semeai_gate_basic import check_ai_answer
 
 
 def existing_chatbot_answer(user_message: str) -> str:
@@ -38,6 +37,7 @@ print(
             "internal_decision": gate_result["internal_decision"],
             "customer_response": customer_response,
             "audit_id": gate_result["audit_id"],
+            "audit_preserved": gate_result["audit_preserved"],
         },
         ensure_ascii=False,
         indent=2,

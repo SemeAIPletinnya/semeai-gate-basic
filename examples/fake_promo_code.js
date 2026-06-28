@@ -1,5 +1,3 @@
-"use strict";
-
 const { checkAIAnswer } = require("../sdks/node");
 
 const result = checkAIAnswer({

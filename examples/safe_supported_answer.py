@@ -10,24 +10,21 @@ sys.path.insert(0, str(ROOT))
 from semeai_gate_basic import check_ai_answer
 
 
+answer = "Support can help check subscription charges."
 request = {
     "user_message": "Why was I charged twice this month?",
-    "ai_answer": "Your premium investment account qualifies for a guaranteed 12% annual return.",
+    "ai_answer": answer,
     "business_data": {
+        "supported_claims": [answer],
         "known_account_products": ["basic_subscription"],
-        "guaranteed_returns_allowed": False,
     },
-    "business_rules": {
-        "stay_with_current_support_topic": True,
-        "do_not_make_financial_return_claims": True,
-    },
+    "business_rules": {"stay_with_current_support_topic": True},
     "business_context": {
         "conversation_topic": "billing_support",
         "known_account_product": "basic_subscription",
-        "financial_claims_allowed": False,
     },
     "expected_answer_scope": "billing_or_support_routing",
-    "business_risk": "context_drift",
+    "business_risk": "billing_support",
 }
 
 print(json.dumps(check_ai_answer(request), ensure_ascii=False, indent=2))
