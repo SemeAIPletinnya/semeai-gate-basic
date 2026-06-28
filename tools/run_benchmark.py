@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
 
 from semeai_gate_basic import check_ai_answer
 
-CASES_PATH = ROOT / "benchmarks" / "gate_cases_v0_2.jsonl"
+CASES_PATH = ROOT / "benchmarks" / "gate_cases_v0_3.jsonl"
 OUTPUT_DIR = ROOT / "outputs" / "benchmarks"
 
 
@@ -51,7 +51,7 @@ def run_benchmark(cases: list[dict]) -> dict:
     passed_count = sum(1 for row in rows if row["passed"])
     latencies = sorted(row["latency_ms"] for row in rows)
     return {
-        "benchmark_version": "semeai_gate_basic_benchmark_v0.2",
+        "benchmark_version": "semeai_gate_basic_benchmark_v0.3",
         "case_count": len(rows),
         "passed": passed_count,
         "failed": len(rows) - passed_count,

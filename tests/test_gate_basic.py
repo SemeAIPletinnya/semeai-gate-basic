@@ -163,7 +163,7 @@ def test_receipts_do_not_store_raw_text_by_default(tmp_path: Path) -> None:
 
 def test_benchmark_passes() -> None:
     report = run_benchmark(load_cases())
-    assert report["case_count"] >= 50
+    assert report["case_count"] >= 100
     assert report["failed"] == 0
     assert report["accuracy"] == 1.0
 
