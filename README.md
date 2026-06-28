@@ -174,6 +174,7 @@ middleware-style usage.
 - [Five-minute demo script](docs/demo_script_5_min.md)
 - [Integration patterns](docs/integration_patterns.md)
 - [Integration readiness checklist](docs/integration_checklist.md)
+- [Pilot playbook](docs/pilot_playbook.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)
