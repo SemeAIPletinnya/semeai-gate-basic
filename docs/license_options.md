@@ -8,6 +8,12 @@ This file is not legal advice. It is a product/release checklist.
 
 Apache-2.0 is included in [../LICENSE](../LICENSE).
 
+Copyright notice:
+
+```text
+Copyright 2026 Anton Semenenko / SemeAI
+```
+
 Reason:
 
 - permissive open-source distribution;

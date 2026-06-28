@@ -46,7 +46,8 @@ User Message
 ## Python Quickstart
 
 ```powershell
-cd "D:\SemeAi\from git\semeai-gate-basic"
+git clone https://github.com/SemeAIPletinnya/semeai-gate-basic.git
+cd semeai-gate-basic
 python examples\fake_promo_code.py
 python examples\context_drift.py
 python examples\existing_chatbot_integration.py
@@ -72,7 +73,7 @@ print(result["action"])  # BLOCK
 ## Node Quickstart
 
 ```powershell
-cd "D:\SemeAi\from git\semeai-gate-basic"
+cd semeai-gate-basic
 node examples\fake_promo_code.js
 ```
 
@@ -145,4 +146,5 @@ It is a small release-control adapter for AI answers.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Apache License 2.0. Copyright 2026 Anton Semenenko / SemeAI.
+See [LICENSE](LICENSE).
