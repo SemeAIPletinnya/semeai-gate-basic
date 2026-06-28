@@ -39,7 +39,9 @@ Run the local examples:
 
 ```powershell
 python examples\existing_chatbot_integration.py
+python examples\middleware_boundary.py
 node examples\existing_chatbot_integration.js
+node examples\middleware_boundary.js
 ```
 
 ## Pattern 2: Middleware Boundary
@@ -60,6 +62,22 @@ The host product should:
 - route to review when `action == "REVIEW"`;
 - block and use a safe fallback when `action == "BLOCK"`;
 - keep `audit_id` and receipt metadata for later inspection.
+
+Minimal host-app branch:
+
+```python
+if gate_result["action"] == "SHOW":
+    customer_response = ai_answer
+elif gate_result["action"] == "REVIEW":
+    customer_response = "A support operator should review this answer before release."
+else:
+    customer_response = gate_result["safe_fallback"]
+```
+
+The runnable examples are:
+
+- `examples/middleware_boundary.py`
+- `examples/middleware_boundary.js`
 
 ## Pattern 3: Context Integrity Check
 

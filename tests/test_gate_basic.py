@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from semeai_gate_basic import ACTION_TO_INTERNAL, check_ai_answer, validate_gate_response
+from examples.middleware_boundary import release_to_customer
 from tools.check_contract import check_contract_examples, check_schema_alignment, load_json
 from tools.run_benchmark import load_cases, run_benchmark
 
@@ -127,6 +128,17 @@ def test_machine_mapping_is_stable() -> None:
         "REVIEW": "NEEDS_REVIEW",
         "BLOCK": "SILENCE",
     }
+
+
+def test_middleware_boundary_blocks_fake_promo(tmp_path: Path) -> None:
+    result = release_to_customer("Give me a 30% discount promo code for my account.", receipt_dir=tmp_path)
+
+    assert result["boundary"] == "existing_chatbot -> semeai_gate -> customer"
+    assert result["gate_action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
+    assert result["show_to_user"] is False
+    assert result["host_next_step"] == "show_safe_fallback"
+    assert result["audit_preserved"] is True
 
 
 def test_receipts_do_not_store_raw_text_by_default(tmp_path: Path) -> None:
