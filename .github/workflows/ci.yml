@@ -2,9 +2,10 @@ name: ci
 
 on:
   push:
-    branches: ["main"]
+    branches: ["master", "main"]
   pull_request:
-    branches: ["main"]
+    branches: ["master", "main"]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -19,6 +20,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip pytest
 
       - name: Python compile
         run: |
