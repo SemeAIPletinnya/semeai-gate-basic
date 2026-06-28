@@ -65,6 +65,35 @@ python examples\existing_chatbot_integration.py
 python -m pytest
 ```
 
+## Copy-Paste Middleware Boundary
+
+This is the intended B2B shape:
+
+```text
+existing chatbot -> SemeAI Gate -> customer response or safe fallback
+```
+
+Run the smallest middleware-style examples:
+
+```powershell
+python examples\middleware_boundary.py
+node examples\middleware_boundary.js
+```
+
+Core host-app rule:
+
+```python
+customer_response = ai_answer if gate_result["show_to_user"] else gate_result["safe_fallback"]
+```
+
+Or branch by action:
+
+```text
+SHOW   -> show AI answer
+REVIEW -> route to human review
+BLOCK  -> show safe fallback / do not release
+```
+
 Use as a local package:
 
 ```python
@@ -87,6 +116,7 @@ print(result["action"])  # BLOCK
 cd semeai-gate-basic
 node examples\fake_promo_code.js
 node examples\existing_chatbot_integration.js
+node examples\middleware_boundary.js
 ```
 
 ## Local CLI
