@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.1.3 - Middleware Quickstart and Contract Hardening
+
+Patch release after v0.1.2.
+
+Added:
+
+- copy-paste middleware boundary quickstart;
+- runnable Python middleware boundary example;
+- runnable Node middleware boundary example;
+- CI coverage for the middleware boundary example.
+
+Fixed:
+
+- `REVIEW` routing is now shown as a human-review path instead of falling
+  through to the `BLOCK` safe-fallback path in copy-paste examples;
+- contract checker now rejects stale `schema_version` values in the response
+  fixture.
+
+Validated:
+
+- GitHub Actions CI passes on `master`;
+- contract checker passes;
+- benchmark v0.2 passes 50/50 cases with accuracy 1.0;
+- pytest contract tests pass;
+- Python and Node middleware examples return `BLOCK / SILENCE` with a safe
+  fallback for the fake promo-code case.
+
+Boundaries:
+
+- no gate behavior change;
+- no cloud/API/network behavior;
+- no model runtime;
+- no fine-tuning;
+- no compliance certification claim.
+
 ## 0.1.2 - Integration Contract Fixtures
 
 Patch release after v0.1.1.
