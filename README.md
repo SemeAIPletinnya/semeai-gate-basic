@@ -100,8 +100,10 @@ type examples\fake_promo_code.json | python -m semeai_gate_basic
 python tools\run_benchmark.py
 ```
 
-The benchmark is deterministic and local. It does not call an LLM, cloud API,
-network service, or external telemetry.
+The benchmark is deterministic and local. Current v0.2 coverage includes 50
+cases across fake promo codes, unsupported claims, unsafe actions, context
+drift, account-product mismatch, and safe supported answers. It does not call
+an LLM, cloud API, network service, or external telemetry.
 
 ## Static Demo
 
@@ -127,6 +129,7 @@ existing chatbot -> SemeAI Gate -> customer response or safe fallback
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
+- [Benchmark v0.2](docs/benchmark_v0_2.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)
