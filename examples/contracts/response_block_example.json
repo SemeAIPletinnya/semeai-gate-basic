@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.1",
+  "action": "BLOCK",
+  "internal_decision": "SILENCE",
+  "show_to_user": false,
+  "reason": "The promo code SAVE30 is not found in business data.",
+  "business_risk": "fake_promo_code",
+  "context_integrity": "ok",
+  "risk_details": [
+    "promo_code_not_confirmed",
+    "unsupported_code:SAVE30"
+  ],
+  "next_step": "Do not show this answer. Show a safe fallback or transfer to a human operator.",
+  "audit_id": "example_audit_id",
+  "audit_preserved": true,
+  "safe_fallback": "I can't confirm that promo code from current business data. Please check current offers or contact support."
+}
