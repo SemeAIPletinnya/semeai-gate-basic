@@ -92,6 +92,34 @@ def test_context_drift_blocks_financial_claim_in_billing_context(tmp_path: Path)
     assert "unsupported_financial_claim" in result["risk_details"]
 
 
+def test_account_product_mismatch_blocks_even_when_claim_is_supported(tmp_path: Path) -> None:
+    supported_wrong_product_claim = "Your premium account billing charge is waived."
+    result = check_ai_answer(
+        {
+            "user_message": "Why was I charged twice this month?",
+            "ai_answer": supported_wrong_product_claim,
+            "business_data": {
+                "known_account_products": ["basic_subscription"],
+                "supported_claims": [supported_wrong_product_claim],
+            },
+            "business_rules": {"stay_with_current_support_topic": True},
+            "business_context": {
+                "conversation_topic": "billing_support",
+                "known_account_product": "basic_subscription",
+            },
+            "expected_answer_scope": "billing_or_support_routing",
+            "business_risk": "billing_support",
+        },
+        receipt_dir=tmp_path,
+    )
+
+    assert result["action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
+    assert result["context_integrity"] == "failed"
+    assert "business_context_mismatch" in result["risk_details"]
+    assert "account_product_mismatch" in result["risk_details"]
+
+
 def test_machine_mapping_is_stable() -> None:
     assert ACTION_TO_INTERNAL == {
         "SHOW": "PROCEED",

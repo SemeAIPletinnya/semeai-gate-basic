@@ -215,8 +215,13 @@ def _evaluate_context_integrity(request: dict[str, Any]) -> dict[str, Any]:
         billing_terms = ("charge", "charged", "billing", "invoice", "payment", "refund", "subscription", "support")
         promo_terms = ("promo code", "discount code", "promotion")
         finance_terms = ("investment", "annual return", "guaranteed return", "fixed return", "yield", "profit", "portfolio", "risk free", "risk-free", "cannot lose")
+        known_products = _known_account_products(request)
+        mentioned_products = _mentioned_account_products(answer)
         if any(term in answer for term in finance_terms):
             risk_details.append("unsupported_financial_claim")
+            severe = True
+        if known_products and mentioned_products and not mentioned_products.issubset(known_products):
+            risk_details.extend(["business_context_mismatch", "account_product_mismatch"])
             severe = True
         if any(term in answer for term in promo_terms) or not any(term in answer for term in billing_terms):
             risk_details.append("context_drift")
@@ -335,6 +340,61 @@ def _contains_unsafe_action(text: str) -> bool:
         "delete production",
     )
     return any(term in lowered for term in terms)
+
+
+def _known_account_products(request: dict[str, Any]) -> set[str]:
+    products: set[str] = set()
+    context = request.get("business_context") if isinstance(request.get("business_context"), dict) else {}
+    data = request.get("business_data") if isinstance(request.get("business_data"), dict) else {}
+
+    for key in ("known_account_product", "current_account_product", "account_product"):
+        products.update(_product_aliases(context.get(key)))
+        products.update(_product_aliases(data.get(key)))
+
+    for key in ("known_account_products", "current_account_products", "account_products"):
+        products.update(_product_aliases_from_iterable(context.get(key)))
+        products.update(_product_aliases_from_iterable(data.get(key)))
+
+    return products
+
+
+def _mentioned_account_products(normalized_answer: str) -> set[str]:
+    product_patterns = {
+        "basic_subscription": ("basic account", "basic plan", "basic product", "basic subscription"),
+        "premium_account": ("premium account", "premium plan", "premium product", "premium subscription"),
+        "enterprise_account": ("enterprise account", "enterprise plan", "enterprise product", "enterprise subscription"),
+        "investment_account": ("investment account", "investment plan", "investment product", "investment subscription"),
+    }
+    return {
+        product
+        for product, patterns in product_patterns.items()
+        if any(pattern in normalized_answer for pattern in patterns)
+    }
+
+
+def _product_aliases_from_iterable(value: Any) -> set[str]:
+    if not isinstance(value, list):
+        return set()
+    aliases: set[str] = set()
+    for item in value:
+        aliases.update(_product_aliases(item))
+    return aliases
+
+
+def _product_aliases(value: Any) -> set[str]:
+    normalized = _normalize_text(str(value or ""))
+    aliases: set[str] = set()
+    if not normalized:
+        return aliases
+    if "basic" in normalized:
+        aliases.add("basic_subscription")
+    if "premium" in normalized:
+        aliases.add("premium_account")
+    if "enterprise" in normalized:
+        aliases.add("enterprise_account")
+    if "investment" in normalized:
+        aliases.add("investment_account")
+    return aliases
 
 
 def _next_step(action: str, risk: str) -> str:
