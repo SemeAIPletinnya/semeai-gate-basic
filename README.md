@@ -173,6 +173,7 @@ middleware-style usage.
 - [Benchmark v0.2](docs/benchmark_v0_2.md)
 - [Five-minute demo script](docs/demo_script_5_min.md)
 - [Integration patterns](docs/integration_patterns.md)
+- [Integration readiness checklist](docs/integration_checklist.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)
