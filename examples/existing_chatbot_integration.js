@@ -18,12 +18,24 @@ const gateResult = checkAIAnswer({
   business_risk: "fake_promo_code"
 });
 
-const customerResponse = gateResult.show_to_user ? aiAnswer : gateResult.safe_fallback;
+let customerResponse;
+let hostNextStep;
+if (gateResult.action === "SHOW") {
+  customerResponse = aiAnswer;
+  hostNextStep = "show_ai_answer";
+} else if (gateResult.action === "REVIEW") {
+  customerResponse = "A support operator should review this answer before release.";
+  hostNextStep = "route_to_human_review";
+} else {
+  customerResponse = gateResult.safe_fallback;
+  hostNextStep = "show_safe_fallback";
+}
 
 console.log(JSON.stringify({
   flow: "existing_chatbot -> semeai_gate -> customer",
   gate_action: gateResult.action,
   internal_decision: gateResult.internal_decision,
+  host_next_step: hostNextStep,
   customer_response: customerResponse,
   audit_id: gateResult.audit_id,
   audit_preserved: gateResult.audit_preserved

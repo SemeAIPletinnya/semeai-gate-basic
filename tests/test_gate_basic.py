@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from semeai_gate_basic import ACTION_TO_INTERNAL, check_ai_answer, validate_gate_response
+import tools.check_contract as contract_checker
+from semeai_gate_basic import ACTION_TO_INTERNAL, SCHEMA_VERSION, check_ai_answer, validate_gate_response
 from examples.middleware_boundary import release_to_customer
 from tools.check_contract import check_contract_examples, check_schema_alignment, load_json
 from tools.run_benchmark import load_cases, run_benchmark
@@ -171,3 +172,21 @@ def test_contract_schema_and_examples_stay_aligned() -> None:
     schema = load_json(Path("schemas/semeai_gate_v0_1.json"))
     assert check_schema_alignment(schema) == []
     assert check_contract_examples() == []
+
+
+def test_contract_checker_rejects_stale_response_fixture_schema_version(tmp_path: Path, monkeypatch) -> None:
+    source_dir = Path("examples/contracts")
+    for source in source_dir.glob("*.json"):
+        target = tmp_path / source.name
+        target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+    response_path = tmp_path / "response_block_example.json"
+    response = json.loads(response_path.read_text(encoding="utf-8"))
+    assert response["schema_version"] == SCHEMA_VERSION
+    response["schema_version"] = "stale"
+    response_path.write_text(json.dumps(response, indent=2), encoding="utf-8")
+
+    monkeypatch.setattr(contract_checker, "CONTRACT_EXAMPLES", tmp_path)
+
+    errors = check_contract_examples()
+    assert any("response_block_example.json schema_version mismatch" in error for error in errors)
