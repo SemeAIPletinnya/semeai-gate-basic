@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SemeAI Gate SaaS-Visible Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070a0f;
+        --panel: #101720;
+        --panel-soft: #151d28;
+        --line: #273443;
+        --text: #eef6f8;
+        --muted: #9dacb8;
+        --green: #39d98a;
+        --amber: #efc14f;
+        --red: #ff6574;
+        --cyan: #25d7d7;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% -10%, rgba(37, 215, 215, 0.16), transparent 34rem),
+          radial-gradient(circle at 88% 0%, rgba(57, 217, 138, 0.09), transparent 30rem),
+          var(--bg);
+      }
+
+      .shell {
+        width: min(1220px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 40px;
+      }
+
+      .topbar,
+      .hero,
+      .panel,
+      .result {
+        border: 1px solid var(--line);
+        background: rgba(16, 23, 32, 0.92);
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px 15px;
+        border-radius: 14px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-weight: 850;
+      }
+
+      .logo {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(37, 215, 215, 0.55);
+        border-radius: 10px;
+        color: var(--cyan);
+        background: rgba(37, 215, 215, 0.08);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 4px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.03);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .badge.green { color: var(--green); border-color: rgba(57, 217, 138, 0.44); }
+      .badge.cyan { color: var(--cyan); border-color: rgba(37, 215, 215, 0.44); }
+      .badge.red { color: var(--red); border-color: rgba(255, 101, 116, 0.44); }
+
+      .hero {
+        margin-top: 18px;
+        padding: 28px;
+        border-radius: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(32px, 5vw, 58px);
+        line-height: 1.02;
+        letter-spacing: 0;
+      }
+
+      .hero p {
+        max-width: 820px;
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .panel,
+      .result {
+        border-radius: 16px;
+        padding: 16px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .section-title h2 {
+        margin: 0;
+        font-size: 17px;
+      }
+
+      label {
+        display: block;
+        margin: 13px 0 7px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      textarea,
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        color: var(--text);
+        background: rgba(7, 10, 15, 0.72);
+        font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+        resize: vertical;
+      }
+
+      textarea:focus,
+      input:focus {
+        outline: 1px solid rgba(37, 215, 215, 0.58);
+        border-color: rgba(37, 215, 215, 0.58);
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 11px 16px;
+        color: #04100b;
+        background: linear-gradient(135deg, var(--green), var(--cyan));
+        font-weight: 850;
+        cursor: pointer;
+      }
+
+      .secondary {
+        color: var(--text);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .result {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+
+      .action {
+        font-size: 48px;
+        line-height: 1;
+        font-weight: 950;
+      }
+
+      .action.BLOCK { color: var(--red); }
+      .action.REVIEW { color: var(--amber); }
+      .action.SHOW { color: var(--green); }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 8px 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        font-size: 13px;
+      }
+
+      .kv .k { color: var(--muted); }
+
+      pre {
+        overflow: auto;
+        max-height: 360px;
+        margin: 0;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: #d9fbff;
+        background: #070a0f;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 900px) {
+        .grid { grid-template-columns: 1fr; }
+        .kv { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">SG</div>
+          <div>
+            SemeAI Gate
+            <div class="note">SaaS-visible demo shell</div>
+          </div>
+        </div>
+        <div class="flow">
+          <span class="badge green">Local static demo</span>
+          <span class="badge cyan">No backend</span>
+          <span class="badge red">No customer data stored</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <h1>Check an AI answer before release.</h1>
+        <p>
+          This mockup shows what a future hosted SemeAI Gate console could feel
+          like: paste the user message, AI answer, business data, and business
+          rules; then get a business action: SHOW, REVIEW, or BLOCK.
+        </p>
+        <div class="flow">
+          <span class="badge">User message</span>
+          <span class="badge">AI answer</span>
+          <span class="badge">Business data</span>
+          <span class="badge">SemeAI Gate</span>
+          <span class="badge">SHOW / REVIEW / BLOCK</span>
+          <span class="badge">Audit id</span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Gate Request</h2>
+            <span class="badge">schema v0.1 shape</span>
+          </div>
+
+          <label for="userMessage">User Message</label>
+          <textarea id="userMessage" rows="2">Give me a 30% discount promo code for my account.</textarea>
+
+          <label for="aiAnswer">AI Answer</label>
+          <textarea id="aiAnswer" rows="3">Use promo code SAVE30 to get 30% off.</textarea>
+
+          <label for="businessData">Business Data JSON</label>
+          <textarea id="businessData" rows="5">{
+  "active_promo_codes": []
+}</textarea>
+
+          <label for="businessRules">Business Rules JSON</label>
+          <textarea id="businessRules" rows="5">{
+  "only_show_confirmed_promos": true
+}</textarea>
+
+          <label for="businessRisk">Business Risk</label>
+          <input id="businessRisk" value="fake_promo_code" />
+
+          <div class="actions">
+            <button id="runGate">Run Gate</button>
+            <button class="secondary" id="loadSafe">Load SHOW Example</button>
+            <button class="secondary" id="loadReview">Load REVIEW Example</button>
+          </div>
+
+          <p class="note">
+            This page is intentionally static. It demonstrates the product
+            shape, not a hosted SaaS backend. The real basic contract lives in
+            the Python/Node package. Machine values like SHOW, REVIEW, BLOCK,
+            PROCEED, NEEDS_REVIEW, and SILENCE are intentionally not translated.
+          </p>
+        </div>
+
+        <aside class="result">
+          <div class="section-title">
+            <h2>Gate Result</h2>
+            <span class="badge green">audit preserved</span>
+          </div>
+          <div class="action BLOCK" id="action">BLOCK</div>
+          <div class="kv">
+            <div class="k">Internal decision</div><div id="internal">SILENCE</div>
+            <div class="k">Show to user</div><div id="show">false</div>
+            <div class="k">Context integrity</div><div id="context">ok</div>
+            <div class="k">Next step</div><div id="next">Do not show this answer. Show a safe fallback.</div>
+            <div class="k">Audit id</div><div id="audit">demo_audit_id</div>
+          </div>
+
+          <div>
+            <label>Reason</label>
+            <pre id="reason">The promo code SAVE30 is not found in business data.</pre>
+          </div>
+
+          <div>
+            <label>Response JSON</label>
+            <pre id="json"></pre>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const ACTION_TO_INTERNAL = {
+        SHOW: "PROCEED",
+        REVIEW: "NEEDS_REVIEW",
+        BLOCK: "SILENCE"
+      };
+
+      function parseJson(id) {
+        try {
+          return JSON.parse(document.getElementById(id).value);
+        } catch {
+          return {};
+        }
+      }
+
+      function auditId(seed) {
+        let hash = 0;
+        for (let i = 0; i < seed.length; i += 1) {
+          hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+        }
+        return `demo_${Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8)}`;
+      }
+
+      function promoCodes(text) {
+        return (text.match(/\b[A-Z][A-Z0-9_-]{3,}\b/g) || [])
+          .filter((code) => !["PROMO", "CODE", "SAVE"].includes(code));
+      }
+
+      function supportedClaim(answer, data) {
+        const claims = data.supported_claims || data.confirmed_claims || [];
+        return claims.some((claim) => answer.toLowerCase().includes(String(claim).toLowerCase()));
+      }
+
+      function runGate() {
+        const userMessage = document.getElementById("userMessage").value.trim();
+        const aiAnswer = document.getElementById("aiAnswer").value.trim();
+        const data = parseJson("businessData");
+        const rules = parseJson("businessRules");
+        const risk = document.getElementById("businessRisk").value.trim() || "unspecified_business_risk";
+
+        let action = "REVIEW";
+        let reason = "The AI answer is not clearly supported by supplied business data.";
+        let riskDetails = ["support_not_confirmed"];
+        let safeFallback = "I can't safely confirm this answer. Please contact a human operator.";
+
+        if (risk === "fake_promo_code") {
+          const codes = promoCodes(aiAnswer);
+          const active = new Set((data.active_promo_codes || []).map((code) => String(code).toUpperCase()));
+          const unsupported = codes.filter((code) => !active.has(code));
+          if (unsupported.length && rules.only_show_confirmed_promos !== false) {
+            action = "BLOCK";
+            reason = `The promo code ${unsupported[0]} is not found in business data.`;
+            riskDetails = ["promo_code_not_confirmed", `unsupported_code:${unsupported[0]}`];
+            safeFallback = "I can't confirm that promo code from current business data. Please check current offers or contact support.";
+          } else if (codes.length && !unsupported.length) {
+            action = "SHOW";
+            reason = "The promo code is confirmed by supplied business data.";
+            riskDetails = [];
+            safeFallback = null;
+          }
+        } else if (risk === "unsupported_product_claim" || risk === "unsupported_financial_claim") {
+          if (supportedClaim(aiAnswer, data)) {
+            action = "SHOW";
+            reason = "The AI answer is supported by supplied business data.";
+            riskDetails = [];
+            safeFallback = null;
+          }
+        }
+
+        const internal = ACTION_TO_INTERNAL[action];
+        const result = {
+          schema_version: "0.1",
+          action,
+          internal_decision: internal,
+          show_to_user: action === "SHOW",
+          reason,
+          business_risk: risk,
+          context_integrity: "ok",
+          risk_details: riskDetails,
+          next_step:
+            action === "SHOW"
+              ? "Show the AI answer to the user."
+              : action === "REVIEW"
+                ? "Do not auto-release. Send the answer to a human operator or reviewer."
+                : "Do not show this answer. Show a safe fallback or transfer to a human operator.",
+          audit_id: auditId(`${userMessage}|${aiAnswer}|${action}`),
+          audit_preserved: true,
+          safe_fallback: safeFallback
+        };
+
+        render(result);
+      }
+
+      function render(result) {
+        const actionEl = document.getElementById("action");
+        actionEl.textContent = result.action;
+        actionEl.className = `action ${result.action}`;
+        document.getElementById("internal").textContent = result.internal_decision;
+        document.getElementById("show").textContent = String(result.show_to_user);
+        document.getElementById("context").textContent = result.context_integrity;
+        document.getElementById("next").textContent = result.next_step;
+        document.getElementById("audit").textContent = result.audit_id;
+        document.getElementById("reason").textContent = result.reason;
+        document.getElementById("json").textContent = JSON.stringify(result, null, 2);
+      }
+
+      document.getElementById("runGate").addEventListener("click", runGate);
+      document.getElementById("loadSafe").addEventListener("click", () => {
+        document.getElementById("userMessage").value = "Can I use SAVE30?";
+        document.getElementById("aiAnswer").value = "Use promo code SAVE30 to get 30% off.";
+        document.getElementById("businessData").value = '{\n  "active_promo_codes": ["SAVE30"]\n}';
+        document.getElementById("businessRules").value = '{\n  "only_show_confirmed_promos": true\n}';
+        document.getElementById("businessRisk").value = "fake_promo_code";
+        runGate();
+      });
+      document.getElementById("loadReview").addEventListener("click", () => {
+        document.getElementById("userMessage").value = "Do I have a discount?";
+        document.getElementById("aiAnswer").value = "A discount may be available for your account.";
+        document.getElementById("businessData").value = '{\n  "active_promo_codes": []\n}';
+        document.getElementById("businessRules").value = '{\n  "only_show_confirmed_promos": true\n}';
+        document.getElementById("businessRisk").value = "fake_promo_code";
+        runGate();
+      });
+      runGate();
+    </script>
+  </body>
+</html>
