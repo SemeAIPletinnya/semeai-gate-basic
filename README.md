@@ -165,6 +165,15 @@ existing chatbot -> SemeAI Gate -> customer response or safe fallback
 See [integration patterns](docs/integration_patterns.md) for wrapper and
 middleware-style usage.
 
+For a SaaS-shaped local mockup, open:
+
+```text
+demo/saas_visible.html
+```
+
+This mockup is static and local. It shows what a future hosted `POST /check`
+console could feel like without adding auth, billing, storage, or a backend.
+
 ## Publish / SaaS Path
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
@@ -178,6 +187,8 @@ middleware-style usage.
 - [Pilot packet](docs/pilot_packet.md)
 - [Pilot playbook](docs/pilot_playbook.md)
 - [Partner outreach templates](docs/partner_outreach_templates.md)
+- [SaaS MVP plan](docs/saas_mvp_plan.md)
+- [SaaS API contract v0.1](docs/saas_api_contract_v0_1.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)
