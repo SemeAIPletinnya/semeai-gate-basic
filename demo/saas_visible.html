@@ -761,9 +761,13 @@
       }
 
       function supportedClaim(answer, data) {
-        const claims = data.supported_claims || data.confirmed_claims || [];
+        const rawClaims = data.supported_claims || data.confirmed_claims || [];
+        const claims = Array.isArray(rawClaims) ? rawClaims : [];
         const normalized = normalizeText(answer);
-        return claims.some((claim) => normalized.includes(normalizeText(claim)));
+        return claims
+          .map((claim) => normalizeText(claim))
+          .filter(Boolean)
+          .some((claim) => normalized.includes(claim));
       }
 
       function containsSevereFinancialClaim(answer) {
