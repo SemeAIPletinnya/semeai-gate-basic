@@ -377,9 +377,49 @@
           .filter((code) => !["PROMO", "CODE", "SAVE"].includes(code));
       }
 
+      function normalizeText(text) {
+        return String(text || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      }
+
+      function containsAny(text, terms) {
+        const normalized = normalizeText(text);
+        return terms.some((term) => normalized.includes(term));
+      }
+
       function supportedClaim(answer, data) {
         const claims = data.supported_claims || data.confirmed_claims || [];
-        return claims.some((claim) => answer.toLowerCase().includes(String(claim).toLowerCase()));
+        const normalized = normalizeText(answer);
+        return claims.some((claim) => normalized.includes(normalizeText(claim)));
+      }
+
+      function containsSevereFinancialClaim(answer) {
+        return containsAny(answer, [
+          "guaranteed return",
+          "annual return",
+          "fixed return",
+          "guaranteed",
+          "investment return",
+          "yield",
+          "profit",
+          "risk free",
+          "risk-free",
+          "cannot lose"
+        ]);
+      }
+
+      function containsUnsafeAction(answer) {
+        return containsAny(answer, [
+          "bypass approval",
+          "skip review",
+          "disable checks",
+          "deploy directly",
+          "force push",
+          "ignore policy",
+          "override gate",
+          "disable monitoring",
+          "rm rf",
+          "delete production"
+        ]);
       }
 
       function runGate() {
@@ -415,7 +455,29 @@
             reason = "The AI answer is supported by supplied business data.";
             riskDetails = [];
             safeFallback = null;
+          } else {
+            const block = Boolean(
+              rules.block_unsupported_claims ||
+              (risk === "unsupported_financial_claim" && rules.block_unsupported_financial_claims) ||
+              (risk === "unsupported_financial_claim" && containsSevereFinancialClaim(aiAnswer))
+            );
+            action = block ? "BLOCK" : "REVIEW";
+            reason = "The AI answer makes a business claim that is not supported by the supplied business data.";
+            riskDetails = ["business_claim_not_supported"];
+            safeFallback = "I can't confirm that account or product condition from current business data. Please contact support.";
           }
+        } else if (risk === "unsafe_action" || containsUnsafeAction(aiAnswer)) {
+          action = "BLOCK";
+          reason = "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
+          riskDetails = ["explicit_approval_required", "unsafe_action"];
+          safeFallback = "This action requires explicit approval. Please contact an authorized operator.";
+        }
+
+        if (action !== "BLOCK" && (risk === "unsafe_action" || containsUnsafeAction(aiAnswer))) {
+          action = "BLOCK";
+          reason = "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
+          riskDetails = ["explicit_approval_required", "unsafe_action"];
+          safeFallback = "This action requires explicit approval. Please contact an authorized operator.";
         }
 
         const internal = ACTION_TO_INTERNAL[action];
