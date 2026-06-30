@@ -225,6 +225,7 @@ It redirects to the SaaS-visible demo and is ready for GitHub Pages.
 - [SaaS API contract v0.1](docs/saas_api_contract_v0_1.md)
 - [SaaS API runtime v0.1](docs/saas_api_runtime_v0_1.md)
 - [api.semeai.tech deployment note](docs/api_semeai_tech_deploy.md)
+- [EasyPanel API deploy](docs/easypanel_api_deploy.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)

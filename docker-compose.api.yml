@@ -1,0 +1,20 @@
+services:
+  semeai-gate-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: semeai-gate-basic:0.1
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      SEMEAI_GATE_HOST: "0.0.0.0"
+      SEMEAI_GATE_PORT: "8787"
+      SEMEAI_GATE_RECEIPT_DIR: "/app/outputs/api_receipts"
+      SEMEAI_GATE_API_KEYS: "${SEMEAI_GATE_API_KEYS:?Set SEMEAI_GATE_API_KEYS before public deploy}"
+      SEMEAI_GATE_API_KEY_PLANS: "${SEMEAI_GATE_API_KEY_PLANS:-{}}"
+    volumes:
+      - semeai_gate_api_receipts:/app/outputs/api_receipts
+
+volumes:
+  semeai_gate_api_receipts:
