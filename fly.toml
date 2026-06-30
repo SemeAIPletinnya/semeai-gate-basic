@@ -1,0 +1,23 @@
+app = "semeai-gate-api"
+primary_region = "waw"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  SEMEAI_GATE_HOST = "0.0.0.0"
+  SEMEAI_GATE_PORT = "8787"
+  SEMEAI_GATE_RECEIPT_DIR = "/app/outputs/api_receipts"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "256mb"

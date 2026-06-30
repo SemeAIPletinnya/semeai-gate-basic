@@ -18,6 +18,9 @@ Do not expose the API without authentication.
 For EasyPanel specifically, use
 [EasyPanel API deploy](easypanel_api_deploy.md).
 
+For Fly.io specifically, use
+[Fly.io API deploy](fly_api_deploy.md).
+
 ## Required Environment
 
 ```text
