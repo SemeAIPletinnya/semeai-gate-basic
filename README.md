@@ -122,6 +122,31 @@ node examples\middleware_boundary.js
 type examples\fake_promo_code.json | python -m semeai_gate_basic
 ```
 
+## Local API Runtime
+
+Run a small local API server:
+
+```powershell
+$env:SEMEAI_GATE_API_KEYS="local-dev-key"
+$env:SEMEAI_GATE_API_KEY_PLANS='{"local-dev-key":"developer"}'
+python -m semeai_gate_basic.server --host 127.0.0.1 --port 8787
+```
+
+Call the real v0.1 check endpoint:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File examples\api_curl_check.ps1
+```
+
+Endpoint:
+
+```text
+POST /v0/check
+```
+
+The API writes receipt metadata to `outputs/api_receipts` by default and does
+not store raw prompt/answer text in receipts by default.
+
 ## Contract Check
 
 ```powershell
@@ -198,6 +223,7 @@ It redirects to the SaaS-visible demo and is ready for GitHub Pages.
 - [Partner outreach templates](docs/partner_outreach_templates.md)
 - [SaaS MVP plan](docs/saas_mvp_plan.md)
 - [SaaS API contract v0.1](docs/saas_api_contract_v0_1.md)
+- [SaaS API runtime v0.1](docs/saas_api_runtime_v0_1.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)
