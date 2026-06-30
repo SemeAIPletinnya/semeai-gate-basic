@@ -20,6 +20,7 @@ from semeai_gate_basic.api import (
     read_receipt,
 )
 from semeai_gate_basic.server import SemeAIGateHandler
+from semeai_gate_basic.server import validate_server_auth_config
 
 
 FAKE_PROMO_REQUEST = {
@@ -96,6 +97,42 @@ def test_check_api_answer_writes_receipt_without_raw_text(tmp_path: Path) -> Non
     serialized = json.dumps(receipt)
     assert FAKE_PROMO_REQUEST["user_message"] not in serialized
     assert FAKE_PROMO_REQUEST["ai_answer"] not in serialized
+    assert "secret" not in serialized
+    assert receipt["api_key_fingerprint"] == result["api"]["api_key_fingerprint"]
+    assert receipt["raw_api_key_stored"] is False
+
+
+def test_api_receipts_are_scoped_to_authenticated_key(tmp_path: Path) -> None:
+    first = check_api_answer(
+        FAKE_PROMO_REQUEST,
+        headers={"authorization": "Bearer alpha"},
+        receipt_dir=tmp_path,
+        env={"SEMEAI_GATE_API_KEYS": "alpha,beta"},
+    )
+    second = check_api_answer(
+        {**FAKE_PROMO_REQUEST, "business_risk": "unsupported_financial_claim"},
+        headers={"authorization": "Bearer beta"},
+        receipt_dir=tmp_path,
+        env={"SEMEAI_GATE_API_KEYS": "alpha,beta"},
+    )
+
+    first_fingerprint = first["api"]["api_key_fingerprint"]
+    second_fingerprint = second["api"]["api_key_fingerprint"]
+
+    unscoped = list_receipts(receipt_dir=tmp_path)
+    assert unscoped["count"] == 2
+
+    first_receipts = list_receipts(receipt_dir=tmp_path, api_key_fingerprint=first_fingerprint)
+    assert first_receipts["count"] == 1
+    assert first_receipts["receipts"][0]["receipt_id"] == first["audit_id"]
+    assert first_receipts["receipts"][0]["api_key_fingerprint"] == first_fingerprint
+
+    second_receipts = list_receipts(receipt_dir=tmp_path, api_key_fingerprint=second_fingerprint)
+    assert second_receipts["count"] == 1
+    assert second_receipts["receipts"][0]["receipt_id"] == second["audit_id"]
+
+    assert read_receipt(first["audit_id"], receipt_dir=tmp_path, api_key_fingerprint=first_fingerprint)
+    assert read_receipt(second["audit_id"], receipt_dir=tmp_path, api_key_fingerprint=first_fingerprint) is None
 
 
 def test_invalid_api_key_is_rejected(tmp_path: Path) -> None:
@@ -151,6 +188,18 @@ def test_http_server_rejects_missing_key(tmp_path: Path, monkeypatch: pytest.Mon
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_public_bind_requires_api_keys() -> None:
+    validate_server_auth_config("127.0.0.1", env={})
+    validate_server_auth_config("localhost", env={})
+    validate_server_auth_config("0.0.0.0", env={"SEMEAI_GATE_API_KEYS": "secret"})
+
+    with pytest.raises(RuntimeError):
+        validate_server_auth_config("0.0.0.0", env={})
+
+    with pytest.raises(RuntimeError):
+        validate_server_auth_config("192.168.1.10", env={})
 
 
 def _post_json(url: str, payload: dict[str, Any], *, headers: dict[str, str] | None = None) -> dict[str, Any]:

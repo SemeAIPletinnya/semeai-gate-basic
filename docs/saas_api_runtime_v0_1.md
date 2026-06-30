@@ -74,6 +74,10 @@ API MVP.
 If `SEMEAI_GATE_API_KEYS` is empty, the API runs in `disabled_local_dev` mode.
 Do not expose that mode publicly.
 
+When the server binds to a public host such as `0.0.0.0`, API keys are
+required. The server refuses to start on a public bind without
+`SEMEAI_GATE_API_KEYS`.
+
 ## Receipt Storage
 
 By default, API receipts are written to:
@@ -102,6 +106,10 @@ POST /v0/check
 ```
 
 `/v0/account` and receipt endpoints use the same API key contract.
+
+Receipt listing and receipt reads are scoped to the authenticated API key. A
+key can list and fetch only receipts written under its own API-key
+fingerprint. The raw API key is never stored in the receipt.
 
 ## Docker
 
@@ -132,6 +140,9 @@ api.semeai.tech         future hosted /v0/check endpoint
 ```
 
 For now, keep the API local or deploy it only as a controlled pilot.
+
+See [api.semeai.tech deployment note](api_semeai_tech_deploy.md) before
+pointing a public DNS record at the API.
 
 ## Subscription Boundary
 
