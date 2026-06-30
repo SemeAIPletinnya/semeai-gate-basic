@@ -54,6 +54,7 @@ def check_api_answer(
         or DEFAULT_RECEIPT_DIR
     )
     result = check_ai_answer(request, receipt_dir=target_receipts)
+    _attach_api_receipt_metadata(result, auth)
     result["api"] = {
         "api_version": API_VERSION,
         "authenticated": auth["authenticated"],
@@ -128,6 +129,7 @@ def list_receipts(
     *,
     receipt_dir: str | Path | None = None,
     limit: int = 25,
+    api_key_fingerprint: str | None = None,
 ) -> dict[str, Any]:
     target = Path(receipt_dir or DEFAULT_RECEIPT_DIR)
     if limit < 1:
@@ -138,10 +140,12 @@ def list_receipts(
         return {"receipt_dir": str(target), "receipts": [], "count": 0}
 
     receipts: list[dict[str, Any]] = []
-    for path in sorted(target.glob("*.json"), key=lambda item: item.stat().st_mtime, reverse=True)[:limit]:
+    for path in sorted(target.glob("*.json"), key=lambda item: item.stat().st_mtime, reverse=True):
         try:
             receipt = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
+            continue
+        if not _receipt_belongs_to_api_key(receipt, api_key_fingerprint):
             continue
         receipts.append(
             {
@@ -154,9 +158,13 @@ def list_receipts(
                 "context_integrity": receipt.get("context_integrity"),
                 "audit_preserved": receipt.get("audit_preserved"),
                 "raw_text_stored": receipt.get("raw_text_stored"),
+                "api_key_fingerprint": receipt.get("api_key_fingerprint"),
+                "subscription_tier": receipt.get("subscription_tier"),
                 "path": str(path),
             }
         )
+        if len(receipts) >= limit:
+            break
     return {"receipt_dir": str(target), "receipts": receipts, "count": len(receipts)}
 
 
@@ -164,6 +172,7 @@ def read_receipt(
     receipt_id: str,
     *,
     receipt_dir: str | Path | None = None,
+    api_key_fingerprint: str | None = None,
 ) -> dict[str, Any] | None:
     target = Path(receipt_dir or DEFAULT_RECEIPT_DIR)
     if not receipt_id or not target.exists():
@@ -173,7 +182,7 @@ def read_receipt(
             receipt = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        if receipt.get("receipt_id") == receipt_id:
+        if receipt.get("receipt_id") == receipt_id and _receipt_belongs_to_api_key(receipt, api_key_fingerprint):
             receipt["path"] = str(path)
             return receipt
     return None
@@ -190,3 +199,35 @@ def _extract_api_key(headers: Mapping[str, str]) -> str | None:
 
 def _fingerprint_api_key(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
+def _attach_api_receipt_metadata(result: dict[str, Any], auth: Mapping[str, Any]) -> None:
+    """Add API ownership metadata to the receipt without changing gate semantics."""
+
+    receipt_path = (
+        result.get("technical_details", {}).get("receipt_path")
+        if isinstance(result.get("technical_details"), dict)
+        else None
+    )
+    if not receipt_path:
+        return
+
+    path = Path(str(receipt_path))
+    try:
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+
+    receipt["api_version"] = API_VERSION
+    receipt["api_auth_mode"] = auth.get("auth_mode")
+    receipt["api_key_fingerprint"] = auth.get("api_key_fingerprint")
+    subscription = auth.get("subscription") if isinstance(auth.get("subscription"), dict) else {}
+    receipt["subscription_tier"] = subscription.get("tier")
+    receipt["raw_api_key_stored"] = False
+    path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _receipt_belongs_to_api_key(receipt: Mapping[str, Any], api_key_fingerprint: str | None) -> bool:
+    if api_key_fingerprint is None:
+        return True
+    return receipt.get("api_key_fingerprint") == api_key_fingerprint

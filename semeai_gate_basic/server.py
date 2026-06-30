@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -53,25 +54,35 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
         if path == "/v0/receipts":
             try:
-                authenticate_headers(self.headers)
+                auth = authenticate_headers(self.headers)
             except ApiAuthError as exc:
                 self._send_json({"error": str(exc)}, status=exc.status_code)
                 return
             query = parse_qs(parsed.query)
             limit = _safe_int((query.get("limit") or ["25"])[0], default=25)
             receipt_dir = os.environ.get("SEMEAI_GATE_RECEIPT_DIR") or None
-            self._send_json(list_receipts(receipt_dir=receipt_dir, limit=limit))
+            self._send_json(
+                list_receipts(
+                    receipt_dir=receipt_dir,
+                    limit=limit,
+                    api_key_fingerprint=auth.get("api_key_fingerprint"),
+                )
+            )
             return
 
         if path.startswith("/v0/receipts/"):
             try:
-                authenticate_headers(self.headers)
+                auth = authenticate_headers(self.headers)
             except ApiAuthError as exc:
                 self._send_json({"error": str(exc)}, status=exc.status_code)
                 return
             receipt_id = path.rsplit("/", 1)[-1]
             receipt_dir = os.environ.get("SEMEAI_GATE_RECEIPT_DIR") or None
-            receipt = read_receipt(receipt_id, receipt_dir=receipt_dir)
+            receipt = read_receipt(
+                receipt_id,
+                receipt_dir=receipt_dir,
+                api_key_fingerprint=auth.get("api_key_fingerprint"),
+            )
             if receipt is None:
                 self._send_json({"error": "receipt not found"}, status=HTTPStatus.NOT_FOUND)
             else:
@@ -144,6 +155,12 @@ def main() -> int:
     parser.add_argument("--receipt-dir", default=os.environ.get("SEMEAI_GATE_RECEIPT_DIR", ""))
     args = parser.parse_args()
 
+    try:
+        validate_server_auth_config(args.host)
+    except RuntimeError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
     if args.receipt_dir:
         Path(args.receipt_dir).mkdir(parents=True, exist_ok=True)
         os.environ["SEMEAI_GATE_RECEIPT_DIR"] = args.receipt_dir
@@ -157,6 +174,20 @@ def _safe_int(value: str | None, *, default: int) -> int:
         return int(str(value or "").strip())
     except ValueError:
         return default
+
+
+def validate_server_auth_config(host: str, *, env: dict[str, str] | None = None) -> None:
+    values = env if env is not None else os.environ
+    if _is_public_bind_host(host) and not values.get("SEMEAI_GATE_API_KEYS", "").strip():
+        raise RuntimeError(
+            "refusing to bind a public host without SEMEAI_GATE_API_KEYS; "
+            "set API keys or bind to 127.0.0.1 for local development"
+        )
+
+
+def _is_public_bind_host(host: str) -> bool:
+    normalized = str(host or "").strip().lower()
+    return normalized not in {"127.0.0.1", "localhost", "::1", "[::1]"}
 
 
 if __name__ == "__main__":
