@@ -36,7 +36,8 @@ In the GitHub repository:
 gate.semeai.tech
 ```
 
-The repository includes a `CNAME` file for this custom domain.
+Do this after the DNS record below has been added. The first deployment can run
+on the default GitHub Pages URL before the custom domain is attached.
 
 ## Namecheap DNS
 
@@ -55,6 +56,13 @@ TTL: Automatic
 ```
 
 Wait for DNS propagation, then enable HTTPS in GitHub Pages when available.
+
+If you want the repository to enforce the custom domain from the deployment
+artifact later, add a root `CNAME` file containing:
+
+```text
+gate.semeai.tech
+```
 
 ## Scope Boundary
 
