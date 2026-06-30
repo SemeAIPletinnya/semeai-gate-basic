@@ -15,6 +15,9 @@ example:
 
 Do not expose the API without authentication.
 
+For EasyPanel specifically, use
+[EasyPanel API deploy](easypanel_api_deploy.md).
+
 ## Required Environment
 
 ```text
