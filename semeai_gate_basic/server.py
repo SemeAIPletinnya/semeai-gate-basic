@@ -17,6 +17,7 @@ from .api import (
     authenticate_headers,
     check_api_answer,
     list_receipts,
+    parse_api_keys,
     read_receipt,
 )
 
@@ -178,7 +179,8 @@ def _safe_int(value: str | None, *, default: int) -> int:
 
 def validate_server_auth_config(host: str, *, env: dict[str, str] | None = None) -> None:
     values = env if env is not None else os.environ
-    if _is_public_bind_host(host) and not values.get("SEMEAI_GATE_API_KEYS", "").strip():
+    configured_keys = parse_api_keys(values.get("SEMEAI_GATE_API_KEYS", ""))
+    if _is_public_bind_host(host) and not configured_keys:
         raise RuntimeError(
             "refusing to bind a public host without SEMEAI_GATE_API_KEYS; "
             "set API keys or bind to 127.0.0.1 for local development"

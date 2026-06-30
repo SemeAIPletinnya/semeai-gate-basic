@@ -194,12 +194,16 @@ def test_public_bind_requires_api_keys() -> None:
     validate_server_auth_config("127.0.0.1", env={})
     validate_server_auth_config("localhost", env={})
     validate_server_auth_config("0.0.0.0", env={"SEMEAI_GATE_API_KEYS": "secret"})
+    validate_server_auth_config("0.0.0.0", env={"SEMEAI_GATE_API_KEYS": "alpha,,beta"})
 
     with pytest.raises(RuntimeError):
         validate_server_auth_config("0.0.0.0", env={})
 
     with pytest.raises(RuntimeError):
         validate_server_auth_config("192.168.1.10", env={})
+
+    with pytest.raises(RuntimeError):
+        validate_server_auth_config("0.0.0.0", env={"SEMEAI_GATE_API_KEYS": ",, ,"})
 
 
 def _post_json(url: str, payload: dict[str, Any], *, headers: dict[str, str] | None = None) -> dict[str, Any]:
