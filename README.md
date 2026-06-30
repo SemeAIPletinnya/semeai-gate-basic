@@ -144,7 +144,7 @@ an LLM, cloud API, network service, or external telemetry.
 
 ## Static Demo
 
-Open this file in a browser:
+Open the local demo in a browser:
 
 ```text
 demo/index.html
@@ -174,9 +174,18 @@ demo/saas_visible.html
 This mockup is static and local. It shows what a future hosted `POST /check`
 console could feel like without adding auth, billing, storage, or a backend.
 
+For the hosted static demo path, the repository also includes:
+
+```text
+index.html
+```
+
+It redirects to the SaaS-visible demo and is ready for GitHub Pages.
+
 ## Publish / SaaS Path
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
+- [GitHub Pages deployment](docs/github_pages_deploy.md)
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
 - [Contract](docs/contract.md)
 - [Benchmark v0.3](docs/benchmark_v0_3.md)
