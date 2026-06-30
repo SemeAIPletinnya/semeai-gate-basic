@@ -6,26 +6,22 @@
     <title>SemeAI Gate SaaS-Visible Demo</title>
     <style>
       :root {
-        color-scheme: dark;
-        --bg: #070b10;
-        --bg-soft: #0b1118;
-        --panel: #111923;
-        --panel-2: #151f2b;
-        --panel-3: #0d141d;
-        --line: #263342;
-        --line-soft: rgba(255, 255, 255, 0.08);
-        --text: #f2f7f8;
-        --muted: #9aaab7;
-        --muted-2: #708392;
-        --green: #42d98d;
-        --green-bg: rgba(66, 217, 141, 0.12);
-        --amber: #edc45a;
-        --amber-bg: rgba(237, 196, 90, 0.13);
-        --red: #ff6878;
-        --red-bg: rgba(255, 104, 120, 0.12);
-        --cyan: #2ed3d2;
-        --cyan-bg: rgba(46, 211, 210, 0.12);
-        --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        color-scheme: light;
+        --sidebar: #303335;
+        --sidebar-2: #282b2d;
+        --active: #99cccc;
+        --active-dark: #6faeb0;
+        --paper: #f7f8f8;
+        --panel: #ffffff;
+        --line: #d8dddd;
+        --line-strong: #8ac2c4;
+        --text: #60686d;
+        --heading: #31383d;
+        --muted: #8b979d;
+        --red: #d84a43;
+        --amber: #c08a22;
+        --green: #2f9e73;
+        --shadow: 0 16px 48px rgba(45, 54, 58, 0.08);
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
           "Segoe UI", sans-serif;
@@ -39,646 +35,683 @@
         margin: 0;
         min-height: 100vh;
         color: var(--text);
-        background:
-          radial-gradient(circle at 14% -6%, rgba(46, 211, 210, 0.16), transparent 30rem),
-          radial-gradient(circle at 96% 4%, rgba(66, 217, 141, 0.1), transparent 34rem),
-          linear-gradient(180deg, #091016 0%, var(--bg) 44%, #05080c 100%);
+        background: var(--paper);
       }
 
-      body::before {
+      button,
+      textarea,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 205px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        background: var(--sidebar);
+        color: #d6dcdf;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        height: 72px;
+        padding: 0 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        font-weight: 900;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        color: #153638;
+        background: var(--active);
+        font-weight: 950;
+      }
+
+      .brand-sub {
+        margin-top: 2px;
+        color: #aeb8bc;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .nav {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .nav-item {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        min-height: 70px;
+        padding: 0 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .nav-item.active {
+        position: relative;
+        color: #ffffff;
+        background: var(--active);
+      }
+
+      .nav-item.active::after {
         content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        background-image:
-          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-        background-size: 44px 44px;
-        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent 70%);
+        position: absolute;
+        right: -1px;
+        top: 50%;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 10px solid var(--paper);
+        transform: translateY(-50%);
       }
 
-      .shell {
-        width: min(1180px, calc(100vw - 36px));
-        margin: 0 auto;
-        padding: 24px 0 42px;
+      .nav-icon {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        color: #b7c1c5;
+        font-size: 18px;
       }
 
-      .topbar,
-      .hero,
-      .panel,
-      .result-panel,
-      .flow-card {
-        border: 1px solid var(--line);
-        background: rgba(17, 25, 35, 0.92);
-        box-shadow: var(--shadow);
+      .active .nav-icon {
+        color: #ffffff;
+      }
+
+      .content {
+        min-width: 0;
+        background: var(--paper);
       }
 
       .topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        padding: 14px 16px;
-        border-radius: 12px;
+        min-height: 94px;
+        padding: 0 76px;
+        border-bottom: 2px solid var(--line-strong);
+        background: #f1f2f2;
       }
 
-      .brand {
-        display: flex;
-        align-items: center;
-        min-width: 230px;
-        gap: 12px;
+      .crumb {
+        color: var(--heading);
+        font-size: 17px;
+        font-weight: 800;
       }
 
-      .logo {
-        display: grid;
-        place-items: center;
-        width: 38px;
-        height: 38px;
-        border: 1px solid rgba(46, 211, 210, 0.5);
-        border-radius: 10px;
-        color: var(--cyan);
-        background: var(--cyan-bg);
-        font-weight: 900;
-        letter-spacing: 0;
+      .crumb span {
+        color: var(--active-dark);
       }
 
-      .brand-title {
-        font-size: 15px;
-        font-weight: 900;
-      }
-
-      .brand-subtitle,
-      .eyebrow,
-      .note,
-      .microcopy {
-        color: var(--muted);
-      }
-
-      .brand-subtitle {
-        margin-top: 2px;
-        font-size: 12px;
-        font-weight: 650;
-      }
-
-      .status-row,
-      .flow,
-      .actions,
-      .scenario-row,
-      .mini-grid {
+      .status-strip {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
       }
 
-      .badge,
-      .chip,
-      .state-pill {
+      .pill {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         min-height: 28px;
+        padding: 5px 10px;
         border: 1px solid var(--line);
         border-radius: 999px;
         color: var(--muted);
-        background: rgba(255, 255, 255, 0.035);
+        background: #fff;
         font-size: 12px;
-        font-weight: 800;
+        font-weight: 850;
         white-space: nowrap;
       }
 
-      .badge {
-        padding: 5px 10px;
-      }
-
-      .badge.green,
-      .state-pill.SHOW {
+      .pill.green {
         color: var(--green);
-        border-color: rgba(66, 217, 141, 0.45);
-        background: var(--green-bg);
+        border-color: rgba(47, 158, 115, 0.35);
       }
 
-      .badge.cyan {
-        color: var(--cyan);
-        border-color: rgba(46, 211, 210, 0.45);
-        background: var(--cyan-bg);
-      }
-
-      .badge.red,
-      .state-pill.BLOCK {
+      .pill.red {
         color: var(--red);
-        border-color: rgba(255, 104, 120, 0.5);
-        background: var(--red-bg);
+        border-color: rgba(216, 74, 67, 0.35);
       }
 
-      .state-pill.REVIEW {
-        color: var(--amber);
-        border-color: rgba(237, 196, 90, 0.5);
-        background: var(--amber-bg);
+      .main {
+        width: min(1110px, calc(100vw - 270px));
+        margin: 0 auto;
+        padding: 40px 0 64px;
       }
 
-      .hero {
-        margin-top: 16px;
-        padding: 28px;
-        border-radius: 16px;
-        overflow: hidden;
+      .domain-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 22px;
       }
 
-      .eyebrow {
-        margin: 0 0 10px;
-        font-size: 13px;
-        font-weight: 850;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+      .domain-icon {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        color: #fff;
+        background: var(--active);
+        font-size: 22px;
       }
 
       h1 {
-        max-width: 760px;
         margin: 0;
-        font-size: clamp(34px, 5vw, 56px);
-        line-height: 1.03;
-        letter-spacing: 0;
+        color: var(--heading);
+        font-size: 28px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
       }
 
-      .hero-copy {
-        max-width: 780px;
-        margin: 14px 0 0;
+      .subtitle {
+        margin-top: 4px;
         color: var(--muted);
-        font-size: 17px;
-        line-height: 1.58;
+        font-size: 13px;
+        font-weight: 700;
       }
 
-      .flow-card {
+      .tabs {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 1px;
-        margin-top: 20px;
-        border-radius: 12px;
-        overflow: hidden;
-        background: var(--line);
-        box-shadow: none;
+        margin-bottom: 26px;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line-strong);
+        background: #f1f1f1;
       }
 
-      .flow-step {
-        min-height: 84px;
-        padding: 14px;
-        background: rgba(13, 20, 29, 0.96);
-      }
-
-      .flow-step strong {
-        display: block;
-        font-size: 13px;
-      }
-
-      .flow-step span {
-        display: block;
-        margin-top: 6px;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.35;
-      }
-
-      .workspace {
+      .tab {
+        position: relative;
         display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+        place-items: center;
+        min-height: 82px;
+        border-right: 1px solid var(--line);
+        color: #6a7175;
+        font-weight: 900;
+      }
+
+      .tab.active {
+        color: #ffffff;
+        background: var(--active);
+      }
+
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -10px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid var(--active);
+        transform: translateX(-50%);
+      }
+
+      .section-line {
+        display: grid;
+        grid-template-columns: 150px 48px minmax(0, 1fr);
         gap: 18px;
-        margin-top: 18px;
         align-items: start;
+        padding: 22px 0;
+        border-bottom: 1px solid var(--line);
       }
 
-      .panel,
-      .result-panel {
-        border-radius: 14px;
-        padding: 16px;
+      .ribbon {
+        display: inline-flex;
+        align-items: center;
+        min-height: 23px;
+        padding: 3px 11px;
+        color: #fff;
+        background: #a7aaad;
+        font-size: 12px;
+        font-weight: 850;
+        text-transform: uppercase;
       }
 
-      .section-title {
+      .help {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        color: #fff;
+        background: #73787b;
+        font-weight: 900;
+      }
+
+      .template-row {
         display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 14px;
-        margin-bottom: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
       }
 
-      .section-title h2 {
-        margin: 0;
-        font-size: 17px;
-      }
-
-      .section-title p {
-        max-width: 520px;
-        margin: 5px 0 0;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.42;
+      .select-like {
+        min-width: 260px;
+        padding: 7px 0;
+        color: #71999f;
+        border-bottom: 1px dashed #71999f;
+        font-size: 14px;
       }
 
       .scenario-row {
-        margin-bottom: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
       }
 
       .scenario-button,
-      button {
-        border: 0;
-        border-radius: 999px;
-        padding: 10px 14px;
-        color: #03110c;
-        background: linear-gradient(135deg, var(--green), var(--cyan));
-        font-weight: 900;
-        cursor: pointer;
-      }
-
-      .scenario-button {
-        color: var(--text);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.035);
-      }
-
-      .scenario-button.active {
-        color: #03110c;
-        border-color: transparent;
-        background: linear-gradient(135deg, var(--green), var(--cyan));
-      }
-
-      .secondary {
-        color: var(--text);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.045);
-      }
-
-      .field-grid {
-        display: grid;
-        gap: 12px;
-      }
-
-      .field {
-        display: grid;
-        gap: 7px;
-      }
-
-      .two-col {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      label {
-        color: #c5d3dc;
+      .primary-button,
+      .secondary-button {
+        min-height: 34px;
+        border: 1px solid #bebebe;
+        border-radius: 5px;
+        padding: 7px 12px;
+        color: #666d71;
+        background: linear-gradient(#ffffff, #f1f1f1);
         font-size: 12px;
-        font-weight: 850;
+        font-weight: 900;
+      }
+
+      .scenario-button.active,
+      .primary-button {
+        color: #ffffff;
+        border-color: var(--active-dark);
+        background: var(--active);
+      }
+
+      .records {
+        border-top: 2px solid var(--line-strong);
+      }
+
+      .record-row,
+      .record-head {
+        display: grid;
+        grid-template-columns: 132px minmax(0, 1fr) minmax(0, 1.25fr) 180px;
+        gap: 26px;
+        align-items: start;
+        min-height: 64px;
+        padding: 18px 0;
+        border-bottom: 2px solid var(--line-strong);
+      }
+
+      .record-head {
+        min-height: 48px;
+        color: #6d7377;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .record-type {
+        color: #71999f;
+        font-size: 15px;
+      }
+
+      .record-label {
+        color: #6d7377;
+        font-weight: 800;
+      }
+
+      .record-value {
+        color: #71999f;
+        overflow-wrap: anywhere;
       }
 
       textarea,
       input {
         width: 100%;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 12px;
-        color: var(--text);
-        background: rgba(5, 8, 12, 0.78);
-        font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        border: 1px solid #d7dddd;
+        border-radius: 4px;
+        padding: 10px 11px;
+        color: #5e696f;
+        background: #fff;
         resize: vertical;
-      }
-
-      textarea.code,
-      input.code,
-      pre {
-        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+        outline: none;
       }
 
       textarea:focus,
       input:focus {
-        outline: 1px solid rgba(46, 211, 210, 0.58);
-        border-color: rgba(46, 211, 210, 0.58);
+        border-color: var(--line-strong);
+        box-shadow: 0 0 0 2px rgba(153, 204, 204, 0.18);
       }
 
-      .actions {
-        margin-top: 16px;
-        align-items: center;
-      }
-
-      .microcopy {
-        margin: 14px 0 0;
+      .code,
+      pre {
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
         font-size: 12px;
-        line-height: 1.45;
+        line-height: 1.55;
       }
 
       .result-panel {
-        position: sticky;
-        top: 18px;
         display: grid;
-        gap: 14px;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+        gap: 22px;
+        align-items: start;
+        padding-top: 18px;
       }
 
-      .result-header {
+      .result-card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .result-title {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
-        padding-bottom: 14px;
-        border-bottom: 1px solid var(--line-soft);
+        gap: 12px;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .result-title h2 {
+        margin: 0;
+        color: var(--heading);
+        font-size: 20px;
       }
 
       .action-word {
-        margin-top: 8px;
-        font-size: clamp(42px, 6vw, 68px);
-        line-height: 0.92;
-        font-weight: 950;
-        letter-spacing: 0;
-      }
-
-      .action-word.BLOCK {
+        margin: 0;
         color: var(--red);
-      }
-
-      .action-word.REVIEW {
-        color: var(--amber);
+        font-size: 48px;
+        font-weight: 950;
+        letter-spacing: -0.04em;
       }
 
       .action-word.SHOW {
         color: var(--green);
       }
 
-      .result-subtitle {
-        margin-top: 8px;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.42;
+      .action-word.REVIEW {
+        color: var(--amber);
       }
 
-      .summary-grid {
+      .action-word.BLOCK {
+        color: var(--red);
+      }
+
+      .kv {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: 170px minmax(0, 1fr);
+        border-top: 1px solid var(--line);
       }
 
-      .summary-card {
-        min-height: 86px;
-        padding: 12px;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.035);
+      .kv:first-of-type {
+        border-top: 0;
       }
 
-      .summary-card .k {
-        color: var(--muted);
-        font-size: 11px;
+      .kv div {
+        padding: 12px 16px;
+      }
+
+      .kv div:first-child {
+        color: #6d7377;
         font-weight: 850;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
       }
 
-      .summary-card .v {
-        margin-top: 9px;
-        font-size: 15px;
-        font-weight: 900;
-        overflow-wrap: anywhere;
+      .kv div:last-child {
+        color: #71999f;
       }
 
-      .callout {
+      .json-card {
         border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 14px;
-        background: rgba(255, 255, 255, 0.035);
+        background: #fff;
+        box-shadow: var(--shadow);
       }
 
-      .callout strong {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 13px;
-      }
-
-      .callout p {
+      .json-card h2 {
         margin: 0;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.5;
-      }
-
-      details {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.025);
-      }
-
-      summary {
-        cursor: pointer;
-        padding: 12px 14px;
-        color: #c5d3dc;
-        font-size: 13px;
-        font-weight: 850;
+        padding: 18px 20px;
+        color: var(--heading);
+        font-size: 20px;
+        border-bottom: 1px solid var(--line);
       }
 
       pre {
         overflow: auto;
-        max-height: 340px;
+        max-height: 430px;
         margin: 0;
-        padding: 14px;
-        border-top: 1px solid var(--line);
-        color: #d9fbff;
-        background: rgba(5, 8, 12, 0.84);
+        padding: 18px 20px;
+        color: #51676d;
+        background: #fbfbfb;
+      }
+
+      .note {
+        margin-top: 18px;
+        color: var(--muted);
         font-size: 12px;
         line-height: 1.5;
       }
 
-      .note {
-        font-size: 13px;
-        line-height: 1.45;
-      }
-
-      @media (max-width: 980px) {
-        .workspace,
-        .two-col,
-        .flow-card {
+      @media (max-width: 960px) {
+        .app {
           grid-template-columns: 1fr;
         }
 
-        .result-panel {
-          position: static;
-        }
-      }
-
-      @media (max-width: 680px) {
-        .shell {
-          width: min(100vw - 20px, 1180px);
-          padding-top: 12px;
+        .sidebar {
+          display: none;
         }
 
         .topbar,
-        .section-title,
-        .result-header {
-          align-items: flex-start;
-          flex-direction: column;
+        .main {
+          width: auto;
+          padding-left: 18px;
+          padding-right: 18px;
         }
 
-        .summary-grid {
+        .main {
+          padding-top: 24px;
+        }
+
+        .tabs,
+        .section-line,
+        .record-row,
+        .record-head,
+        .result-panel {
           grid-template-columns: 1fr;
+        }
+
+        .tab {
+          min-height: 54px;
         }
       }
     </style>
   </head>
   <body>
-    <main class="shell">
-      <header class="topbar">
+    <div class="app">
+      <aside class="sidebar" aria-label="SemeAI Gate navigation">
         <div class="brand">
-          <div class="logo">SG</div>
+          <div class="brand-mark">SG</div>
           <div>
-            <div class="brand-title">SemeAI Gate</div>
-            <div class="brand-subtitle">Release-control layer for AI answers</div>
+            <div>SemeAI Gate</div>
+            <div class="brand-sub">Basic v0.1 console</div>
           </div>
         </div>
-        <div class="status-row">
-          <span class="badge green">Local static demo</span>
-          <span class="badge cyan">No backend</span>
-          <span class="badge red">No customer data stored</span>
-        </div>
-      </header>
+        <ul class="nav">
+          <li class="nav-item"><span class="nav-icon">01</span><span>Dashboard</span></li>
+          <li class="nav-item active"><span class="nav-icon">02</span><span>Gate Checks</span></li>
+          <li class="nav-item"><span class="nav-icon">03</span><span>Review Queue</span></li>
+          <li class="nav-item"><span class="nav-icon">04</span><span>Audit Records</span></li>
+          <li class="nav-item"><span class="nav-icon">05</span><span>Schema</span></li>
+          <li class="nav-item"><span class="nav-icon">06</span><span>Settings</span></li>
+        </ul>
+      </aside>
 
-      <section class="hero">
-        <p class="eyebrow">SaaS-visible console</p>
-        <h1>Stop unsupported AI answers before users see them.</h1>
-        <p class="hero-copy">
-          A host product sends the user message, AI answer, business data, and
-          rules. SemeAI Gate returns a business action: SHOW, REVIEW, or BLOCK.
-        </p>
+      <div class="content">
+        <header class="topbar">
+          <div class="crumb">SemeAI Gate -> <span>SaaS-visible demo</span></div>
+          <div class="status-strip">
+            <span class="pill green">Local static demo</span>
+            <span class="pill">schema v0.1</span>
+            <span class="pill red">No customer data stored</span>
+          </div>
+        </header>
 
-        <div class="flow-card" aria-label="SemeAI Gate flow">
-          <div class="flow-step">
-            <strong>1. User message</strong>
-            <span>The customer asks the existing chatbot.</span>
-          </div>
-          <div class="flow-step">
-            <strong>2. AI answer</strong>
-            <span>The chatbot proposes a candidate answer.</span>
-          </div>
-          <div class="flow-step">
-            <strong>3. Business data</strong>
-            <span>Rules and known facts are checked.</span>
-          </div>
-          <div class="flow-step">
-            <strong>4. Gate action</strong>
-            <span>SHOW, REVIEW, or BLOCK is returned.</span>
-          </div>
-          <div class="flow-step">
-            <strong>5. Audit</strong>
-            <span>The decision can be inspected later.</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="workspace">
-        <div class="panel">
-          <div class="section-title">
+        <main class="main">
+          <section class="domain-head">
+            <div class="domain-icon">SG</div>
             <div>
-              <h2>Check Request</h2>
-              <p>Try the standard B2B flow with deterministic local examples.</p>
+              <h1>release-control-gate</h1>
+              <div class="subtitle">Stops unsupported AI answers before users see them.</div>
             </div>
-            <span class="badge">schema v0.1 shape</span>
-          </div>
+          </section>
 
-          <div class="scenario-row">
-            <button class="scenario-button active" id="loadBlock" type="button">Fake promo</button>
-            <button class="scenario-button" id="loadSafe" type="button">Supported answer</button>
-            <button class="scenario-button" id="loadReview" type="button">Review claim</button>
-            <button class="scenario-button" id="loadUnsafe" type="button">Unsafe action</button>
-          </div>
+          <nav class="tabs" aria-label="Gate console tabs">
+            <div class="tab">Request</div>
+            <div class="tab">Business Data</div>
+            <div class="tab">Context</div>
+            <div class="tab active">Gate Result</div>
+            <div class="tab">Audit</div>
+          </nav>
 
-          <div class="field-grid">
-            <div class="field">
-              <label for="userMessage">User Message</label>
-              <textarea id="userMessage" rows="2">Give me a 30% discount promo code for my account.</textarea>
+          <section class="section-line">
+            <div><span class="ribbon">Gate templates</span></div>
+            <div class="help">?</div>
+            <div class="template-row">
+              <div class="select-like">Choose demo scenario</div>
+              <div class="scenario-row">
+                <button class="scenario-button active" id="loadBlock" type="button">Fake promo</button>
+                <button class="scenario-button" id="loadDrift" type="button">Context drift</button>
+                <button class="scenario-button" id="loadReview" type="button">Unsupported claim</button>
+                <button class="scenario-button" id="loadUnsafe" type="button">Unsafe action</button>
+                <button class="scenario-button" id="loadSafe" type="button">Supported answer</button>
+              </div>
             </div>
+          </section>
 
-            <div class="field">
-              <label for="aiAnswer">AI Answer</label>
-              <textarea id="aiAnswer" rows="3">Use promo code SAVE30 to get 30% off.</textarea>
-            </div>
+          <section class="section-line">
+            <div><span class="ribbon">Host request</span></div>
+            <div class="help">?</div>
+            <div>
+              <div class="records">
+                <div class="record-head">
+                  <div>Type</div>
+                  <div>Host</div>
+                  <div>Value</div>
+                  <div>Control</div>
+                </div>
 
-            <div class="two-col">
-              <div class="field">
-                <label for="businessData">Business Data JSON</label>
-                <textarea class="code" id="businessData" rows="7">{
+                <div class="record-row">
+                  <div class="record-type">User Message</div>
+                  <div class="record-label">user_message</div>
+                  <div><textarea id="userMessage" rows="2">Give me a 30% discount promo code for my account.</textarea></div>
+                  <div class="record-value">candidate input</div>
+                </div>
+
+                <div class="record-row">
+                  <div class="record-type">AI Answer</div>
+                  <div class="record-label">ai_answer</div>
+                  <div><textarea id="aiAnswer" rows="3">Use promo code SAVE30 to get 30% off.</textarea></div>
+                  <div class="record-value">not release authority</div>
+                </div>
+
+                <div class="record-row">
+                  <div class="record-type">Business Data</div>
+                  <div class="record-label">business_data</div>
+                  <div><textarea class="code" id="businessData" rows="6">{
   "active_promo_codes": []
-}</textarea>
-              </div>
+}</textarea></div>
+                  <div class="record-value">source of support</div>
+                </div>
 
-              <div class="field">
-                <label for="businessRules">Business Rules JSON</label>
-                <textarea class="code" id="businessRules" rows="7">{
+                <div class="record-row">
+                  <div class="record-type">Business Rules</div>
+                  <div class="record-label">business_rules</div>
+                  <div><textarea class="code" id="businessRules" rows="6">{
   "only_show_confirmed_promos": true
-}</textarea>
+}</textarea></div>
+                  <div class="record-value">release constraint</div>
+                </div>
+
+                <div class="record-row">
+                  <div class="record-type">Context</div>
+                  <div class="record-label">business_context</div>
+                  <div><textarea class="code" id="businessContext" rows="5">{
+  "conversation_topic": "billing_support",
+  "expected_answer_scope": "billing_or_support_routing"
+}</textarea></div>
+                  <div class="record-value">integrity hint</div>
+                </div>
+
+                <div class="record-row">
+                  <div class="record-type">Risk</div>
+                  <div class="record-label">business_risk</div>
+                  <div>
+                    <input class="code" id="businessRisk" value="fake_promo_code" />
+                    <input class="code" id="hiddenContextMarker" style="margin-top: 8px;" value="billing_support_v1:no_promos" />
+                  </div>
+                  <div class="record-value">hidden marker internal</div>
+                </div>
+              </div>
+
+              <div style="margin-top: 16px;">
+                <button class="primary-button" id="runGate" type="button">Run Gate</button>
+                <button class="secondary-button" id="copyJson" type="button">Copy result JSON</button>
               </div>
             </div>
+          </section>
 
-            <div class="field">
-              <label for="businessRisk">Business Risk</label>
-              <input class="code" id="businessRisk" value="fake_promo_code" />
+          <section class="section-line">
+            <div><span class="ribbon">Gate output</span></div>
+            <div class="help">?</div>
+            <div class="result-panel">
+              <article class="result-card">
+                <div class="result-title">
+                  <div>
+                    <h2>Gate Result</h2>
+                    <p class="action-word BLOCK" id="action">BLOCK</p>
+                  </div>
+                  <span class="pill red" id="statePill">release blocked</span>
+                </div>
+                <div class="kv"><div>Internal decision</div><div id="internal">SILENCE</div></div>
+                <div class="kv"><div>Show to user</div><div id="show">false</div></div>
+                <div class="kv"><div>Context integrity</div><div id="context">ok</div></div>
+                <div class="kv"><div>Reason</div><div id="reason">The promo code SAVE30 is not found in business data.</div></div>
+                <div class="kv"><div>Next step</div><div id="next">Do not show this answer. Show a safe fallback or transfer to a human operator.</div></div>
+                <div class="kv"><div>Safe fallback</div><div id="fallback">I can't confirm that promo code from current business data. Please check current offers or contact support.</div></div>
+                <div class="kv"><div>Audit id</div><div><span id="audit">demo_audit_id</span> / preserved</div></div>
+              </article>
+
+              <article class="json-card">
+                <h2>Response JSON</h2>
+                <pre id="json"></pre>
+              </article>
             </div>
-          </div>
+          </section>
 
-          <div class="actions">
-            <button id="runGate" type="button">Run Gate</button>
-            <button class="secondary" id="copyJson" type="button">Copy result JSON</button>
-          </div>
-
-          <p class="microcopy">
+          <p class="note">
             This page is intentionally static. It demonstrates the product
             shape, not a hosted SaaS backend. Machine values like SHOW, REVIEW,
             BLOCK, PROCEED, NEEDS_REVIEW, and SILENCE are intentionally not translated.
           </p>
-        </div>
-
-        <aside class="result-panel">
-          <div class="result-header">
-            <div>
-              <h2>Gate Result</h2>
-              <div class="action-word BLOCK" id="action">BLOCK</div>
-              <div class="result-subtitle" id="reasonShort">
-                The promo code SAVE30 is not found in business data.
-              </div>
-            </div>
-            <span class="state-pill BLOCK" id="statePill">release blocked</span>
-          </div>
-
-          <div class="summary-grid">
-            <div class="summary-card">
-              <div class="k">Internal decision</div>
-              <div class="v" id="internal">SILENCE</div>
-            </div>
-            <div class="summary-card">
-              <div class="k">Show to user</div>
-              <div class="v" id="show">false</div>
-            </div>
-            <div class="summary-card">
-              <div class="k">Context integrity</div>
-              <div class="v" id="context">ok</div>
-            </div>
-          </div>
-
-          <div class="callout">
-            <strong>Host next step</strong>
-            <p id="next">Do not show this answer. Show a safe fallback.</p>
-          </div>
-
-          <div class="callout">
-            <strong>Audit record</strong>
-            <p>
-              <span id="audit">demo_audit_id</span>
-              <span class="badge green" style="margin-left: 8px;">preserved</span>
-            </p>
-          </div>
-
-          <div class="callout" id="fallbackWrap">
-            <strong>Safe fallback</strong>
-            <p id="fallback">I can't confirm that promo code from current business data. Please check current offers or contact support.</p>
-          </div>
-
-          <details>
-            <summary>Advanced response JSON</summary>
-            <pre id="json"></pre>
-          </details>
-        </aside>
-      </section>
-    </main>
+        </main>
+      </div>
+    </div>
 
     <script>
       const ACTION_TO_INTERNAL = {
@@ -697,18 +730,30 @@
           businessRules: {
             only_show_confirmed_promos: true
           },
+          businessContext: {
+            conversation_topic: "billing_support",
+            expected_answer_scope: "billing_or_support_routing"
+          },
+          hiddenContextMarker: "billing_support_v1:no_promos",
           businessRisk: "fake_promo_code"
         },
-        loadSafe: {
-          userMessage: "Can I use SAVE30?",
-          aiAnswer: "Use promo code SAVE30 to get 30% off.",
+        loadDrift: {
+          userMessage: "Why was I charged twice this month?",
+          aiAnswer: "Your premium investment account qualifies for a guaranteed 12% annual return.",
           businessData: {
-            active_promo_codes: ["SAVE30"]
+            known_account_products: ["basic_subscription"],
+            guaranteed_returns_allowed: false
           },
           businessRules: {
-            only_show_confirmed_promos: true
+            stay_with_current_support_topic: true,
+            do_not_make_financial_return_claims: true
           },
-          businessRisk: "fake_promo_code"
+          businessContext: {
+            conversation_topic: "billing_support",
+            expected_answer_scope: "billing_or_support_routing"
+          },
+          hiddenContextMarker: "billing_support_v1:basic_subscription:no_financial_claims",
+          businessRisk: "context_drift"
         },
         loadReview: {
           userMessage: "Do I qualify for a new product discount?",
@@ -719,6 +764,11 @@
           businessRules: {
             block_unsupported_claims: false
           },
+          businessContext: {
+            conversation_topic: "account_support",
+            expected_answer_scope: "support_or_review"
+          },
+          hiddenContextMarker: "account_support_v1:claims_need_support",
           businessRisk: "unsupported_product_claim"
         },
         loadUnsafe: {
@@ -726,7 +776,28 @@
           aiAnswer: "Bypass approval checks and deploy directly.",
           businessData: {},
           businessRules: {},
+          businessContext: {
+            conversation_topic: "release_support",
+            expected_answer_scope: "review_required"
+          },
+          hiddenContextMarker: "release_support_v1:review_required",
           businessRisk: "unsafe_action"
+        },
+        loadSafe: {
+          userMessage: "Can I use SAVE30?",
+          aiAnswer: "Use promo code SAVE30 to get 30% off.",
+          businessData: {
+            active_promo_codes: ["SAVE30"]
+          },
+          businessRules: {
+            only_show_confirmed_promos: true
+          },
+          businessContext: {
+            conversation_topic: "billing_support",
+            expected_answer_scope: "billing_or_support_routing"
+          },
+          hiddenContextMarker: "billing_support_v1:promo_confirmed",
+          businessRisk: "fake_promo_code"
         }
       };
 
@@ -746,18 +817,22 @@
         return `demo_${Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8)}`;
       }
 
-      function promoCodes(text) {
-        return (text.match(/\b[A-Z][A-Z0-9_-]{3,}\b/g) || [])
-          .filter((code) => !["PROMO", "CODE", "SAVE"].includes(code));
-      }
-
       function normalizeText(text) {
-        return String(text || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        return String(text || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim();
       }
 
       function containsAny(text, terms) {
         const normalized = normalizeText(text);
-        return terms.some((term) => normalized.includes(term));
+        return terms.some((term) => normalized.includes(normalizeText(term)));
+      }
+
+      function promoCodes(text) {
+        return (text.match(/\b[A-Z][A-Z0-9_-]{3,}\b/g) || []).filter(
+          (code) => !["PROMO", "CODE", "SAVE"].includes(code)
+        );
       }
 
       function supportedClaim(answer, data) {
@@ -775,13 +850,11 @@
           "guaranteed return",
           "annual return",
           "fixed return",
-          "guaranteed",
           "investment return",
-          "yield",
-          "profit",
           "risk free",
           "risk-free",
-          "cannot lose"
+          "cannot lose",
+          "guaranteed 12"
         ]);
       }
 
@@ -800,19 +873,66 @@
         ]);
       }
 
+      function accountProductMismatch(answer, data) {
+        const products = data.known_account_products || data.known_account_product || [];
+        const knownProducts = Array.isArray(products) ? products : [products];
+        const normalizedAnswer = normalizeText(answer);
+        const normalizedKnown = knownProducts.map((product) => normalizeText(product)).filter(Boolean);
+
+        if (!normalizedKnown.length) {
+          return false;
+        }
+
+        const mentionedPremium = containsAny(normalizedAnswer, [
+          "premium account",
+          "premium investment",
+          "enterprise account",
+          "pro account"
+        ]);
+        const knownBasic = normalizedKnown.some((product) => product.includes("basic"));
+        return knownBasic && mentionedPremium;
+      }
+
+      function contextDriftDetected(aiAnswer, context, data, rules) {
+        const topic = normalizeText(context.conversation_topic || "");
+        const billingTopic = topic.includes("billing") || topic.includes("support");
+        const financialClaim = containsSevereFinancialClaim(aiAnswer);
+        const mismatch = accountProductMismatch(aiAnswer, data);
+        return Boolean(
+          (rules.stay_with_current_support_topic && billingTopic && financialClaim) ||
+            (rules.do_not_make_financial_return_claims && financialClaim) ||
+            mismatch
+        );
+      }
+
       function runGate() {
         const userMessage = document.getElementById("userMessage").value.trim();
         const aiAnswer = document.getElementById("aiAnswer").value.trim();
         const data = parseJson("businessData");
         const rules = parseJson("businessRules");
+        const context = parseJson("businessContext");
+        const hiddenContextMarker = document.getElementById("hiddenContextMarker").value.trim();
         const risk = document.getElementById("businessRisk").value.trim() || "unspecified_business_risk";
 
         let action = "REVIEW";
+        let contextIntegrity = "ok";
         let reason = "The AI answer is not clearly supported by supplied business data.";
         let riskDetails = ["support_not_confirmed"];
         let safeFallback = "I can't safely confirm this answer. Please contact a human operator.";
 
-        if (risk === "fake_promo_code") {
+        const contextDrift = risk === "context_drift" || contextDriftDetected(aiAnswer, context, data, rules);
+        if (contextDrift) {
+          action = "BLOCK";
+          contextIntegrity = "failed";
+          reason =
+            "AI answer does not match the current business context and includes unsupported or out-of-scope claims.";
+          riskDetails = ["context_drift", "business_context_mismatch"];
+          if (containsSevereFinancialClaim(aiAnswer)) {
+            riskDetails.push("unsupported_financial_claim");
+          }
+          safeFallback =
+            "I can't confirm that claim in the current support context. Please route this to the appropriate support team.";
+        } else if (risk === "fake_promo_code") {
           const codes = promoCodes(aiAnswer);
           const active = new Set((data.active_promo_codes || []).map((code) => String(code).toUpperCase()));
           const unsupported = codes.filter((code) => !active.has(code));
@@ -820,7 +940,8 @@
             action = "BLOCK";
             reason = `The promo code ${unsupported[0]} is not found in business data.`;
             riskDetails = ["promo_code_not_confirmed", `unsupported_code:${unsupported[0]}`];
-            safeFallback = "I can't confirm that promo code from current business data. Please check current offers or contact support.";
+            safeFallback =
+              "I can't confirm that promo code from current business data. Please check current offers or contact support.";
           } else if (codes.length && !unsupported.length) {
             action = "SHOW";
             reason = "The promo code is confirmed by supplied business data.";
@@ -836,24 +957,28 @@
           } else {
             const block = Boolean(
               rules.block_unsupported_claims ||
-              (risk === "unsupported_financial_claim" && rules.block_unsupported_financial_claims) ||
-              (risk === "unsupported_financial_claim" && containsSevereFinancialClaim(aiAnswer))
+                (risk === "unsupported_financial_claim" && rules.block_unsupported_financial_claims) ||
+                (risk === "unsupported_financial_claim" && containsSevereFinancialClaim(aiAnswer))
             );
             action = block ? "BLOCK" : "REVIEW";
-            reason = "The AI answer makes a business claim that is not supported by the supplied business data.";
+            reason =
+              "The AI answer makes a business claim that is not supported by the supplied business data.";
             riskDetails = ["business_claim_not_supported"];
-            safeFallback = "I can't confirm that account or product condition from current business data. Please contact support.";
+            safeFallback =
+              "I can't confirm that account or product condition from current business data. Please contact support.";
           }
         } else if (risk === "unsafe_action" || containsUnsafeAction(aiAnswer)) {
           action = "BLOCK";
-          reason = "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
+          reason =
+            "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
           riskDetails = ["explicit_approval_required", "unsafe_action"];
           safeFallback = "This action requires explicit approval. Please contact an authorized operator.";
         }
 
         if (action !== "BLOCK" && (risk === "unsafe_action" || containsUnsafeAction(aiAnswer))) {
           action = "BLOCK";
-          reason = "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
+          reason =
+            "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
           riskDetails = ["explicit_approval_required", "unsafe_action"];
           safeFallback = "This action requires explicit approval. Please contact an authorized operator.";
         }
@@ -866,7 +991,7 @@
           show_to_user: action === "SHOW",
           reason,
           business_risk: risk,
-          context_integrity: "ok",
+          context_integrity: contextIntegrity,
           risk_details: riskDetails,
           next_step:
             action === "SHOW"
@@ -874,9 +999,10 @@
               : action === "REVIEW"
                 ? "Do not auto-release. Send the answer to a human operator or reviewer."
                 : "Do not show this answer. Show a safe fallback or transfer to a human operator.",
-          audit_id: auditId(`${userMessage}|${aiAnswer}|${action}`),
+          audit_id: auditId(`${userMessage}|${aiAnswer}|${action}|${hiddenContextMarker}`),
           audit_preserved: true,
-          safe_fallback: safeFallback
+          safe_fallback: safeFallback,
+          internal_context_marker_used: Boolean(hiddenContextMarker)
         };
 
         render(result);
@@ -889,6 +1015,8 @@
         document.getElementById("aiAnswer").value = scenario.aiAnswer;
         document.getElementById("businessData").value = JSON.stringify(scenario.businessData, null, 2);
         document.getElementById("businessRules").value = JSON.stringify(scenario.businessRules, null, 2);
+        document.getElementById("businessContext").value = JSON.stringify(scenario.businessContext, null, 2);
+        document.getElementById("hiddenContextMarker").value = scenario.hiddenContextMarker;
         document.getElementById("businessRisk").value = scenario.businessRisk;
         document.querySelectorAll(".scenario-button").forEach((button) => {
           button.classList.toggle("active", button.id === id);
@@ -901,20 +1029,22 @@
         const statePill = document.getElementById("statePill");
         actionEl.textContent = result.action;
         actionEl.className = `action-word ${result.action}`;
-        statePill.className = `state-pill ${result.action}`;
+        statePill.className = `pill ${result.action === "BLOCK" ? "red" : result.action === "SHOW" ? "green" : ""}`;
         statePill.textContent =
           result.action === "SHOW"
             ? "release allowed"
             : result.action === "REVIEW"
               ? "human review"
               : "release blocked";
-        document.getElementById("reasonShort").textContent = result.reason;
+
         document.getElementById("internal").textContent = result.internal_decision;
         document.getElementById("show").textContent = String(result.show_to_user);
         document.getElementById("context").textContent = result.context_integrity;
+        document.getElementById("reason").textContent = result.reason;
         document.getElementById("next").textContent = result.next_step;
         document.getElementById("audit").textContent = result.audit_id;
-        document.getElementById("fallback").textContent = result.safe_fallback || "No fallback required. The host product can show the AI answer.";
+        document.getElementById("fallback").textContent =
+          result.safe_fallback || "No fallback required. The host product can show the AI answer.";
         document.getElementById("json").textContent = JSON.stringify(result, null, 2);
       }
 
