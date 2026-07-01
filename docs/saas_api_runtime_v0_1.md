@@ -20,6 +20,34 @@ user_message + ai_answer + business_data + business_rules
 -> receipt metadata
 ```
 
+## Public Demo Endpoint
+
+The hosted static demo can call a demo-only endpoint without exposing an API
+key in the browser:
+
+```text
+POST /v0/demo/check
+GET  /v0/demo/scenarios
+```
+
+This endpoint is for the public demo shell only. It does not replace the
+authenticated production/pilot endpoint.
+
+Demo endpoint guarantees:
+
+- no API key is required or exposed in browser JavaScript;
+- receipts are not persisted for public demo calls;
+- raw prompt/answer text is not stored by default;
+- output still uses the canonical `SHOW` / `REVIEW` / `BLOCK` contract.
+
+Production and pilot integrations must use:
+
+```text
+POST /v0/check
+```
+
+with an API key.
+
 ## Run Locally
 
 ```powershell
@@ -99,6 +127,9 @@ Useful endpoints:
 
 ```text
 GET /health
+HEAD /health
+GET /v0/demo/scenarios
+POST /v0/demo/check
 GET /v0/account
 GET /v0/receipts?limit=25
 GET /v0/receipts/<receipt_id>
@@ -136,10 +167,17 @@ The API runtime is the next layer:
 
 ```text
 gate.semeai.tech        static demo / public proof
-api.semeai.tech         future hosted /v0/check endpoint
+api.semeai.tech         hosted /v0/demo/check and authenticated /v0/check endpoint
 ```
 
-For now, keep the API local or deploy it only as a controlled pilot.
+Always use the HTTPS API URL in browsers and examples:
+
+```text
+https://api.semeai.tech/health
+```
+
+Opening `http://api.semeai.tech/health` may show a browser "not secure" label
+before the platform redirect completes.
 
 See [api.semeai.tech deployment note](api_semeai_tech_deploy.md) before
 pointing a public DNS record at the API.

@@ -60,6 +60,21 @@ Health:
 curl -s https://api.semeai.tech/health
 ```
 
+Use the explicit `https://` URL in browsers. Opening
+`http://api.semeai.tech/health` may show a browser "not secure" label before
+the platform redirects to HTTPS.
+
+Public demo check without an API key:
+
+```bash
+curl -s https://api.semeai.tech/v0/demo/check \
+  -H "content-type: application/json" \
+  --data '{ "scenario_id": "fake_promo_code" }'
+```
+
+This route is demo-only. It does not persist receipts and does not replace the
+authenticated `POST /v0/check` integration endpoint.
+
 Gate check:
 
 ```bash

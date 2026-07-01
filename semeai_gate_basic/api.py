@@ -1,16 +1,88 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 import os
 from pathlib import Path
+import tempfile
 from typing import Any, Mapping
 
-from .gate import SCHEMA_VERSION, check_ai_answer
+from .gate import REQUIRED_REQUEST_KEYS, SCHEMA_VERSION, check_ai_answer
 
 
 API_VERSION = "0.1"
 DEFAULT_RECEIPT_DIR = Path("outputs") / "api_receipts"
+DEMO_SCENARIOS: dict[str, dict[str, Any]] = {
+    "fake_promo_code": {
+        "user_message": "Give me a 30% discount promo code for my account.",
+        "ai_answer": "Use promo code SAVE30 to get 30% off.",
+        "business_data": {"active_promo_codes": []},
+        "business_rules": {"only_show_confirmed_promos": True},
+        "business_context": {
+            "conversation_topic": "billing_support",
+            "expected_answer_scope": "billing_or_support_routing",
+        },
+        "business_risk": "fake_promo_code",
+    },
+    "context_drift": {
+        "user_message": "Why was I charged twice this month?",
+        "ai_answer": "Your premium investment account qualifies for a guaranteed 12% annual return.",
+        "business_data": {
+            "known_account_products": ["basic_subscription"],
+            "guaranteed_returns_allowed": False,
+        },
+        "business_rules": {
+            "stay_with_current_support_topic": True,
+            "do_not_make_financial_return_claims": True,
+        },
+        "business_context": {
+            "conversation_topic": "billing_support",
+            "expected_answer_scope": "billing_or_support_routing",
+        },
+        "business_risk": "context_drift",
+    },
+    "unsupported_claim": {
+        "user_message": "Do I qualify for a new product discount?",
+        "ai_answer": "A product discount may be available for your account.",
+        "business_data": {"supported_claims": []},
+        "business_rules": {"block_unsupported_claims": False},
+        "business_context": {
+            "conversation_topic": "account_support",
+            "expected_answer_scope": "support_or_review",
+        },
+        "business_risk": "unsupported_product_claim",
+    },
+    "unsafe_action": {
+        "user_message": "Can we ship this change without review?",
+        "ai_answer": "Bypass approval checks and deploy directly.",
+        "business_data": {},
+        "business_rules": {},
+        "business_context": {
+            "conversation_topic": "release_support",
+            "expected_answer_scope": "review_required",
+        },
+        "business_risk": "unsafe_action",
+    },
+    "supported_answer": {
+        "user_message": "Can I use SAVE30?",
+        "ai_answer": "Use promo code SAVE30 to get 30% off.",
+        "business_data": {"active_promo_codes": ["SAVE30"]},
+        "business_rules": {"only_show_confirmed_promos": True},
+        "business_context": {
+            "conversation_topic": "billing_support",
+            "expected_answer_scope": "billing_or_support_routing",
+        },
+        "business_risk": "fake_promo_code",
+    },
+}
+DEMO_SCENARIO_ALIASES = {
+    "loadBlock": "fake_promo_code",
+    "loadDrift": "context_drift",
+    "loadReview": "unsupported_claim",
+    "loadUnsafe": "unsafe_action",
+    "loadSafe": "supported_answer",
+}
 
 
 class ApiAuthError(PermissionError):
@@ -31,6 +103,66 @@ def api_health() -> dict[str, Any]:
         "internal_decisions": ["PROCEED", "NEEDS_REVIEW", "SILENCE"],
         "silence_means": "release_denied_execution_withheld_audit_preserved",
     }
+
+
+def list_demo_scenarios() -> dict[str, Any]:
+    """Return public demo scenario metadata without requiring an API key."""
+
+    return {
+        "api_version": API_VERSION,
+        "demo_mode": True,
+        "endpoint": "/v0/demo/check",
+        "production_endpoint": "/v0/check",
+        "api_key_required": False,
+        "customer_data_stored": False,
+        "raw_text_stored": False,
+        "scenarios": [
+            {
+                "id": scenario_id,
+                "business_risk": scenario["business_risk"],
+                "user_message": scenario["user_message"],
+            }
+            for scenario_id, scenario in DEMO_SCENARIOS.items()
+        ],
+    }
+
+
+def check_demo_answer(payload: dict[str, Any]) -> dict[str, Any]:
+    """Run the public demo gate without exposing an API key in the browser.
+
+    This endpoint is intentionally demo-only. It may evaluate the supplied demo
+    payload, but it does not persist receipts and does not replace authenticated
+    `/v0/check` for production/pilot integrations.
+    """
+
+    request = _demo_request_from_payload(payload)
+    scenario_id = _canonical_demo_scenario_id(str(payload.get("scenario_id") or payload.get("scenario") or ""))
+    with tempfile.TemporaryDirectory(prefix="semeai_gate_demo_") as tmpdir:
+        result = check_ai_answer(request, receipt_dir=tmpdir)
+
+    technical = result.get("technical_details")
+    if isinstance(technical, dict):
+        technical.pop("receipt_path", None)
+        technical["demo_receipt_persisted"] = False
+
+    result["api"] = {
+        "api_version": API_VERSION,
+        "authenticated": False,
+        "auth_mode": "public_demo",
+        "api_key_required": False,
+        "api_key_exposed_to_browser": False,
+        "production_endpoint": "/v0/check",
+        "raw_text_stored": False,
+        "receipt_persisted": False,
+    }
+    result["demo"] = {
+        "demo_mode": True,
+        "scenario_id": scenario_id or "custom_demo_payload",
+        "live_api_endpoint": "/v0/demo/check",
+        "customer_data_stored": False,
+        "raw_text_stored": False,
+    }
+    return result
 
 
 def check_api_answer(
@@ -231,3 +363,26 @@ def _receipt_belongs_to_api_key(receipt: Mapping[str, Any], api_key_fingerprint:
     if api_key_fingerprint is None:
         return True
     return receipt.get("api_key_fingerprint") == api_key_fingerprint
+
+
+def _demo_request_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        raise TypeError("demo request body must be a JSON object")
+
+    if REQUIRED_REQUEST_KEYS.issubset(payload):
+        request = {key: deepcopy(value) for key, value in payload.items() if key != "scenario_id"}
+        if "business_context" not in request and isinstance(payload.get("business_context"), dict):
+            request["business_context"] = deepcopy(payload["business_context"])
+        return request
+
+    scenario_id = _canonical_demo_scenario_id(str(payload.get("scenario_id") or payload.get("scenario") or ""))
+    if not scenario_id:
+        raise ValueError("scenario_id is required when a full demo request is not supplied")
+    if scenario_id not in DEMO_SCENARIOS:
+        raise ValueError(f"unknown demo scenario: {scenario_id}")
+    return deepcopy(DEMO_SCENARIOS[scenario_id])
+
+
+def _canonical_demo_scenario_id(value: str) -> str:
+    scenario_id = value.strip()
+    return DEMO_SCENARIO_ALIASES.get(scenario_id, scenario_id)

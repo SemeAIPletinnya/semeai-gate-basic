@@ -196,8 +196,20 @@ For a SaaS-shaped local mockup, open:
 demo/saas_visible.html
 ```
 
-This mockup is static and local. It shows what a future hosted `POST /check`
-console could feel like without adding auth, billing, storage, or a backend.
+This page is a static SaaS-visible shell. When hosted at `gate.semeai.tech`,
+it can call the public demo-only endpoint:
+
+```text
+POST https://api.semeai.tech/v0/demo/check
+```
+
+The browser demo does not expose an API key and does not persist customer
+receipts. Production and pilot integrations should use the authenticated
+endpoint:
+
+```text
+POST https://api.semeai.tech/v0/check
+```
 
 For the hosted static demo path, the repository also includes:
 

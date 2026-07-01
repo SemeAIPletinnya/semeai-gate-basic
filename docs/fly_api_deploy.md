@@ -13,6 +13,9 @@ Fly.io builds the repository `Dockerfile` and exposes the Python API server:
 ```text
 POST /v0/check
 GET  /health
+HEAD /health
+GET  /v0/demo/scenarios
+POST /v0/demo/check
 GET  /v0/account
 GET  /v0/receipts
 GET  /v0/receipts/{receipt_id}
@@ -20,6 +23,10 @@ GET  /v0/receipts/{receipt_id}
 
 The public API still requires an API key. Do not deploy a public API without
 `SEMEAI_GATE_API_KEYS`.
+
+Exception: `/v0/demo/check` is a browser-safe public demo endpoint. It does not
+require an API key, does not persist receipts, and is not the production/pilot
+integration endpoint.
 
 ## Files
 
@@ -132,6 +139,31 @@ Health:
 
 ```powershell
 curl.exe https://api.semeai.tech/health
+```
+
+Use the `https://` URL in browsers. Opening `http://api.semeai.tech/health`
+can show a "not secure" label before the Fly HTTPS redirect completes.
+
+Public demo check without an API key:
+
+```powershell
+curl.exe https://api.semeai.tech/v0/demo/check `
+  -H "content-type: application/json" `
+  --data '{ "scenario_id": "fake_promo_code" }'
+```
+
+Expected demo result:
+
+```json
+{
+  "action": "BLOCK",
+  "internal_decision": "SILENCE",
+  "api": {
+    "auth_mode": "public_demo",
+    "api_key_exposed_to_browser": false,
+    "receipt_persisted": false
+  }
+}
 ```
 
 Account/auth:

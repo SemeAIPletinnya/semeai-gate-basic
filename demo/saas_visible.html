@@ -344,6 +344,20 @@
         background: var(--active);
       }
 
+      .transport-status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        margin-left: 10px;
+        padding: 7px 12px;
+        border: 1px dashed var(--line-strong);
+        border-radius: 5px;
+        color: #71999f;
+        background: rgba(153, 204, 204, 0.08);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
       .records {
         border-top: 2px solid var(--line-strong);
       }
@@ -566,7 +580,7 @@
         <header class="topbar">
           <div class="crumb">SemeAI Gate -> <span>SaaS-visible demo</span></div>
           <div class="status-strip">
-            <span class="pill green">Local static demo</span>
+            <span class="pill green">Live API bridge</span>
             <span class="pill">schema v0.1</span>
             <span class="pill red">No customer data stored</span>
           </div>
@@ -672,6 +686,7 @@
               <div style="margin-top: 16px;">
                 <button class="primary-button" id="runGate" type="button">Run Gate</button>
                 <button class="secondary-button" id="copyJson" type="button">Copy result JSON</button>
+                <span class="transport-status" id="transportStatus">live api ready</span>
               </div>
             </div>
           </section>
@@ -705,9 +720,11 @@
           </section>
 
           <p class="note">
-            This page is intentionally static. It demonstrates the product
-            shape, not a hosted SaaS backend. Machine values like SHOW, REVIEW,
-            BLOCK, PROCEED, NEEDS_REVIEW, and SILENCE are intentionally not translated.
+            This static page calls the live demo endpoint at
+            https://api.semeai.tech/v0/demo/check without exposing an API key in
+            the browser. If the API is unavailable, it falls back to the local
+            deterministic demo. Machine values like SHOW, REVIEW, BLOCK,
+            PROCEED, NEEDS_REVIEW, and SILENCE are intentionally not translated.
           </p>
         </main>
       </div>
@@ -719,6 +736,8 @@
         REVIEW: "NEEDS_REVIEW",
         BLOCK: "SILENCE"
       };
+
+      const LIVE_DEMO_ENDPOINT = "https://api.semeai.tech/v0/demo/check";
 
       const SCENARIOS = {
         loadBlock: {
@@ -799,6 +818,15 @@
           hiddenContextMarker: "billing_support_v1:promo_confirmed",
           businessRisk: "fake_promo_code"
         }
+      };
+      let activeScenarioId = "loadBlock";
+
+      const SCENARIO_API_IDS = {
+        loadBlock: "fake_promo_code",
+        loadDrift: "context_drift",
+        loadReview: "unsupported_claim",
+        loadUnsafe: "unsafe_action",
+        loadSafe: "supported_answer"
       };
 
       function parseJson(id) {
@@ -905,14 +933,36 @@
         );
       }
 
-      function runGate() {
+      function collectRequest() {
         const userMessage = document.getElementById("userMessage").value.trim();
         const aiAnswer = document.getElementById("aiAnswer").value.trim();
-        const data = parseJson("businessData");
-        const rules = parseJson("businessRules");
-        const context = parseJson("businessContext");
+        const businessData = parseJson("businessData");
+        const businessRules = parseJson("businessRules");
+        const businessContext = parseJson("businessContext");
         const hiddenContextMarker = document.getElementById("hiddenContextMarker").value.trim();
         const risk = document.getElementById("businessRisk").value.trim() || "unspecified_business_risk";
+
+        return {
+          scenario_id: SCENARIO_API_IDS[activeScenarioId] || activeScenarioId,
+          user_message: userMessage,
+          ai_answer: aiAnswer,
+          business_data: businessData,
+          business_rules: businessRules,
+          business_context: businessContext,
+          hidden_context_marker: hiddenContextMarker,
+          business_risk: risk
+        };
+      }
+
+      function runGateLocal() {
+        const request = collectRequest();
+        const userMessage = request.user_message;
+        const aiAnswer = request.ai_answer;
+        const data = request.business_data;
+        const rules = request.business_rules;
+        const context = request.business_context;
+        const hiddenContextMarker = request.hidden_context_marker;
+        const risk = request.business_risk;
 
         let action = "REVIEW";
         let contextIntegrity = "ok";
@@ -1002,14 +1052,62 @@
           audit_id: auditId(`${userMessage}|${aiAnswer}|${action}|${hiddenContextMarker}`),
           audit_preserved: true,
           safe_fallback: safeFallback,
-          internal_context_marker_used: Boolean(hiddenContextMarker)
+          internal_context_marker_used: Boolean(hiddenContextMarker),
+          api: {
+            auth_mode: "local_static_fallback",
+            api_key_exposed_to_browser: false,
+            raw_text_stored: false,
+            receipt_persisted: false
+          },
+          demo: {
+            demo_mode: true,
+            scenario_id: request.scenario_id,
+            transport: "local_fallback"
+          }
         };
 
         render(result);
         return result;
       }
 
+      async function runGate() {
+        const request = collectRequest();
+        const statusEl = document.getElementById("transportStatus");
+        statusEl.textContent = "checking live api...";
+        try {
+          const response = await fetch(LIVE_DEMO_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "content-type": "application/json"
+            },
+            body: JSON.stringify(request)
+          });
+          if (!response.ok) {
+            throw new Error(`live api returned ${response.status}`);
+          }
+          const result = await response.json();
+          result.demo = {
+            ...(result.demo || {}),
+            transport: "live_api",
+            endpoint: LIVE_DEMO_ENDPOINT
+          };
+          render(result);
+          statusEl.textContent = "live api checked";
+          return result;
+        } catch (error) {
+          const result = runGateLocal();
+          result.demo = {
+            ...(result.demo || {}),
+            transport_error: String(error && error.message ? error.message : error)
+          };
+          render(result);
+          statusEl.textContent = "local fallback used";
+          return result;
+        }
+      }
+
       function setScenario(id) {
+        activeScenarioId = id;
         const scenario = SCENARIOS[id];
         document.getElementById("userMessage").value = scenario.userMessage;
         document.getElementById("aiAnswer").value = scenario.aiAnswer;
