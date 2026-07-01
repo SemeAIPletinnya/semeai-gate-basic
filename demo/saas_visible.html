@@ -515,6 +515,102 @@
         background: #fbfbfb;
       }
 
+      .console-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .console-card {
+        min-height: 170px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+
+      .console-card h2,
+      .console-card h3 {
+        margin: 0 0 10px;
+        color: var(--heading);
+      }
+
+      .console-card h2 {
+        font-size: 20px;
+      }
+
+      .console-card h3 {
+        font-size: 15px;
+      }
+
+      .mini-metric {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 0;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      .mini-metric:first-of-type {
+        border-top: 0;
+      }
+
+      .mini-metric strong {
+        color: var(--heading);
+        text-align: right;
+      }
+
+      .endpoint-list,
+      .source-list {
+        display: grid;
+        gap: 8px;
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .endpoint-list a,
+      .source-list a {
+        color: #5a8e94;
+        font-weight: 850;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+
+      .wallet-box {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px dashed var(--line-strong);
+        color: #47666b;
+        background: rgba(153, 204, 204, 0.11);
+        overflow-wrap: anywhere;
+      }
+
+      .wallet-copy {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-top: 12px;
+      }
+
+      .copy-state {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .small-label {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
       .note {
         margin-top: 18px;
         color: var(--muted);
@@ -546,7 +642,8 @@
         .section-line,
         .record-row,
         .record-head,
-        .result-panel {
+        .result-panel,
+        .console-grid {
           grid-template-columns: 1fr;
         }
 
@@ -719,6 +816,44 @@
             </div>
           </section>
 
+          <section class="section-line">
+            <div><span class="ribbon">Account shell</span></div>
+            <div class="help">?</div>
+            <div class="console-grid">
+              <article class="console-card">
+                <h2>Workspace</h2>
+                <div class="mini-metric"><span>Plan</span><strong id="accountPlan">Basic v0.1 demo</strong></div>
+                <div class="mini-metric"><span>Status</span><strong id="accountStatus">manual activation</strong></div>
+                <div class="mini-metric"><span>Billing</span><strong id="billingProvider">not configured</strong></div>
+                <div class="mini-metric"><span>Customer data</span><strong>not stored in demo</strong></div>
+              </article>
+
+              <article class="console-card">
+                <h2>Activation</h2>
+                <div class="small-label">Manual crypto activation placeholder</div>
+                <div class="wallet-box">
+                  <div><strong>USDT / TRC20</strong></div>
+                  <div id="cryptoAddress">TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27</div>
+                </div>
+                <p class="note">No Stripe checkout yet. No automatic payment processing. Manual confirmation is required for early pilots.</p>
+                <div class="wallet-copy">
+                  <button class="secondary-button" id="copyWallet" type="button">Copy wallet</button>
+                  <span class="copy-state" id="copyWalletState">ready</span>
+                </div>
+              </article>
+
+              <article class="console-card">
+                <h2>Product stack</h2>
+                <ul class="source-list">
+                  <li><a href="https://gate.semeai.tech" target="_blank" rel="noreferrer">gate.semeai.tech demo</a></li>
+                  <li><a href="https://api.semeai.tech/health" target="_blank" rel="noreferrer">api.semeai.tech health</a></li>
+                  <li><a href="https://github.com/SemeAIPletinnya/semeai-gate-basic" target="_blank" rel="noreferrer">semeai-gate-basic</a></li>
+                  <li><a href="https://github.com/SemeAIPletinnya/silence-as-control" target="_blank" rel="noreferrer">Silence-as-Control source</a></li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
           <p class="note">
             This static page calls the live demo endpoint at
             https://api.semeai.tech/v0/demo/check without exposing an API key in
@@ -738,6 +873,7 @@
       };
 
       const LIVE_DEMO_ENDPOINT = "https://api.semeai.tech/v0/demo/check";
+      const DEMO_ACCOUNT_ENDPOINT = "https://api.semeai.tech/v0/demo/account";
 
       const SCENARIOS = {
         loadBlock: {
@@ -1106,6 +1242,32 @@
         }
       }
 
+      async function loadAccountProfile() {
+        try {
+          const response = await fetch(DEMO_ACCOUNT_ENDPOINT, {
+            method: "GET",
+            headers: {
+              "accept": "application/json"
+            }
+          });
+          if (!response.ok) {
+            throw new Error(`account profile returned ${response.status}`);
+          }
+          const profile = await response.json();
+          const account = profile.account || {};
+          const activation = profile.activation || {};
+          document.getElementById("accountPlan").textContent = account.plan || "Basic v0.1 demo";
+          document.getElementById("accountStatus").textContent =
+            String(account.subscription_status || "manual_activation_available").replaceAll("_", " ");
+          document.getElementById("billingProvider").textContent =
+            String(account.billing_provider || "not_configured").replaceAll("_", " ");
+          document.getElementById("cryptoAddress").textContent =
+            activation.address || "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27";
+        } catch {
+          document.getElementById("copyWalletState").textContent = "static fallback";
+        }
+      }
+
       function setScenario(id) {
         activeScenarioId = id;
         const scenario = SCENARIOS[id];
@@ -1153,11 +1315,23 @@
         }
       }
 
+      function copyWallet() {
+        const address = document.getElementById("cryptoAddress").textContent.trim();
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(address);
+          document.getElementById("copyWalletState").textContent = "copied";
+        } else {
+          document.getElementById("copyWalletState").textContent = "copy manually";
+        }
+      }
+
       document.getElementById("runGate").addEventListener("click", runGate);
       document.getElementById("copyJson").addEventListener("click", copyResultJson);
+      document.getElementById("copyWallet").addEventListener("click", copyWallet);
       Object.keys(SCENARIOS).forEach((id) => {
         document.getElementById(id).addEventListener("click", () => setScenario(id));
       });
+      loadAccountProfile();
       setScenario("loadBlock");
     </script>
   </body>

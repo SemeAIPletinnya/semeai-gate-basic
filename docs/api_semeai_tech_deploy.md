@@ -15,11 +15,12 @@ example:
 
 Do not expose the API without authentication.
 
-For EasyPanel specifically, use
-[EasyPanel API deploy](easypanel_api_deploy.md).
-
 For Fly.io specifically, use
 [Fly.io API deploy](fly_api_deploy.md).
+
+The old EasyPanel note is retained only for operators who already control an
+EasyPanel server. Do not point DNS at an unknown EasyPanel instance and do not
+try to log in to a panel you did not create.
 
 ## Required Environment
 
