@@ -215,7 +215,14 @@ def _evaluate_context_integrity(request: dict[str, Any]) -> dict[str, Any]:
         billing_terms = ("charge", "charged", "billing", "invoice", "payment", "refund", "subscription", "support")
         support_scope_terms = billing_terms
         if _promo_answer_belongs_to_promo_flow(request):
-            support_scope_terms = (*support_scope_terms, "promo code", "discount code")
+            concrete_codes = tuple(code.lower() for code in _extract_promo_codes(request.get("ai_answer", "")))
+            support_scope_terms = (
+                *support_scope_terms,
+                "promo code",
+                "discount code",
+                "discount",
+                *concrete_codes,
+            )
         finance_terms = ("investment", "annual return", "guaranteed return", "fixed return", "yield", "profit", "portfolio", "risk free", "risk-free", "cannot lose")
         known_products = _known_account_products(request)
         mentioned_products = _mentioned_account_products(answer)

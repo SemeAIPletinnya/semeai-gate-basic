@@ -73,6 +73,48 @@ def test_supported_promo_code_in_billing_context_shows(tmp_path: Path) -> None:
     assert result["context_integrity"] == "ok"
 
 
+def test_supported_discount_code_in_billing_context_shows(tmp_path: Path) -> None:
+    result = check_ai_answer(
+        {
+            "user_message": "Can I use SAVE30?",
+            "ai_answer": "SAVE30 gives you a 30% discount.",
+            "business_data": {"active_promo_codes": ["SAVE30"]},
+            "business_rules": {"only_show_confirmed_promos": True},
+            "business_context": {
+                "conversation_topic": "billing_support",
+                "expected_answer_scope": "billing_or_support_routing",
+            },
+            "business_risk": "fake_promo_code",
+        },
+        receipt_dir=tmp_path,
+    )
+
+    assert result["action"] == "SHOW"
+    assert result["internal_decision"] == "PROCEED"
+    assert result["context_integrity"] == "ok"
+
+
+def test_supported_concrete_code_in_billing_context_shows(tmp_path: Path) -> None:
+    result = check_ai_answer(
+        {
+            "user_message": "Can I use SAVE30?",
+            "ai_answer": "SAVE30 is active for your account.",
+            "business_data": {"active_promo_codes": ["SAVE30"]},
+            "business_rules": {"only_show_confirmed_promos": True},
+            "business_context": {
+                "conversation_topic": "billing_support",
+                "expected_answer_scope": "billing_or_support_routing",
+            },
+            "business_risk": "fake_promo_code",
+        },
+        receipt_dir=tmp_path,
+    )
+
+    assert result["action"] == "SHOW"
+    assert result["internal_decision"] == "PROCEED"
+    assert result["context_integrity"] == "ok"
+
+
 def test_generic_offer_stays_out_of_billing_context_even_if_supported(tmp_path: Path) -> None:
     supported_but_wrong_scope = "A product discount may be available for your account."
     result = check_ai_answer(
