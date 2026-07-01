@@ -14,7 +14,9 @@ from semeai_gate_basic.api import (
     ApiAuthError,
     authenticate_headers,
     check_api_answer,
+    check_demo_answer,
     list_receipts,
+    list_demo_scenarios,
     parse_api_key_plans,
     parse_api_keys,
     read_receipt,
@@ -102,6 +104,51 @@ def test_check_api_answer_writes_receipt_without_raw_text(tmp_path: Path) -> Non
     assert receipt["raw_api_key_stored"] is False
 
 
+def test_public_demo_scenarios_are_listed_without_secrets() -> None:
+    listing = list_demo_scenarios()
+
+    assert listing["demo_mode"] is True
+    assert listing["api_key_required"] is False
+    assert listing["customer_data_stored"] is False
+    assert {item["id"] for item in listing["scenarios"]} >= {
+        "fake_promo_code",
+        "context_drift",
+        "unsupported_claim",
+        "unsafe_action",
+        "supported_answer",
+    }
+    serialized = json.dumps(listing)
+    assert "authorization" not in serialized.lower()
+    assert "api_key" in serialized
+
+
+def test_public_demo_check_does_not_require_or_persist_api_receipt() -> None:
+    result = check_demo_answer({"scenario_id": "fake_promo_code"})
+
+    assert result["action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
+    assert result["api"]["auth_mode"] == "public_demo"
+    assert result["api"]["api_key_required"] is False
+    assert result["api"]["api_key_exposed_to_browser"] is False
+    assert result["api"]["receipt_persisted"] is False
+    assert result["demo"]["scenario_id"] == "fake_promo_code"
+    assert "receipt_path" not in result["technical_details"]
+
+
+def test_public_demo_check_accepts_full_demo_payload_without_auth() -> None:
+    result = check_demo_answer({**FAKE_PROMO_REQUEST, "scenario_id": "loadBlock"})
+
+    assert result["action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
+    assert result["api"]["auth_mode"] == "public_demo"
+    assert result["api"]["raw_text_stored"] is False
+
+
+def test_public_demo_check_rejects_unknown_scenario() -> None:
+    with pytest.raises(ValueError):
+        check_demo_answer({"scenario_id": "not_a_scenario"})
+
+
 def test_api_receipts_are_scoped_to_authenticated_key(tmp_path: Path) -> None:
     first = check_api_answer(
         FAKE_PROMO_REQUEST,
@@ -166,6 +213,10 @@ def test_http_server_check_and_receipts(tmp_path: Path, monkeypatch: pytest.Monk
         receipts = _get_json(f"{base}/v0/receipts?limit=5", headers={"Authorization": "Bearer secret"})
         assert receipts["count"] == 1
         assert receipts["receipts"][0]["receipt_id"] == result["audit_id"]
+
+        demo_result = _post_json(f"{base}/v0/demo/check", {"scenario_id": "fake_promo_code"})
+        assert demo_result["action"] == "BLOCK"
+        assert demo_result["api"]["auth_mode"] == "public_demo"
     finally:
         server.shutdown()
         server.server_close()
@@ -184,6 +235,27 @@ def test_http_server_rejects_missing_key(tmp_path: Path, monkeypatch: pytest.Mon
         with pytest.raises(urllib.error.HTTPError) as exc_info:
             _post_json(f"{base}/v0/check", FAKE_PROMO_REQUEST)
         assert exc_info.value.code == 401
+
+        demo_result = _post_json(f"{base}/v0/demo/check", {"scenario_id": "fake_promo_code"})
+        assert demo_result["action"] == "BLOCK"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_http_server_head_health_returns_security_headers() -> None:
+    server = ThreadingHTTPServer(("127.0.0.1", 0), SemeAIGateHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        request = urllib.request.Request(f"{base}/health", method="HEAD")
+        with urllib.request.urlopen(request, timeout=10) as response:
+            assert response.status == 200
+            assert response.headers["Strict-Transport-Security"] == "max-age=31536000"
+            assert response.headers["X-Content-Type-Options"] == "nosniff"
+            assert response.read() == b""
     finally:
         server.shutdown()
         server.server_close()

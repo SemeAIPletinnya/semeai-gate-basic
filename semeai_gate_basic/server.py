@@ -16,7 +16,9 @@ from .api import (
     api_health,
     authenticate_headers,
     check_api_answer,
+    check_demo_answer,
     list_receipts,
+    list_demo_scenarios,
     parse_api_keys,
     read_receipt,
 )
@@ -28,12 +30,24 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self) -> None:  # noqa: N802 - stdlib handler naming
         self._send_json({"ok": True}, status=HTTPStatus.NO_CONTENT)
 
+    def do_HEAD(self) -> None:  # noqa: N802 - stdlib handler naming
+        parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/") or "/"
+        if path in {"/", "/health"}:
+            self._send_json(api_health(), include_body=False)
+            return
+        self._send_json({"error": "not found"}, status=HTTPStatus.NOT_FOUND, include_body=False)
+
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler naming
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
 
         if path in {"/", "/health"}:
             self._send_json(api_health())
+            return
+
+        if path == "/v0/demo/scenarios":
+            self._send_json(list_demo_scenarios())
             return
 
         if path == "/v0/account":
@@ -95,6 +109,17 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 - stdlib handler naming
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+
+        if path == "/v0/demo/check":
+            try:
+                payload = self._read_json_body()
+                result = check_demo_answer(payload)
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            self._send_json(result)
+            return
+
         if path != "/v0/check":
             self._send_json({"error": "not found"}, status=HTTPStatus.NOT_FOUND)
             return
@@ -120,24 +145,35 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
     def _read_json_body(self) -> dict[str, Any]:
         length = _safe_int(self.headers.get("content-length", "0"), default=0)
+        if length > 64 * 1024:
+            raise ValueError("request body too large")
         raw = self.rfile.read(length)
         payload = json.loads(raw.decode("utf-8"))
         if not isinstance(payload, dict):
             raise TypeError("request body must be a JSON object")
         return payload
 
-    def _send_json(self, payload: dict[str, Any], *, status: int | HTTPStatus = HTTPStatus.OK) -> None:
+    def _send_json(
+        self,
+        payload: dict[str, Any],
+        *,
+        status: int | HTTPStatus = HTTPStatus.OK,
+        include_body: bool = True,
+    ) -> None:
         data = b"" if int(status) == HTTPStatus.NO_CONTENT else json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(int(status))
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("Strict-Transport-Security", "max-age=31536000")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
         origin = os.environ.get("SEMEAI_GATE_CORS_ORIGIN", "").strip()
         if origin:
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Headers", "authorization, x-api-key, content-type")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
-        if data:
+        if data and include_body:
             self.wfile.write(data)
 
 
