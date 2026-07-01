@@ -9,7 +9,7 @@ description = "Local release-control gate for AI answers"
 requires-python = ">=3.10"
 authors = [{ name = "Anton Semenenko" }, { name = "SemeAI" }]
 readme = "README.md"
-license = "Apache-2.0"
+license = { text = "Apache-2.0" }
 
 [tool.setuptools.packages.find]
 include = ["semeai_gate_basic*"]

@@ -184,8 +184,11 @@ mount it to that path before relying on receipts as durable hosted audit data.
 Example future step:
 
 ```powershell
-flyctl volumes create semeai_gate_api_receipts --region waw --size 1
+flyctl volumes create semeai_gate_api_receipts --region arn --size 1
 ```
+
+Use the same region as `primary_region` in `fly.toml`, or match the region
+shown by `flyctl status`.
 
 Then add a `[mounts]` section to `fly.toml`:
 
