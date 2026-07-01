@@ -213,8 +213,16 @@ def _evaluate_context_integrity(request: dict[str, Any]) -> dict[str, Any]:
 
     if topic == "billing_support" or "billing" in expected_scope:
         billing_terms = ("charge", "charged", "billing", "invoice", "payment", "refund", "subscription", "support")
-        promo_terms = ("promo code", "discount code", "promotion")
-        support_scope_terms = (*billing_terms, *promo_terms, "discount", "offer")
+        support_scope_terms = billing_terms
+        if _promo_answer_belongs_to_promo_flow(request):
+            concrete_codes = tuple(code.lower() for code in _extract_promo_codes(request.get("ai_answer", "")))
+            support_scope_terms = (
+                *support_scope_terms,
+                "promo code",
+                "discount code",
+                "discount",
+                *concrete_codes,
+            )
         finance_terms = ("investment", "annual return", "guaranteed return", "fixed return", "yield", "profit", "portfolio", "risk free", "risk-free", "cannot lose")
         known_products = _known_account_products(request)
         mentioned_products = _mentioned_account_products(answer)
@@ -341,6 +349,20 @@ def _contains_unsafe_action(text: str) -> bool:
         "delete production",
     )
     return any(term in lowered for term in terms)
+
+
+def _promo_answer_belongs_to_promo_flow(request: dict[str, Any]) -> bool:
+    """Keep promo-code checks in scope without allowing unrelated offers.
+
+    Billing/support conversations can legitimately mention a promo code when
+    the host product has explicitly asked the gate to verify a promo-code
+    answer. Generic promotions, discounts, or offers remain out of scope unless
+    they are represented as a concrete code in the fake-promo flow.
+    """
+
+    if request.get("business_risk") != "fake_promo_code":
+        return False
+    return bool(_extract_promo_codes(request.get("ai_answer", "")))
 
 
 def _known_account_products(request: dict[str, Any]) -> set[str]:

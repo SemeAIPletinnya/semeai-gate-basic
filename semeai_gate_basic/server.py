@@ -17,6 +17,7 @@ from .api import (
     authenticate_headers,
     check_api_answer,
     check_demo_answer,
+    demo_account_profile,
     list_receipts,
     list_demo_scenarios,
     parse_api_keys,
@@ -48,6 +49,10 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
         if path == "/v0/demo/scenarios":
             self._send_json(list_demo_scenarios())
+            return
+
+        if path == "/v0/demo/account":
+            self._send_json(demo_account_profile())
             return
 
         if path == "/v0/account":

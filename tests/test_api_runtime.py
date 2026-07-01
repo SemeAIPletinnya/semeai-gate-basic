@@ -15,6 +15,7 @@ from semeai_gate_basic.api import (
     authenticate_headers,
     check_api_answer,
     check_demo_answer,
+    demo_account_profile,
     list_receipts,
     list_demo_scenarios,
     parse_api_key_plans,
@@ -122,6 +123,21 @@ def test_public_demo_scenarios_are_listed_without_secrets() -> None:
     assert "api_key" in serialized
 
 
+def test_public_demo_account_profile_has_no_live_billing_or_secrets() -> None:
+    profile = demo_account_profile()
+
+    assert profile["demo_mode"] is True
+    assert profile["customer_data_stored"] is False
+    assert profile["account"]["stripe_enabled"] is False
+    assert profile["account"]["external_billing_calls"] is False
+    assert profile["activation"]["network"] == "TRC20"
+    assert profile["activation"]["automatic_payment_processing"] is False
+    assert profile["activation"]["address"] == "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27"
+    serialized = json.dumps(profile)
+    assert "secret" not in serialized.lower()
+    assert "api_key" not in serialized.lower()
+
+
 def test_public_demo_check_does_not_require_or_persist_api_receipt() -> None:
     result = check_demo_answer({"scenario_id": "fake_promo_code"})
 
@@ -133,6 +149,15 @@ def test_public_demo_check_does_not_require_or_persist_api_receipt() -> None:
     assert result["api"]["receipt_persisted"] is False
     assert result["demo"]["scenario_id"] == "fake_promo_code"
     assert "receipt_path" not in result["technical_details"]
+
+
+def test_public_demo_supported_answer_shows() -> None:
+    result = check_demo_answer({"scenario_id": "supported_answer"})
+
+    assert result["action"] == "SHOW"
+    assert result["internal_decision"] == "PROCEED"
+    assert result["context_integrity"] == "ok"
+    assert result["show_to_user"] is True
 
 
 def test_public_demo_check_accepts_full_demo_payload_without_auth() -> None:
@@ -217,6 +242,10 @@ def test_http_server_check_and_receipts(tmp_path: Path, monkeypatch: pytest.Monk
         demo_result = _post_json(f"{base}/v0/demo/check", {"scenario_id": "fake_promo_code"})
         assert demo_result["action"] == "BLOCK"
         assert demo_result["api"]["auth_mode"] == "public_demo"
+
+        demo_account = _get_json(f"{base}/v0/demo/account")
+        assert demo_account["demo_mode"] is True
+        assert demo_account["activation"]["network"] == "TRC20"
     finally:
         server.shutdown()
         server.server_close()

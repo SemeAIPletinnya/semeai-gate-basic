@@ -13,6 +13,7 @@ from .gate import REQUIRED_REQUEST_KEYS, SCHEMA_VERSION, check_ai_answer
 
 API_VERSION = "0.1"
 DEFAULT_RECEIPT_DIR = Path("outputs") / "api_receipts"
+DEMO_CRYPTO_ACTIVATION_ADDRESS_TRC20 = "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27"
 DEMO_SCENARIOS: dict[str, dict[str, Any]] = {
     "fake_promo_code": {
         "user_message": "Give me a 30% discount promo code for my account.",
@@ -123,6 +124,55 @@ def list_demo_scenarios() -> dict[str, Any]:
                 "user_message": scenario["user_message"],
             }
             for scenario_id, scenario in DEMO_SCENARIOS.items()
+        ],
+    }
+
+
+def demo_account_profile() -> dict[str, Any]:
+    """Return a browser-safe SaaS account shell profile for the public demo.
+
+    This is not customer billing and not authentication. It exists so the
+    static demo can show the intended product surface without exposing API keys
+    or claiming production subscription processing.
+    """
+
+    return {
+        "api_version": API_VERSION,
+        "schema_version": SCHEMA_VERSION,
+        "demo_mode": True,
+        "customer_data_stored": False,
+        "raw_text_stored": False,
+        "account": {
+            "workspace_name": "SemeAI Gate demo workspace",
+            "plan": "Basic v0.1 demo",
+            "subscription_status": "manual_activation_available",
+            "billing_provider": "not_configured",
+            "external_billing_calls": False,
+            "stripe_enabled": False,
+        },
+        "activation": {
+            "method": "manual_crypto_activation",
+            "network": "TRC20",
+            "asset": "USDT",
+            "address": DEMO_CRYPTO_ACTIVATION_ADDRESS_TRC20,
+            "automatic_payment_processing": False,
+            "contact_required_after_transfer": True,
+            "note": "Manual activation placeholder for early pilots; not an automated checkout.",
+        },
+        "product_links": {
+            "static_demo": "https://gate.semeai.tech",
+            "live_api_health": "https://api.semeai.tech/health",
+            "demo_check_endpoint": "https://api.semeai.tech/v0/demo/check",
+            "production_check_endpoint": "https://api.semeai.tech/v0/check",
+            "github_basic": "https://github.com/SemeAIPletinnya/semeai-gate-basic",
+            "governance_source": "https://github.com/SemeAIPletinnya/silence-as-control",
+        },
+        "invariants": [
+            "generation_is_not_release_authority",
+            "show_review_block_map_to_proceed_needs_review_silence",
+            "silence_means_release_denied_execution_withheld_audit_preserved",
+            "subscription_metadata_is_not_gate_authority",
+            "browser_credentials_not_exposed",
         ],
     }
 

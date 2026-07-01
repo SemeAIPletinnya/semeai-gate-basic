@@ -211,6 +211,18 @@ endpoint:
 POST https://api.semeai.tech/v0/check
 ```
 
+The SaaS-visible shell can also read browser-safe account/demo metadata:
+
+```text
+GET https://api.semeai.tech/v0/demo/account
+```
+
+That endpoint is public-demo metadata only. It shows the intended account
+surface, product links, and manual activation placeholder without exposing
+browser credentials, storing customer data, or enabling automated billing.
+Stripe is not configured in v0.1. Early activation is manual; the demo displays
+the configured USDT/TRC20 address as an operational placeholder.
+
 For the hosted static demo path, the repository also includes:
 
 ```text
@@ -218,6 +230,21 @@ index.html
 ```
 
 It redirects to the SaaS-visible demo and is ready for GitHub Pages.
+
+## semeai.tech Landing
+
+The repository also contains a standalone static landing artifact for the main
+SemeAI site:
+
+```text
+site/semeai-tech/index.html
+```
+
+This is intended for `https://semeai.tech` as the public front door: thesis,
+product links, author/developer attribution, SSRN/Zenodo research links, Gate
+demo, API health, and GitHub repositories.
+
+Keep it separate from `gate.semeai.tech`, which remains the live Gate demo.
 
 ## Publish / SaaS Path
 
@@ -236,9 +263,10 @@ It redirects to the SaaS-visible demo and is ready for GitHub Pages.
 - [SaaS MVP plan](docs/saas_mvp_plan.md)
 - [SaaS API contract v0.1](docs/saas_api_contract_v0_1.md)
 - [SaaS API runtime v0.1](docs/saas_api_runtime_v0_1.md)
+- [SaaS account shell v0.1](docs/saas_account_shell_v0_1.md)
 - [api.semeai.tech deployment note](docs/api_semeai_tech_deploy.md)
 - [Fly.io API deploy](docs/fly_api_deploy.md)
-- [EasyPanel API deploy](docs/easypanel_api_deploy.md)
+- [EasyPanel API deploy, legacy only](docs/easypanel_api_deploy.md)
 - [Why SaaS comes later](docs/saas_later.md)
 - [License decision](docs/license_options.md)
 - [Release checklist v0.1](docs/release_checklist_v0_1.md)

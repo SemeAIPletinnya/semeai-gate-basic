@@ -15,6 +15,7 @@ POST /v0/check
 GET  /health
 HEAD /health
 GET  /v0/demo/scenarios
+GET  /v0/demo/account
 POST /v0/demo/check
 GET  /v0/account
 GET  /v0/receipts
@@ -27,6 +28,10 @@ The public API still requires an API key. Do not deploy a public API without
 Exception: `/v0/demo/check` is a browser-safe public demo endpoint. It does not
 require an API key, does not persist receipts, and is not the production/pilot
 integration endpoint.
+
+`/v0/demo/account` is also public demo metadata only. It returns the SaaS
+account-shell labels and manual activation placeholder for `gate.semeai.tech`.
+It does not return API keys, customer secrets, or payment-provider tokens.
 
 ## Files
 
@@ -104,6 +109,11 @@ Optional CORS for the static demo domain:
 flyctl secrets set SEMEAI_GATE_CORS_ORIGIN="https://gate.semeai.tech"
 ```
 
+Set this before connecting the static GitHub Pages demo to the live API. The
+browser should call only `https://api.semeai.tech/v0/demo/check` and
+`https://api.semeai.tech/v0/demo/account`; the authenticated `/v0/check`
+endpoint must not be called from public browser JavaScript.
+
 ## Deploy
 
 ```powershell
@@ -162,6 +172,28 @@ Expected demo result:
     "auth_mode": "public_demo",
     "api_key_exposed_to_browser": false,
     "receipt_persisted": false
+  }
+}
+```
+
+Public account shell metadata without an API key:
+
+```powershell
+curl.exe https://api.semeai.tech/v0/demo/account
+```
+
+Expected boundary:
+
+```json
+{
+  "demo_mode": true,
+  "customer_data_stored": false,
+  "account": {
+    "stripe_enabled": false
+  },
+  "activation": {
+    "network": "TRC20",
+    "automatic_payment_processing": false
   }
 }
 ```

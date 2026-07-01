@@ -28,6 +28,7 @@ key in the browser:
 ```text
 POST /v0/demo/check
 GET  /v0/demo/scenarios
+GET  /v0/demo/account
 ```
 
 This endpoint is for the public demo shell only. It does not replace the
@@ -39,6 +40,11 @@ Demo endpoint guarantees:
 - receipts are not persisted for public demo calls;
 - raw prompt/answer text is not stored by default;
 - output still uses the canonical `SHOW` / `REVIEW` / `BLOCK` contract.
+
+`GET /v0/demo/account` returns browser-safe product/account shell metadata for
+the public demo. It does not authenticate a customer, process payments, or
+return secrets. It exists so `gate.semeai.tech` can show the intended SaaS
+surface without exposing a production API key in browser JavaScript.
 
 Production and pilot integrations must use:
 
@@ -129,6 +135,7 @@ Useful endpoints:
 GET /health
 HEAD /health
 GET /v0/demo/scenarios
+GET /v0/demo/account
 POST /v0/demo/check
 GET /v0/account
 GET /v0/receipts?limit=25
@@ -198,6 +205,22 @@ This MVP includes subscription metadata only:
 ```
 
 It does not implement Stripe, card collection, invoices, or paid billing.
+
+The public SaaS-visible demo may show a manual activation placeholder:
+
+```json
+{
+  "activation": {
+    "method": "manual_crypto_activation",
+    "network": "TRC20",
+    "asset": "USDT",
+    "automatic_payment_processing": false
+  }
+}
+```
+
+This is not an automated checkout. It is an early-pilot operational placeholder
+for manual activation only.
 
 ## Invariants
 

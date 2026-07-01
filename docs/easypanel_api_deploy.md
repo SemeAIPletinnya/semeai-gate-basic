@@ -1,14 +1,17 @@
 # EasyPanel API Deploy v0.1
 
+> Legacy note. Use this only if you already own and control the EasyPanel
+> instance for the target host. If `api.semeai.tech` opens an EasyPanel login
+> you did not create, fix DNS first instead of deploying through that panel.
+
 This guide deploys the SemeAI Gate Basic API behind:
 
 ```text
 https://api.semeai.tech
 ```
 
-The current `api.semeai.tech` DNS target reaches an EasyPanel instance. The
-remaining step is to create an EasyPanel app/service that runs this repository's
-Dockerfile and routes the domain to port `8787`.
+This is not the preferred path for the current public demo. The preferred path
+is Fly.io, documented in [Fly.io API deploy](fly_api_deploy.md).
 
 ## App Settings
 
