@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from .accounts import AccountError, register_workspace, verify_registration
 from .api import (
     API_VERSION,
     ApiAuthError,
@@ -67,6 +68,8 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                     "authenticated": auth["authenticated"],
                     "auth_mode": auth["auth_mode"],
                     "api_key_fingerprint": auth.get("api_key_fingerprint"),
+                    "workspace_id": auth.get("workspace_id"),
+                    "workspace_name": auth.get("workspace_name"),
                     "subscription": auth["subscription"],
                 }
             )
@@ -114,6 +117,29 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 - stdlib handler naming
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+
+        if path == "/v0/register":
+            try:
+                payload = self._read_json_body()
+                result = register_workspace(payload)
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result, status=HTTPStatus.CREATED)
+            return
+
+        if path == "/v0/verify":
+            try:
+                payload = self._read_json_body()
+                token = str(payload.get("verification_token") or payload.get("token") or "")
+                result = verify_registration(token)
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result)
+            return
 
         if path == "/v0/demo/check":
             try:
@@ -172,9 +198,11 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
         self.send_header("Strict-Transport-Security", "max-age=31536000")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
-        origin = os.environ.get("SEMEAI_GATE_CORS_ORIGIN", "").strip()
-        if origin:
-            self.send_header("Access-Control-Allow-Origin", origin)
+        origin = self.headers.get("origin", "").strip()
+        allowed_origin = _allowed_cors_origin(origin, env=os.environ)
+        if allowed_origin:
+            self.send_header("Access-Control-Allow-Origin", allowed_origin)
+            self.send_header("Vary", "Origin")
             self.send_header("Access-Control-Allow-Headers", "authorization, x-api-key, content-type")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
@@ -216,6 +244,21 @@ def _safe_int(value: str | None, *, default: int) -> int:
         return int(str(value or "").strip())
     except ValueError:
         return default
+
+
+def _allowed_cors_origin(origin: str, *, env: dict[str, str]) -> str | None:
+    normalized = str(origin or "").strip().rstrip("/")
+    if not normalized:
+        return None
+    raw = env.get("SEMEAI_GATE_CORS_ORIGINS") or env.get("SEMEAI_GATE_CORS_ORIGIN") or ""
+    configured = {item.strip().rstrip("/") for item in raw.split(",") if item.strip()}
+    defaults = {
+        "https://semeai.tech",
+        "https://www.semeai.tech",
+        "https://gate.semeai.tech",
+    }
+    allowed = configured or defaults
+    return normalized if normalized in allowed else None
 
 
 def validate_server_auth_config(host: str, *, env: dict[str, str] | None = None) -> None:

@@ -8,6 +8,7 @@ from pathlib import Path
 import tempfile
 from typing import Any, Mapping
 
+from .accounts import authenticate_account_api_key
 from .gate import REQUIRED_REQUEST_KEYS, SCHEMA_VERSION, check_ai_answer
 
 
@@ -100,6 +101,7 @@ def api_health() -> dict[str, Any]:
         "service": "semeai-gate-basic",
         "api_version": API_VERSION,
         "schema_version": SCHEMA_VERSION,
+        "account_endpoints": ["/v0/register", "/v0/verify"],
         "public_actions": ["SHOW", "REVIEW", "BLOCK"],
         "internal_decisions": ["PROCEED", "NEEDS_REVIEW", "SILENCE"],
         "silence_means": "release_denied_execution_withheld_audit_preserved",
@@ -242,6 +244,8 @@ def check_api_answer(
         "authenticated": auth["authenticated"],
         "auth_mode": auth["auth_mode"],
         "api_key_fingerprint": auth.get("api_key_fingerprint"),
+        "workspace_id": auth.get("workspace_id"),
+        "workspace_name": auth.get("workspace_name"),
         "subscription": auth["subscription"],
         "receipt_store": str(target_receipts),
         "raw_text_stored": False,
@@ -258,6 +262,11 @@ def authenticate_headers(
     plans = parse_api_key_plans((env or os.environ).get("SEMEAI_GATE_API_KEY_PLANS", ""))
     header_map = {str(key).lower(): str(value) for key, value in headers.items()}
     supplied = _extract_api_key(header_map)
+
+    if supplied:
+        account_auth = authenticate_account_api_key(supplied, env=env)
+        if account_auth:
+            return account_auth
 
     if not configured:
         return {
@@ -403,6 +412,8 @@ def _attach_api_receipt_metadata(result: dict[str, Any], auth: Mapping[str, Any]
     receipt["api_version"] = API_VERSION
     receipt["api_auth_mode"] = auth.get("auth_mode")
     receipt["api_key_fingerprint"] = auth.get("api_key_fingerprint")
+    receipt["workspace_id"] = auth.get("workspace_id")
+    receipt["workspace_name"] = auth.get("workspace_name")
     subscription = auth.get("subscription") if isinstance(auth.get("subscription"), dict) else {}
     receipt["subscription_tier"] = subscription.get("tier")
     receipt["raw_api_key_stored"] = False

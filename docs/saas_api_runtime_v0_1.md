@@ -54,6 +54,81 @@ POST /v0/check
 
 with an API key.
 
+## Account Registration Endpoint
+
+The first browser-safe account backend is intentionally small:
+
+```text
+POST /v0/register
+POST /v0/verify
+```
+
+`/v0/register` accepts an early workspace request without exposing a shared API
+key in browser JavaScript:
+
+```json
+{
+  "email": "builder@example.com",
+  "company": "Example Support",
+  "use_case": "support",
+  "expected_monthly_checks": "1000"
+}
+```
+
+It creates a pending server-side record and returns a verification link:
+
+```json
+{
+  "status": "verification_required",
+  "workspace_status": "pending_email_verification",
+  "verification": {
+    "method": "email_link",
+    "delivery_provider": "not_configured",
+    "manual_delivery": true,
+    "raw_verification_token_stored": false
+  }
+}
+```
+
+This v0.1 account layer does not send email yet. The verification URL is
+returned for manual early-access activation and local demos. Add a real email
+provider later without changing the gate contract.
+
+`/v0/verify` accepts the verification token and issues a workspace API key once:
+
+```json
+{
+  "verification_token": "..."
+}
+```
+
+The raw API key is shown once in the response and is never stored server-side.
+The server stores only a hash and a fingerprint. Issued API keys can then call
+the authenticated endpoints:
+
+```text
+POST /v0/check
+GET  /v0/account
+GET  /v0/receipts
+```
+
+Account records are stored under:
+
+```text
+outputs/api_accounts
+```
+
+Override with:
+
+```text
+SEMEAI_GATE_ACCOUNT_DIR=/path/to/api_accounts
+SEMEAI_GATE_PUBLIC_SITE_URL=https://semeai.tech
+SEMEAI_GATE_CORS_ORIGINS=https://semeai.tech,https://www.semeai.tech,https://gate.semeai.tech
+```
+
+Account authentication is not release authority. SaC/SemeAI Gate decisions
+remain `SHOW`, `REVIEW`, and `BLOCK`.
+
 ## Run Locally
 
 ```powershell
@@ -134,6 +209,8 @@ Useful endpoints:
 ```text
 GET /health
 HEAD /health
+POST /v0/register
+POST /v0/verify
 GET /v0/demo/scenarios
 GET /v0/demo/account
 POST /v0/demo/check

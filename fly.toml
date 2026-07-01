@@ -8,6 +8,9 @@ primary_region = "arn"
   SEMEAI_GATE_HOST = "0.0.0.0"
   SEMEAI_GATE_PORT = "8787"
   SEMEAI_GATE_RECEIPT_DIR = "/app/outputs/api_receipts"
+  SEMEAI_GATE_ACCOUNT_DIR = "/app/outputs/api_accounts"
+  SEMEAI_GATE_PUBLIC_SITE_URL = "https://semeai.tech"
+  SEMEAI_GATE_CORS_ORIGINS = "https://semeai.tech,https://www.semeai.tech,https://gate.semeai.tech"
 
 [http_service]
   internal_port = 8787

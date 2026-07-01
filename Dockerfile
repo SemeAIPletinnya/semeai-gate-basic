@@ -13,6 +13,9 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 ENV SEMEAI_GATE_HOST=0.0.0.0
 ENV SEMEAI_GATE_PORT=8787
 ENV SEMEAI_GATE_RECEIPT_DIR=/app/outputs/api_receipts
+ENV SEMEAI_GATE_ACCOUNT_DIR=/app/outputs/api_accounts
+ENV SEMEAI_GATE_PUBLIC_SITE_URL=https://semeai.tech
+ENV SEMEAI_GATE_CORS_ORIGINS=https://semeai.tech,https://www.semeai.tech,https://gate.semeai.tech
 
 EXPOSE 8787
 

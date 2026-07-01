@@ -17,6 +17,8 @@ HEAD /health
 GET  /v0/demo/scenarios
 GET  /v0/demo/account
 POST /v0/demo/check
+POST /v0/register
+POST /v0/verify
 GET  /v0/account
 GET  /v0/receipts
 GET  /v0/receipts/{receipt_id}
@@ -32,6 +34,12 @@ integration endpoint.
 `/v0/demo/account` is also public demo metadata only. It returns the SaaS
 account-shell labels and manual activation placeholder for `gate.semeai.tech`.
 It does not return API keys, customer secrets, or payment-provider tokens.
+
+`/v0/register` and `/v0/verify` are the first browser-safe account endpoints.
+They create a pending workspace record, verify an email-link token, and issue a
+workspace API key once. The raw API key is not stored server-side. In v0.1 email
+delivery is not configured; the verification link is returned for manual
+early-access activation.
 
 ## Files
 
@@ -106,13 +114,15 @@ flyctl secrets set SEMEAI_GATE_API_KEY_PLANS="{`"$pilotKey`":`"pilot`"}"
 Optional CORS for the static demo domain:
 
 ```powershell
-flyctl secrets set SEMEAI_GATE_CORS_ORIGIN="https://gate.semeai.tech"
+flyctl secrets set SEMEAI_GATE_CORS_ORIGINS="https://semeai.tech,https://www.semeai.tech,https://gate.semeai.tech"
+flyctl secrets set SEMEAI_GATE_PUBLIC_SITE_URL="https://semeai.tech"
 ```
 
 Set this before connecting the static GitHub Pages demo to the live API. The
 browser should call only `https://api.semeai.tech/v0/demo/check` and
-`https://api.semeai.tech/v0/demo/account`; the authenticated `/v0/check`
-endpoint must not be called from public browser JavaScript.
+`https://api.semeai.tech/v0/demo/account`, or the public registration endpoints
+`/v0/register` and `/v0/verify`. The authenticated `/v0/check` endpoint must not
+be called from public browser JavaScript with a shared secret.
 
 ## Deploy
 
@@ -198,6 +208,18 @@ Expected boundary:
 }
 ```
 
+Register a workspace without embedding an API key in the browser:
+
+```powershell
+curl.exe https://api.semeai.tech/v0/register `
+  -H "content-type: application/json" `
+  --data '{ "email": "pilot@example.com", "company": "Pilot Workspace", "use_case": "support" }'
+```
+
+The response includes a manual verification URL for v0.1. Open that URL or pass
+the token to `/v0/verify`; the API key is shown once and then only its hash is
+kept on the server.
+
 Account/auth:
 
 ```powershell
@@ -236,14 +258,17 @@ Receipt listings are scoped to the authenticated API-key fingerprint.
 
 ## Receipt Persistence
 
-The default Fly config writes receipts inside the app filesystem:
+The default Fly config writes receipts and account records inside the app
+filesystem:
 
 ```text
 /app/outputs/api_receipts
+/app/outputs/api_accounts
 ```
 
 This is enough for a first smoke deploy. For a longer pilot, add a Fly volume and
-mount it to that path before relying on receipts as durable hosted audit data.
+mount it to `/app/outputs` before relying on receipts or account records as
+durable hosted audit/account data.
 
 Example future step:
 
@@ -259,7 +284,7 @@ Then add a `[mounts]` section to `fly.toml`:
 ```toml
 [mounts]
   source = "semeai_gate_api_receipts"
-  destination = "/app/outputs/api_receipts"
+  destination = "/app/outputs"
 ```
 
 ## Boundary

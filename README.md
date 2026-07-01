@@ -147,6 +147,18 @@ POST /v0/check
 The API writes receipt metadata to `outputs/api_receipts` by default and does
 not store raw prompt/answer text in receipts by default.
 
+Early account backend:
+
+```text
+POST /v0/register
+POST /v0/verify
+```
+
+`/v0/register` creates a pending workspace request without exposing a shared
+API key in the browser. `/v0/verify` issues a workspace API key once after the
+verification token is presented. The raw API key is not stored server-side.
+Email delivery and automated billing are not configured in v0.1.
+
 ## Contract Check
 
 ```powershell
