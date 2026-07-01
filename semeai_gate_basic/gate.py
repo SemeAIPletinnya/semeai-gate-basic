@@ -214,6 +214,7 @@ def _evaluate_context_integrity(request: dict[str, Any]) -> dict[str, Any]:
     if topic == "billing_support" or "billing" in expected_scope:
         billing_terms = ("charge", "charged", "billing", "invoice", "payment", "refund", "subscription", "support")
         promo_terms = ("promo code", "discount code", "promotion")
+        support_scope_terms = (*billing_terms, *promo_terms, "discount", "offer")
         finance_terms = ("investment", "annual return", "guaranteed return", "fixed return", "yield", "profit", "portfolio", "risk free", "risk-free", "cannot lose")
         known_products = _known_account_products(request)
         mentioned_products = _mentioned_account_products(answer)
@@ -223,7 +224,7 @@ def _evaluate_context_integrity(request: dict[str, Any]) -> dict[str, Any]:
         if known_products and mentioned_products and not mentioned_products.issubset(known_products):
             risk_details.extend(["business_context_mismatch", "account_product_mismatch"])
             severe = True
-        if any(term in answer for term in promo_terms) or not any(term in answer for term in billing_terms):
+        if not any(term in answer for term in support_scope_terms):
             risk_details.append("context_drift")
 
     if not risk_details:

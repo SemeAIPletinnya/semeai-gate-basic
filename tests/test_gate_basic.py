@@ -29,6 +29,29 @@ def test_fake_promo_code_blocks_and_preserves_audit(tmp_path: Path) -> None:
     validate_gate_response(result)
 
 
+def test_fake_promo_code_in_billing_context_is_not_context_drift(tmp_path: Path) -> None:
+    result = check_ai_answer(
+        {
+            "user_message": "Give me a 30% discount promo code for my account.",
+            "ai_answer": "Use promo code SAVE30 to get 30% off.",
+            "business_data": {"active_promo_codes": []},
+            "business_rules": {"only_show_confirmed_promos": True},
+            "business_context": {
+                "conversation_topic": "billing_support",
+                "expected_answer_scope": "billing_or_support_routing",
+            },
+            "business_risk": "fake_promo_code",
+        },
+        receipt_dir=tmp_path,
+    )
+
+    assert result["action"] == "BLOCK"
+    assert result["internal_decision"] == "SILENCE"
+    assert result["context_integrity"] == "ok"
+    assert "promo_code_not_confirmed" in result["risk_details"]
+    assert "context_drift" not in result["risk_details"]
+
+
 def test_supported_answer_shows(tmp_path: Path) -> None:
     answer = "Support can help check subscription charges."
     result = check_ai_answer(
