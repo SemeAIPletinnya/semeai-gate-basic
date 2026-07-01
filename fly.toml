@@ -1,5 +1,5 @@
 app = "semeai-gate-api"
-primary_region = "waw"
+primary_region = "arn"
 
 [build]
   dockerfile = "Dockerfile"

@@ -40,6 +40,15 @@ semeai-gate-api
 If that app name is unavailable in your Fly account, create another name and
 update the `app = "..."` line in `fly.toml`.
 
+Default Fly region in `fly.toml`:
+
+```text
+arn
+```
+
+This keeps the first pilot close to Europe while avoiding deprecated regions
+for new Fly Machines.
+
 ## Install Fly CLI
 
 On Windows:
@@ -91,10 +100,12 @@ flyctl secrets set SEMEAI_GATE_CORS_ORIGIN="https://gate.semeai.tech"
 ## Deploy
 
 ```powershell
-flyctl deploy
+flyctl deploy --ha=false
 ```
 
 Fly will build the Docker image and run the API on internal port `8787`.
+`--ha=false` keeps the first pilot to one Machine instead of creating a
+high-availability pair.
 
 ## Add api.semeai.tech
 
