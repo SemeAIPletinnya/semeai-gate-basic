@@ -231,6 +231,21 @@ index.html
 
 It redirects to the SaaS-visible demo and is ready for GitHub Pages.
 
+## semeai.tech Landing
+
+The repository also contains a standalone static landing artifact for the main
+SemeAI site:
+
+```text
+site/semeai-tech/index.html
+```
+
+This is intended for `https://semeai.tech` as the public front door: thesis,
+product links, author/developer attribution, SSRN/Zenodo research links, Gate
+demo, API health, and GitHub repositories.
+
+Keep it separate from `gate.semeai.tech`, which remains the live Gate demo.
+
 ## Publish / SaaS Path
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
