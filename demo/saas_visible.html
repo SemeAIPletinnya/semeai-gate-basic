@@ -102,8 +102,10 @@
         min-height: 70px;
         padding: 0 16px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        color: inherit;
         font-size: 14px;
         font-weight: 850;
+        text-decoration: none;
       }
 
       .nav-item.active {
@@ -194,10 +196,67 @@
         border-color: rgba(216, 74, 67, 0.35);
       }
 
+      .lang-row {
+        display: inline-flex;
+        gap: 6px;
+      }
+
+      .lang-button {
+        min-height: 28px;
+        padding: 4px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .lang-button.active {
+        color: var(--heading);
+        border-color: var(--line-strong);
+        background: var(--active);
+      }
+
       .main {
         width: min(1110px, calc(100vw - 270px));
         margin: 0 auto;
         padding: 40px 0 64px;
+      }
+
+      .panel-anchor {
+        scroll-margin-top: 110px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+      }
+
+      .summary-card {
+        min-height: 132px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .summary-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+        text-transform: uppercase;
+      }
+
+      .summary-card strong {
+        display: block;
+        margin-top: 10px;
+        color: var(--heading);
+        font-size: 24px;
+        line-height: 1.2;
       }
 
       .domain-head {
@@ -664,12 +723,12 @@
           </div>
         </div>
         <ul class="nav">
-          <li class="nav-item"><span class="nav-icon">01</span><span>Dashboard</span></li>
-          <li class="nav-item active"><span class="nav-icon">02</span><span>Gate Checks</span></li>
-          <li class="nav-item"><span class="nav-icon">03</span><span>Review Queue</span></li>
-          <li class="nav-item"><span class="nav-icon">04</span><span>Audit Records</span></li>
-          <li class="nav-item"><span class="nav-icon">05</span><span>Schema</span></li>
-          <li class="nav-item"><span class="nav-icon">06</span><span>Settings</span></li>
+          <li><a class="nav-item" href="#dashboard"><span class="nav-icon">01</span><span data-i18n="nav_dashboard">Dashboard</span></a></li>
+          <li><a class="nav-item active" href="#gate-checks"><span class="nav-icon">02</span><span data-i18n="nav_gate_checks">Gate Checks</span></a></li>
+          <li><a class="nav-item" href="#review-queue"><span class="nav-icon">03</span><span data-i18n="nav_review_queue">Review Queue</span></a></li>
+          <li><a class="nav-item" href="#audit-records"><span class="nav-icon">04</span><span data-i18n="nav_audit_records">Audit Records</span></a></li>
+          <li><a class="nav-item" href="#schema"><span class="nav-icon">05</span><span data-i18n="nav_schema">Schema</span></a></li>
+          <li><a class="nav-item" href="#settings"><span class="nav-icon">06</span><span data-i18n="nav_settings">Settings</span></a></li>
         </ul>
       </aside>
 
@@ -680,15 +739,35 @@
             <span class="pill green">Live API bridge</span>
             <span class="pill">schema v0.1</span>
             <span class="pill red">No customer data stored</span>
+            <span class="lang-row" aria-label="Language selector">
+              <button class="lang-button active" type="button" data-lang="en">EN</button>
+              <button class="lang-button" type="button" data-lang="uk">UA</button>
+              <button class="lang-button" type="button" data-lang="ru">RU</button>
+            </span>
           </div>
         </header>
 
         <main class="main">
-          <section class="domain-head">
+          <section class="summary-grid panel-anchor" id="dashboard" aria-label="Dashboard summary">
+            <article class="summary-card">
+              <span data-i18n="metric_mode">Runtime mode</span>
+              <strong data-i18n="metric_mode_value">Live API bridge</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="metric_contract">Contract</span>
+              <strong>SHOW / REVIEW / BLOCK</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="metric_audit">Audit</span>
+              <strong data-i18n="metric_audit_value">Receipt preserved</strong>
+            </article>
+          </section>
+
+          <section class="domain-head panel-anchor" id="gate-checks">
             <div class="domain-icon">SG</div>
             <div>
               <h1>release-control-gate</h1>
-              <div class="subtitle">Stops unsupported AI answers before users see them.</div>
+              <div class="subtitle" data-i18n="subtitle">Stops unsupported AI answers before users see them.</div>
             </div>
           </section>
 
@@ -849,6 +928,101 @@
                   <li><a href="https://api.semeai.tech/health" target="_blank" rel="noreferrer">api.semeai.tech health</a></li>
                   <li><a href="https://github.com/SemeAIPletinnya/semeai-gate-basic" target="_blank" rel="noreferrer">semeai-gate-basic</a></li>
                   <li><a href="https://github.com/SemeAIPletinnya/silence-as-control" target="_blank" rel="noreferrer">Silence-as-Control source</a></li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section class="section-line panel-anchor" id="review-queue">
+            <div><span class="ribbon" data-i18n="review_ribbon">Review queue</span></div>
+            <div class="help">?</div>
+            <div class="console-grid">
+              <article class="console-card">
+                <h2 data-i18n="review_title">Human review lane</h2>
+                <div class="mini-metric"><span>REVIEW</span><strong>NEEDS_REVIEW</strong></div>
+                <p class="note" data-i18n="review_note">Answers that are not safe to auto-release should be routed to an operator, not silently shown to the user.</p>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="review_example_title">Example</h2>
+                <div class="small-label">unsupported_product_claim</div>
+                <p class="note" data-i18n="review_example_note">The answer may be useful, but the business data does not support automatic release.</p>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="review_boundary_title">Boundary</h2>
+                <p class="note" data-i18n="review_boundary_note">Review context is audit metadata. It is not a hidden steering prompt for the model.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="section-line panel-anchor" id="audit-records">
+            <div><span class="ribbon" data-i18n="audit_ribbon">Audit records</span></div>
+            <div class="help">?</div>
+            <div class="console-grid">
+              <article class="console-card">
+                <h2 data-i18n="audit_title">Receipt trail</h2>
+                <div class="mini-metric"><span data-i18n="audit_decision">Decision</span><strong id="auditDecisionMirror">SILENCE</strong></div>
+                <div class="mini-metric"><span data-i18n="audit_current">Current audit id</span><strong id="auditMirror">demo_audit_id</strong></div>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="audit_silence_title">SILENCE is preserved</h2>
+                <p class="note" data-i18n="audit_silence_note">SILENCE means release denied, execution withheld, audit preserved. It does not mean the candidate disappeared.</p>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="audit_scope_title">Scope</h2>
+                <p class="note" data-i18n="audit_scope_note">The public demo does not store customer data. Authenticated API calls can create scoped receipts for the caller.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="section-line panel-anchor" id="schema">
+            <div><span class="ribbon" data-i18n="schema_ribbon">Schema</span></div>
+            <div class="help">?</div>
+            <div class="console-grid">
+              <article class="console-card">
+                <h2>Input</h2>
+                <ul class="source-list">
+                  <li>user_message</li>
+                  <li>ai_answer</li>
+                  <li>business_data</li>
+                  <li>business_rules</li>
+                  <li>business_context</li>
+                </ul>
+              </article>
+              <article class="console-card">
+                <h2>Output</h2>
+                <ul class="source-list">
+                  <li>action: SHOW / REVIEW / BLOCK</li>
+                  <li>internal_decision: PROCEED / NEEDS_REVIEW / SILENCE</li>
+                  <li>show_to_user</li>
+                  <li>reason</li>
+                  <li>audit_id</li>
+                </ul>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="schema_rule_title">Canonical mapping</h2>
+                <p class="note">SHOW = PROCEED<br />REVIEW = NEEDS_REVIEW<br />BLOCK = SILENCE</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="section-line panel-anchor" id="settings">
+            <div><span class="ribbon" data-i18n="settings_ribbon">Settings</span></div>
+            <div class="help">?</div>
+            <div class="console-grid">
+              <article class="console-card">
+                <h2 data-i18n="settings_lang_title">Language</h2>
+                <p class="note" data-i18n="settings_lang_note">UI copy can switch languages. Machine values stay canonical for audit and replay.</p>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="settings_api_title">API mode</h2>
+                <p class="note" data-i18n="settings_api_note">The page calls the browser-safe demo endpoint. Protected workspace calls use the account console.</p>
+              </article>
+              <article class="console-card">
+                <h2 data-i18n="settings_docs_title">Docs</h2>
+                <ul class="source-list">
+                  <li><a href="https://semeai.tech/article.html" target="_blank" rel="noreferrer">Generation is not release authority</a></li>
+                  <li><a href="https://semeai.tech/research.html" target="_blank" rel="noreferrer">Research links</a></li>
+                  <li><a href="https://semeai.tech/account.html" target="_blank" rel="noreferrer">Account console</a></li>
                 </ul>
               </article>
             </div>
@@ -1303,6 +1477,8 @@
         document.getElementById("reason").textContent = result.reason;
         document.getElementById("next").textContent = result.next_step;
         document.getElementById("audit").textContent = result.audit_id;
+        document.getElementById("auditDecisionMirror").textContent = result.internal_decision;
+        document.getElementById("auditMirror").textContent = result.audit_id;
         document.getElementById("fallback").textContent =
           result.safe_fallback || "No fallback required. The host product can show the AI answer.";
         document.getElementById("json").textContent = JSON.stringify(result, null, 2);
@@ -1325,13 +1501,163 @@
         }
       }
 
+      const UI_TRANSLATIONS = {
+        en: {
+          nav_dashboard: "Dashboard",
+          nav_gate_checks: "Gate Checks",
+          nav_review_queue: "Review Queue",
+          nav_audit_records: "Audit Records",
+          nav_schema: "Schema",
+          nav_settings: "Settings",
+          metric_mode: "Runtime mode",
+          metric_mode_value: "Live API bridge",
+          metric_contract: "Contract",
+          metric_audit: "Audit",
+          metric_audit_value: "Receipt preserved",
+          subtitle: "Stops unsupported AI answers before users see them.",
+          review_ribbon: "Review queue",
+          review_title: "Human review lane",
+          review_note: "Answers that are not safe to auto-release should be routed to an operator, not silently shown to the user.",
+          review_example_title: "Example",
+          review_example_note: "The answer may be useful, but the business data does not support automatic release.",
+          review_boundary_title: "Boundary",
+          review_boundary_note: "Review context is audit metadata. It is not a hidden steering prompt for the model.",
+          audit_ribbon: "Audit records",
+          audit_title: "Receipt trail",
+          audit_decision: "Decision",
+          audit_current: "Current audit id",
+          audit_silence_title: "SILENCE is preserved",
+          audit_silence_note: "SILENCE means release denied, execution withheld, audit preserved. It does not mean the candidate disappeared.",
+          audit_scope_title: "Scope",
+          audit_scope_note: "The public demo does not store customer data. Authenticated API calls can create scoped receipts for the caller.",
+          schema_ribbon: "Schema",
+          schema_rule_title: "Canonical mapping",
+          settings_ribbon: "Settings",
+          settings_lang_title: "Language",
+          settings_lang_note: "UI copy can switch languages. Machine values stay canonical for audit and replay.",
+          settings_api_title: "API mode",
+          settings_api_note: "The page calls the browser-safe demo endpoint. Protected workspace calls use the account console.",
+          settings_docs_title: "Docs"
+        },
+        uk: {},
+        ru: {}
+      };
+
+      const UI_TRANSLATIONS_CLEAN = {
+        en: UI_TRANSLATIONS.en,
+        uk: {
+          nav_dashboard: "Панель",
+          nav_gate_checks: "Перевірки Gate",
+          nav_review_queue: "Черга рев'ю",
+          nav_audit_records: "Аудит",
+          nav_schema: "Схема",
+          nav_settings: "Налаштування",
+          metric_mode: "Режим runtime",
+          metric_mode_value: "Live API міст",
+          metric_contract: "Контракт",
+          metric_audit: "Аудит",
+          metric_audit_value: "Receipt збережено",
+          subtitle: "Зупиняє непідтверджені AI-відповіді до того, як їх побачить користувач.",
+          review_ribbon: "Черга рев'ю",
+          review_title: "Лінія людської перевірки",
+          review_note: "Відповіді, які не можна автоматично випускати, мають іти оператору, а не непомітно показуватись користувачу.",
+          review_example_title: "Приклад",
+          review_example_note: "Відповідь може бути корисною, але бізнес-дані не підтримують автоматичний release.",
+          review_boundary_title: "Межа",
+          review_boundary_note: "Контекст рев'ю є audit metadata. Це не прихований steering prompt для моделі.",
+          audit_ribbon: "Аудит",
+          audit_title: "Receipt trail",
+          audit_decision: "Рішення",
+          audit_current: "Поточний audit id",
+          audit_silence_title: "SILENCE зберігається",
+          audit_silence_note: "SILENCE означає release denied, execution withheld, audit preserved. Це не означає, що candidate зник.",
+          audit_scope_title: "Межі",
+          audit_scope_note: "Публічне демо не зберігає customer data. Authenticated API calls можуть створювати scoped receipts для caller.",
+          schema_ribbon: "Схема",
+          schema_rule_title: "Канонічне мапування",
+          settings_ribbon: "Налаштування",
+          settings_lang_title: "Мова",
+          settings_lang_note: "UI copy може змінювати мову. Machine values лишаються canonical для audit і replay.",
+          settings_api_title: "API режим",
+          settings_api_note: "Сторінка викликає browser-safe demo endpoint. Protected workspace calls використовують account console.",
+          settings_docs_title: "Документи"
+        },
+        ru: {
+          nav_dashboard: "Панель",
+          nav_gate_checks: "Проверки Gate",
+          nav_review_queue: "Очередь ревью",
+          nav_audit_records: "Аудит",
+          nav_schema: "Схема",
+          nav_settings: "Настройки",
+          metric_mode: "Режим runtime",
+          metric_mode_value: "Live API мост",
+          metric_contract: "Контракт",
+          metric_audit: "Аудит",
+          metric_audit_value: "Receipt сохранен",
+          subtitle: "Останавливает неподтвержденные AI-ответы до того, как их увидит пользователь.",
+          review_ribbon: "Очередь ревью",
+          review_title: "Линия человеческой проверки",
+          review_note: "Ответы, которые нельзя выпускать автоматически, должны идти оператору, а не тихо показываться пользователю.",
+          review_example_title: "Пример",
+          review_example_note: "Ответ может быть полезным, но бизнес-данные не поддерживают автоматический release.",
+          review_boundary_title: "Граница",
+          review_boundary_note: "Контекст ревью является audit metadata. Это не скрытый steering prompt для модели.",
+          audit_ribbon: "Аудит",
+          audit_title: "Receipt trail",
+          audit_decision: "Решение",
+          audit_current: "Текущий audit id",
+          audit_silence_title: "SILENCE сохраняется",
+          audit_silence_note: "SILENCE означает release denied, execution withheld, audit preserved. Это не значит, что candidate исчез.",
+          audit_scope_title: "Границы",
+          audit_scope_note: "Публичное демо не сохраняет customer data. Authenticated API calls могут создавать scoped receipts для caller.",
+          schema_ribbon: "Схема",
+          schema_rule_title: "Каноническое отображение",
+          settings_ribbon: "Настройки",
+          settings_lang_title: "Язык",
+          settings_lang_note: "UI copy может менять язык. Machine values остаются canonical для audit и replay.",
+          settings_api_title: "API режим",
+          settings_api_note: "Страница вызывает browser-safe demo endpoint. Protected workspace calls используют account console.",
+          settings_docs_title: "Документы"
+        }
+      };
+
+      function applyLanguage(lang) {
+        const dictionary = UI_TRANSLATIONS_CLEAN[lang] || UI_TRANSLATIONS_CLEAN.en;
+        document.documentElement.lang = lang === "uk" ? "uk" : lang === "ru" ? "ru" : "en";
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          const key = element.dataset.i18n;
+          if (dictionary[key]) {
+            element.textContent = dictionary[key];
+          }
+        });
+        document.querySelectorAll(".lang-button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === lang);
+        });
+      }
+
+      function activateNav(hash) {
+        const target = hash || "#gate-checks";
+        document.querySelectorAll(".nav-item").forEach((item) => {
+          item.classList.toggle("active", item.getAttribute("href") === target);
+        });
+      }
+
       document.getElementById("runGate").addEventListener("click", runGate);
       document.getElementById("copyJson").addEventListener("click", copyResultJson);
       document.getElementById("copyWallet").addEventListener("click", copyWallet);
       Object.keys(SCENARIOS).forEach((id) => {
         document.getElementById(id).addEventListener("click", () => setScenario(id));
       });
+      document.querySelectorAll(".lang-button").forEach((button) => {
+        button.addEventListener("click", () => applyLanguage(button.dataset.lang || "en"));
+      });
+      document.querySelectorAll(".nav-item").forEach((item) => {
+        item.addEventListener("click", () => activateNav(item.getAttribute("href")));
+      });
+      window.addEventListener("hashchange", () => activateNav(window.location.hash));
       loadAccountProfile();
+      applyLanguage("en");
+      activateNav(window.location.hash || "#gate-checks");
       setScenario("loadBlock");
     </script>
   </body>
