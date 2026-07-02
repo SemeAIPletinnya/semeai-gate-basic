@@ -108,6 +108,13 @@
         text-decoration: none;
       }
 
+      .nav-item:hover,
+      .nav-item:focus-visible {
+        color: #ffffff;
+        background: rgba(153, 204, 204, 0.16);
+        outline: none;
+      }
+
       .nav-item.active {
         position: relative;
         color: #ffffff;
@@ -143,6 +150,10 @@
       .content {
         min-width: 0;
         background: var(--paper);
+      }
+
+      .mobile-nav {
+        display: none;
       }
 
       .topbar {
@@ -309,6 +320,14 @@
         border-right: 1px solid var(--line);
         color: #6a7175;
         font-weight: 900;
+        text-decoration: none;
+      }
+
+      .tab:hover,
+      .tab:focus-visible {
+        color: var(--heading);
+        background: rgba(153, 204, 204, 0.2);
+        outline: none;
       }
 
       .tab.active {
@@ -686,6 +705,38 @@
           display: none;
         }
 
+        .mobile-nav {
+          position: sticky;
+          top: 0;
+          z-index: 15;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 10px 18px;
+          border-bottom: 1px solid var(--line);
+          background: rgba(247, 248, 248, 0.96);
+          box-shadow: 0 8px 28px rgba(45, 54, 58, 0.08);
+        }
+
+        .mobile-nav a {
+          flex: 0 0 auto;
+          min-height: 36px;
+          padding: 8px 12px;
+          border: 1px solid var(--line);
+          border-radius: 999px;
+          color: var(--heading);
+          background: #fff;
+          font-size: 12px;
+          font-weight: 900;
+          text-decoration: none;
+        }
+
+        .mobile-nav a.active {
+          color: #ffffff;
+          border-color: var(--active);
+          background: var(--active);
+        }
+
         .topbar,
         .main {
           width: auto;
@@ -747,6 +798,15 @@
           </div>
         </header>
 
+        <nav class="mobile-nav" aria-label="SemeAI Gate mobile navigation">
+          <a href="#dashboard" data-nav-target="#dashboard" data-i18n="nav_dashboard">Dashboard</a>
+          <a href="#gate-checks" data-nav-target="#gate-checks" data-i18n="nav_gate_checks">Gate Checks</a>
+          <a href="#review-queue" data-nav-target="#review-queue" data-i18n="nav_review_queue">Review Queue</a>
+          <a href="#audit-records" data-nav-target="#audit-records" data-i18n="nav_audit_records">Audit Records</a>
+          <a href="#schema" data-nav-target="#schema" data-i18n="nav_schema">Schema</a>
+          <a href="#settings" data-nav-target="#settings" data-i18n="nav_settings">Settings</a>
+        </nav>
+
         <main class="main">
           <section class="summary-grid panel-anchor" id="dashboard" aria-label="Dashboard summary">
             <article class="summary-card">
@@ -772,14 +832,14 @@
           </section>
 
           <nav class="tabs" aria-label="Gate console tabs">
-            <div class="tab">Request</div>
-            <div class="tab">Business Data</div>
-            <div class="tab">Context</div>
-            <div class="tab active">Gate Result</div>
-            <div class="tab">Audit</div>
+            <a class="tab" href="#host-request">Request</a>
+            <a class="tab" href="#host-request">Business Data</a>
+            <a class="tab" href="#host-request">Context</a>
+            <a class="tab active" href="#gate-output">Gate Result</a>
+            <a class="tab" href="#audit-records">Audit</a>
           </nav>
 
-          <section class="section-line">
+          <section class="section-line panel-anchor" id="gate-templates">
             <div><span class="ribbon">Gate templates</span></div>
             <div class="help">?</div>
             <div class="template-row">
@@ -794,7 +854,7 @@
             </div>
           </section>
 
-          <section class="section-line">
+          <section class="section-line panel-anchor" id="host-request">
             <div><span class="ribbon">Host request</span></div>
             <div class="help">?</div>
             <div>
@@ -867,7 +927,7 @@
             </div>
           </section>
 
-          <section class="section-line">
+          <section class="section-line panel-anchor" id="gate-output">
             <div><span class="ribbon">Gate output</span></div>
             <div class="help">?</div>
             <div class="result-panel">
@@ -895,7 +955,7 @@
             </div>
           </section>
 
-          <section class="section-line">
+          <section class="section-line panel-anchor" id="account-shell">
             <div><span class="ribbon">Account shell</span></div>
             <div class="help">?</div>
             <div class="console-grid">
@@ -1637,8 +1697,26 @@
 
       function activateNav(hash) {
         const target = hash || "#gate-checks";
+        const gateSubsections = new Set(["#gate-templates", "#host-request", "#gate-output", "#account-shell"]);
+        const navTarget = gateSubsections.has(target) ? "#gate-checks" : target;
         document.querySelectorAll(".nav-item").forEach((item) => {
-          item.classList.toggle("active", item.getAttribute("href") === target);
+          item.classList.toggle("active", item.getAttribute("href") === navTarget);
+        });
+        document.querySelectorAll(".mobile-nav a").forEach((item) => {
+          item.classList.toggle("active", item.getAttribute("href") === navTarget);
+        });
+        activateGateTabs(target);
+      }
+
+      function activateGateTabs(hash) {
+        const target = hash || "#gate-output";
+        const gateTabTargets = new Set(["#host-request", "#gate-output", "#audit-records"]);
+        document.querySelectorAll(".tab").forEach((item) => {
+          const itemTarget = item.getAttribute("href");
+          const active =
+            itemTarget === target ||
+            (!gateTabTargets.has(target) && itemTarget === "#gate-output");
+          item.classList.toggle("active", active);
         });
       }
 
@@ -1652,6 +1730,12 @@
         button.addEventListener("click", () => applyLanguage(button.dataset.lang || "en"));
       });
       document.querySelectorAll(".nav-item").forEach((item) => {
+        item.addEventListener("click", () => activateNav(item.getAttribute("href")));
+      });
+      document.querySelectorAll(".mobile-nav a").forEach((item) => {
+        item.addEventListener("click", () => activateNav(item.getAttribute("href")));
+      });
+      document.querySelectorAll(".tab").forEach((item) => {
         item.addEventListener("click", () => activateNav(item.getAttribute("href")));
       });
       window.addEventListener("hashchange", () => activateNav(window.location.hash));
