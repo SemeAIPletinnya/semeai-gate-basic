@@ -101,7 +101,12 @@ def api_health() -> dict[str, Any]:
         "service": "semeai-gate-basic",
         "api_version": API_VERSION,
         "schema_version": SCHEMA_VERSION,
-        "account_endpoints": ["/v0/register", "/v0/verify"],
+        "account_endpoints": ["/v0/register", "/v0/verify", "/v0/account"],
+        "billing_endpoints": [
+            "/v0/billing/status",
+            "/v0/billing/manual-crypto-intent",
+            "/v0/billing/submit-txid",
+        ],
         "public_actions": ["SHOW", "REVIEW", "BLOCK"],
         "internal_decisions": ["PROCEED", "NEEDS_REVIEW", "SILENCE"],
         "silence_means": "release_denied_execution_withheld_audit_preserved",

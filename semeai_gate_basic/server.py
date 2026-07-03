@@ -24,6 +24,12 @@ from .api import (
     parse_api_keys,
     read_receipt,
 )
+from .billing import (
+    BillingError,
+    billing_status,
+    create_manual_crypto_intent,
+    submit_manual_crypto_txid,
+)
 
 
 class SemeAIGateHandler(BaseHTTPRequestHandler):
@@ -62,6 +68,7 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             except ApiAuthError as exc:
                 self._send_json({"error": str(exc)}, status=exc.status_code)
                 return
+            billing = billing_status(auth, env=os.environ)
             self._send_json(
                 {
                     "api_version": API_VERSION,
@@ -71,8 +78,23 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                     "workspace_id": auth.get("workspace_id"),
                     "workspace_name": auth.get("workspace_name"),
                     "subscription": auth["subscription"],
+                    "billing": billing["billing"],
+                    "manual_crypto": billing["manual_crypto"],
                 }
             )
+            return
+
+        if path == "/v0/billing/status":
+            try:
+                auth = authenticate_headers(self.headers)
+                result = billing_status(auth, env=os.environ)
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except BillingError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            self._send_json(result)
             return
 
         if path == "/v0/receipts":
@@ -147,6 +169,36 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                 result = check_demo_answer(payload)
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/billing/manual-crypto-intent":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body()
+                result = create_manual_crypto_intent(auth, payload, env=os.environ)
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except (BillingError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result, status=HTTPStatus.CREATED)
+            return
+
+        if path == "/v0/billing/submit-txid":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body()
+                result = submit_manual_crypto_txid(auth, payload, env=os.environ)
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except (BillingError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
                 return
             self._send_json(result)
             return

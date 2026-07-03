@@ -174,6 +174,18 @@ def verify_registration(
             "billing_provider": "not_configured",
             "external_billing_calls": False,
         },
+        "billing": {
+            "schema_version": "0.1-billing",
+            "status": "trial",
+            "payment_status": "unpaid",
+            "billing_provider": "manual_usdt_trc20",
+            "network": "TRC20",
+            "asset": "USDT",
+            "manual_review_required": True,
+            "automatic_onchain_verification": False,
+            "external_billing_calls": False,
+            "private_keys_stored": False,
+        },
         "created_at": verified_at,
         "api_keys": [
             {
@@ -223,6 +235,7 @@ def verify_registration(
         "api_key_issued": True,
         "raw_api_key_stored": False,
         "subscription": workspace["subscription"],
+        "billing": workspace["billing"],
         "next_step": "Use this API key as a Bearer token for POST /v0/check. It is shown once.",
     }
 

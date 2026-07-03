@@ -152,12 +152,26 @@ Early account backend:
 ```text
 POST /v0/register
 POST /v0/verify
+GET  /v0/account
 ```
 
 `/v0/register` creates a pending workspace request without exposing a shared
 API key in the browser. `/v0/verify` issues a workspace API key once after the
 verification token is presented. The raw API key is not stored server-side.
-Email delivery and automated billing are not configured in v0.1.
+Email delivery is not configured in v0.1.
+
+Manual crypto billing for early pilots:
+
+```text
+GET  /v0/billing/status
+POST /v0/billing/manual-crypto-intent
+POST /v0/billing/submit-txid
+```
+
+This creates a USDT/TRC20 payment intent and lets a workspace submit a TXID for
+operator review. It does not perform automatic on-chain verification, store
+private keys, call external payment processors, or activate paid access without
+manual review. See [manual crypto billing v0.1](docs/crypto_billing_v0_1.md).
 
 ## Contract Check
 
@@ -294,6 +308,7 @@ See [deployment modes](docs/deployment_modes.md).
 - [SaaS API contract v0.1](docs/saas_api_contract_v0_1.md)
 - [SaaS API runtime v0.1](docs/saas_api_runtime_v0_1.md)
 - [SaaS account shell v0.1](docs/saas_account_shell_v0_1.md)
+- [Manual crypto billing v0.1](docs/crypto_billing_v0_1.md)
 - [api.semeai.tech deployment note](docs/api_semeai_tech_deploy.md)
 - [Fly.io API deploy](docs/fly_api_deploy.md)
 - [EasyPanel API deploy, legacy only](docs/easypanel_api_deploy.md)
