@@ -258,10 +258,28 @@ demo, API health, and GitHub repositories.
 
 Keep it separate from `gate.semeai.tech`, which remains the live Gate demo.
 
+## Deployment Model
+
+SemeAI Gate is not limited to one delivery model:
+
+- **Open Source**: inspect, fork, and run the basic adapter yourself.
+- **Self-hosted Enterprise**: deploy inside the customer's VPC, private cloud,
+  data center, or regulated network boundary.
+- **SaaS API**: use a hosted endpoint for fast pilots when security policy
+  allows scoped request data to leave the customer's infrastructure.
+
+If a company cannot send documents to an external API, it should use the
+self-hosted path. Deployment mode does not change the canonical gate semantics:
+`SHOW`, `REVIEW`, and `BLOCK` still map to `PROCEED`, `NEEDS_REVIEW`, and
+`SILENCE`.
+
+See [deployment modes](docs/deployment_modes.md).
+
 ## Publish / SaaS Path
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)
 - [GitHub Pages deployment](docs/github_pages_deploy.md)
+- [Deployment modes](docs/deployment_modes.md)
 - [Basic audit v0.1](docs/basic_audit_v0_1.md)
 - [Contract](docs/contract.md)
 - [Benchmark v0.3](docs/benchmark_v0_3.md)
