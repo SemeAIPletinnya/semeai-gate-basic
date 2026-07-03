@@ -107,9 +107,25 @@ def api_health() -> dict[str, Any]:
             "/v0/billing/manual-crypto-intent",
             "/v0/billing/submit-txid",
         ],
+        "admin_endpoints": [
+            "/v0/admin/workspaces",
+            "/v0/admin/billing-reviews",
+            "/v0/admin/workspaces/{workspace_id}/activate",
+        ],
+        "email_verification": {
+            "required": True,
+            "delivery_provider": "manual_link_v0_1",
+            "automatic_email_delivery": False,
+        },
+        "storage": {
+            "persistent_outputs_mount": "/app/outputs",
+            "receipts_dir_env": "SEMEAI_GATE_RECEIPT_DIR",
+            "accounts_dir_env": "SEMEAI_GATE_ACCOUNT_DIR",
+        },
         "public_actions": ["SHOW", "REVIEW", "BLOCK"],
         "internal_decisions": ["PROCEED", "NEEDS_REVIEW", "SILENCE"],
         "silence_means": "release_denied_execution_withheld_audit_preserved",
+        "payment_metadata_is_gate_authority": False,
     }
 
 

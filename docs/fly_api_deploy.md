@@ -22,6 +22,9 @@ POST /v0/verify
 GET  /v0/account
 GET  /v0/receipts
 GET  /v0/receipts/{receipt_id}
+GET  /v0/admin/workspaces
+GET  /v0/admin/billing-reviews
+POST /v0/admin/workspaces/{workspace_id}/activate
 ```
 
 The public API still requires an API key. Do not deploy a public API without
@@ -40,6 +43,11 @@ They create a pending workspace record, verify an email-link token, and issue a
 workspace API key once. The raw API key is not stored server-side. In v0.1 email
 delivery is not configured; the verification link is returned for manual
 early-access activation.
+
+`/v0/admin/*` endpoints are operator-only. They require
+`SEMEAI_GATE_ADMIN_KEY` and are used for manual crypto payment review and
+workspace activation. Admin metadata is not release authority and does not
+change `SHOW` / `REVIEW` / `BLOCK` or `PROCEED` / `NEEDS_REVIEW` / `SILENCE`.
 
 ## Files
 
@@ -107,8 +115,10 @@ keys to Git.
 
 ```powershell
 $pilotKey = "replace-with-long-random-pilot-key"
+$adminKey = "replace-with-long-random-admin-key"
 flyctl secrets set SEMEAI_GATE_API_KEYS="$pilotKey"
 flyctl secrets set SEMEAI_GATE_API_KEY_PLANS="{`"$pilotKey`":`"pilot`"}"
+flyctl secrets set SEMEAI_GATE_ADMIN_KEY="$adminKey"
 ```
 
 Optional CORS for the static demo domain:
@@ -125,6 +135,15 @@ browser should call only `https://api.semeai.tech/v0/demo/check` and
 be called from public browser JavaScript with a shared secret.
 
 ## Deploy
+
+Create the persistent output volume before deploying. This keeps account,
+receipt, billing, and admin-review records stable across Machine rebuilds:
+
+```powershell
+flyctl volumes create semeai_gate_api_data --region arn --size 1 --app semeai-gate-api
+```
+
+If the volume already exists, keep it and continue.
 
 ```powershell
 flyctl deploy --ha=false
@@ -216,9 +235,10 @@ curl.exe https://api.semeai.tech/v0/register `
   --data '{ "email": "pilot@example.com", "company": "Pilot Workspace", "use_case": "support" }'
 ```
 
-The response includes a manual verification URL for v0.1. Open that URL or pass
-the token to `/v0/verify`; the API key is shown once and then only its hash is
-kept on the server.
+The response includes a manual verification URL for
+`https://semeai.tech/register.html#verify=...`. Open that URL or pass the token
+to `/v0/verify`; the API key is shown once and then only its hash is kept on the
+server.
 
 Account/auth:
 
@@ -256,36 +276,45 @@ curl.exe https://api.semeai.tech/v0/receipts `
 
 Receipt listings are scoped to the authenticated API-key fingerprint.
 
+Manual crypto review queue:
+
+```powershell
+curl.exe https://api.semeai.tech/v0/admin/billing-reviews `
+  -H "authorization: Bearer $adminKey"
+```
+
+Manual activation after operator verification:
+
+```powershell
+curl.exe https://api.semeai.tech/v0/admin/workspaces/ws_example/activate `
+  -H "content-type: application/json" `
+  -H "authorization: Bearer $adminKey" `
+  --data '{ "invoice_id": "inv_example", "activation_note": "manual TRC20 payment verified" }'
+```
+
+This marks account billing metadata as active/paid after review. It does not
+turn payment metadata into gate authority.
+
 ## Receipt Persistence
 
-The default Fly config writes receipts and account records inside the app
-filesystem:
+The Fly config writes receipts, account records, manual billing proofs, and
+operator review events under the mounted `/app/outputs` volume:
 
 ```text
 /app/outputs/api_receipts
 /app/outputs/api_accounts
 ```
 
-This is enough for a first smoke deploy. For a longer pilot, add a Fly volume and
-mount it to `/app/outputs` before relying on receipts or account records as
-durable hosted audit/account data.
+The current `[mounts]` section in `fly.toml` is:
 
-Example future step:
-
-```powershell
-flyctl volumes create semeai_gate_api_receipts --region arn --size 1
+```toml
+[mounts]
+  source = "semeai_gate_api_data"
+  destination = "/app/outputs"
 ```
 
 Use the same region as `primary_region` in `fly.toml`, or match the region
 shown by `flyctl status`.
-
-Then add a `[mounts]` section to `fly.toml`:
-
-```toml
-[mounts]
-  source = "semeai_gate_api_receipts"
-  destination = "/app/outputs"
-```
 
 ## Boundary
 
@@ -295,3 +324,5 @@ Then add a `[mounts]` section to `fly.toml`:
 - Public actions remain `SHOW`, `REVIEW`, `BLOCK`.
 - Internal decisions remain `PROCEED`, `NEEDS_REVIEW`, `SILENCE`.
 - `SILENCE` means release denied, execution withheld, and audit preserved.
+- Admin/payment metadata is not gate authority.
+- Subscription metadata is not release authority.

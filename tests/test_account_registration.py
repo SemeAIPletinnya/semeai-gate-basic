@@ -50,7 +50,7 @@ def test_register_workspace_creates_pending_record_without_raw_token(tmp_path: P
     assert result["email"] == "founder@example.com"
     assert result["account_storage"]["raw_api_key_stored"] is False
     assert result["verification"]["raw_verification_token_stored"] is False
-    assert result["verification"]["verification_url"].startswith("https://semeai.tech/#verify=")
+    assert result["verification"]["verification_url"].startswith("https://semeai.tech/register.html#verify=")
 
     pending_files = list((tmp_path / "pending").glob("*.json"))
     assert len(pending_files) == 1

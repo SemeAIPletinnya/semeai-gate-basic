@@ -24,6 +24,14 @@ from .api import (
     parse_api_keys,
     read_receipt,
 )
+from .admin import (
+    AdminActionError,
+    AdminAuthError,
+    activate_workspace_after_manual_review,
+    authenticate_admin_headers,
+    list_admin_workspaces,
+    list_billing_reviews,
+)
 from .billing import (
     BillingError,
     billing_status,
@@ -95,6 +103,28 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": str(exc)}, status=exc.status_code)
                 return
             self._send_json(result)
+            return
+
+        if path == "/v0/admin/workspaces":
+            try:
+                authenticate_admin_headers(self.headers)
+            except AdminAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            query = parse_qs(parsed.query)
+            limit = _safe_int((query.get("limit") or ["50"])[0], default=50)
+            self._send_json(list_admin_workspaces(env=os.environ, limit=limit))
+            return
+
+        if path == "/v0/admin/billing-reviews":
+            try:
+                authenticate_admin_headers(self.headers)
+            except AdminAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            query = parse_qs(parsed.query)
+            limit = _safe_int((query.get("limit") or ["50"])[0], default=50)
+            self._send_json(list_billing_reviews(env=os.environ, limit=limit))
             return
 
         if path == "/v0/receipts":
@@ -203,6 +233,24 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             self._send_json(result)
             return
 
+        if path.startswith("/v0/admin/workspaces/") and path.endswith("/activate"):
+            try:
+                admin_auth = authenticate_admin_headers(self.headers)
+                payload = self._read_json_body()
+                parts = path.strip("/").split("/")
+                if len(parts) != 5:
+                    raise AdminActionError("invalid admin activation path", status_code=HTTPStatus.NOT_FOUND)
+                result = activate_workspace_after_manual_review(parts[3], payload, env=os.environ, admin_auth=admin_auth)
+            except AdminAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except (AdminActionError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result)
+            return
+
         if path != "/v0/check":
             self._send_json({"error": "not found"}, status=HTTPStatus.NOT_FOUND)
             return
@@ -255,7 +303,7 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
         if allowed_origin:
             self.send_header("Access-Control-Allow-Origin", allowed_origin)
             self.send_header("Vary", "Origin")
-            self.send_header("Access-Control-Allow-Headers", "authorization, x-api-key, content-type")
+            self.send_header("Access-Control-Allow-Headers", "authorization, x-api-key, x-admin-key, content-type")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
         if data and include_body:

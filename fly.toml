@@ -20,6 +20,10 @@ primary_region = "arn"
   min_machines_running = 0
   processes = ["app"]
 
+[mounts]
+  source = "semeai_gate_api_data"
+  destination = "/app/outputs"
+
 [[vm]]
   cpu_kind = "shared"
   cpus = 1

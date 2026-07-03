@@ -85,7 +85,7 @@ def register_workspace(
     _append_event(root, {"event_type": "registration_created", **_public_registration_event(record)})
 
     public_site = str(values.get("SEMEAI_GATE_PUBLIC_SITE_URL", "") or DEFAULT_PUBLIC_SITE_URL).rstrip("/")
-    verification_url = f"{public_site}/#verify={verification_token}"
+    verification_url = f"{public_site}/register.html#verify={verification_token}"
 
     return {
         "schema_version": ACCOUNT_SCHEMA_VERSION,
@@ -97,7 +97,7 @@ def register_workspace(
         "company": company,
         "verification": {
             "method": "email_link",
-            "delivery_provider": "not_configured",
+            "delivery_provider": "manual_link_v0_1",
             "manual_delivery": True,
             "verification_url": verification_url,
             "expires_at": expires_at,
@@ -108,7 +108,7 @@ def register_workspace(
             "password_collected": False,
             "raw_api_key_stored": False,
         },
-        "next_step": "Open the verification link to issue the workspace API key.",
+        "next_step": "Open the verification link on register.html to issue the workspace API key.",
     }
 
 
@@ -294,7 +294,8 @@ def account_dir_status(
         "workspace_count": _count_json(_workspaces_dir(root)),
         "raw_api_key_stored": False,
         "password_auth_implemented": False,
-        "email_delivery_provider": "not_configured",
+        "email_delivery_provider": "manual_link_v0_1",
+        "email_verification_required": True,
     }
 
 
