@@ -3,1746 +3,758 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SemeAI Gate SaaS-Visible Demo</title>
+    <title>SemeAI Ecosystem Demo · Gate + SaC + Product</title>
+    <meta
+      name="description"
+      content="Interactive SemeAI ecosystem demo: local workspace mirror, live SHOW/REVIEW/BLOCK gate, Silence-as-Control, and product surface."
+    />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <style>
       :root {
-        color-scheme: light;
-        --sidebar: #303335;
-        --sidebar-2: #282b2d;
-        --active: #99cccc;
-        --active-dark: #6faeb0;
-        --paper: #f7f8f8;
-        --panel: #ffffff;
-        --line: #d8dddd;
-        --line-strong: #8ac2c4;
-        --text: #60686d;
-        --heading: #31383d;
-        --muted: #8b979d;
-        --red: #d84a43;
-        --amber: #c08a22;
-        --green: #2f9e73;
-        --shadow: 0 16px 48px rgba(45, 54, 58, 0.08);
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
+        color-scheme: dark;
+        --bg: #070b10;
+        --panel: rgba(14, 20, 28, 0.94);
+        --panel-2: #101820;
+        --line: rgba(148, 173, 196, 0.16);
+        --line-strong: rgba(125, 211, 208, 0.4);
+        --text: #e8eef6;
+        --strong: #fff;
+        --muted: #93a4b8;
+        --muted-2: #6d7f94;
+        --teal: #7fd3d0;
+        --teal-2: #4ba3a7;
+        --green: #34d399;
+        --amber: #fbbf24;
+        --red: #fb7185;
+        --blue: #60a5fa;
+        --violet: #a78bfa;
+        --shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+        --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --mono: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
       }
-
-      * {
-        box-sizing: border-box;
-      }
-
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         min-height: 100vh;
+        font-family: var(--sans);
         color: var(--text);
-        background: var(--paper);
+        background:
+          radial-gradient(900px 480px at 90% -10%, rgba(75, 163, 167, 0.2), transparent 55%),
+          radial-gradient(700px 420px at 0% 20%, rgba(96, 165, 250, 0.1), transparent 50%),
+          linear-gradient(180deg, #070b10, #0a1017 60%, #0c141c);
+        -webkit-font-smoothing: antialiased;
       }
-
-      button,
-      textarea,
-      input {
-        font: inherit;
-      }
-
-      button {
-        cursor: pointer;
-      }
+      a { color: inherit; text-decoration: none; }
+      button, input, textarea, select { font: inherit; color: inherit; }
+      button { cursor: pointer; }
 
       .app {
         display: grid;
-        grid-template-columns: 205px minmax(0, 1fr);
+        grid-template-columns: 260px minmax(0, 1fr);
         min-height: 100vh;
       }
 
+      /* Sidebar */
       .sidebar {
-        background: var(--sidebar);
-        color: #d6dcdf;
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid var(--line);
+        background: rgba(8, 12, 18, 0.95);
+        backdrop-filter: blur(14px);
+        padding: 16px 12px 24px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: auto;
       }
-
       .brand {
         display: flex;
-        align-items: center;
-        gap: 11px;
-        height: 72px;
-        padding: 0 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-        font-weight: 900;
-      }
-
-      .brand-mark {
-        display: grid;
-        place-items: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        color: #153638;
-        background: var(--active);
-        font-weight: 950;
-      }
-
-      .brand-sub {
-        margin-top: 2px;
-        color: #aeb8bc;
-        font-size: 11px;
-        font-weight: 700;
-      }
-
-      .nav {
-        padding: 0;
-        margin: 0;
-        list-style: none;
-      }
-
-      .nav-item {
-        display: grid;
-        grid-template-columns: 28px minmax(0, 1fr);
-        gap: 10px;
-        align-items: center;
-        min-height: 70px;
-        padding: 0 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-        color: inherit;
-        font-size: 14px;
-        font-weight: 850;
-        text-decoration: none;
-      }
-
-      .nav-item:hover,
-      .nav-item:focus-visible {
-        color: #ffffff;
-        background: rgba(153, 204, 204, 0.16);
-        outline: none;
-      }
-
-      .nav-item.active {
-        position: relative;
-        color: #ffffff;
-        background: var(--active);
-      }
-
-      .nav-item.active::after {
-        content: "";
-        position: absolute;
-        right: -1px;
-        top: 50%;
-        width: 0;
-        height: 0;
-        border-top: 10px solid transparent;
-        border-bottom: 10px solid transparent;
-        border-right: 10px solid var(--paper);
-        transform: translateY(-50%);
-      }
-
-      .nav-icon {
-        display: grid;
-        place-items: center;
-        width: 28px;
-        height: 28px;
-        color: #b7c1c5;
-        font-size: 18px;
-      }
-
-      .active .nav-icon {
-        color: #ffffff;
-      }
-
-      .content {
-        min-width: 0;
-        background: var(--paper);
-      }
-
-      .mobile-nav {
-        display: none;
-      }
-
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 94px;
-        padding: 0 76px;
-        border-bottom: 2px solid var(--line-strong);
-        background: #f1f2f2;
-      }
-
-      .crumb {
-        color: var(--heading);
-        font-size: 17px;
-        font-weight: 800;
-      }
-
-      .crumb span {
-        color: var(--active-dark);
-      }
-
-      .status-strip {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 28px;
-        padding: 5px 10px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        color: var(--muted);
-        background: #fff;
-        font-size: 12px;
-        font-weight: 850;
-        white-space: nowrap;
-      }
-
-      .pill.green {
-        color: var(--green);
-        border-color: rgba(47, 158, 115, 0.35);
-      }
-
-      .pill.red {
-        color: var(--red);
-        border-color: rgba(216, 74, 67, 0.35);
-      }
-
-      .lang-row {
-        display: inline-flex;
-        gap: 6px;
-      }
-
-      .lang-button {
-        min-height: 28px;
-        padding: 4px 9px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        color: var(--muted);
-        background: #fff;
-        font-size: 12px;
-        font-weight: 850;
-      }
-
-      .lang-button.active {
-        color: var(--heading);
-        border-color: var(--line-strong);
-        background: var(--active);
-      }
-
-      .main {
-        width: min(1110px, calc(100vw - 270px));
-        margin: 0 auto;
-        padding: 40px 0 64px;
-      }
-
-      .panel-anchor {
-        scroll-margin-top: 110px;
-      }
-
-      .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-        margin-bottom: 28px;
-      }
-
-      .summary-card {
-        min-height: 132px;
-        padding: 18px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        box-shadow: var(--shadow);
-      }
-
-      .summary-card span {
-        display: block;
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 850;
-        text-transform: uppercase;
-      }
-
-      .summary-card strong {
-        display: block;
-        margin-top: 10px;
-        color: var(--heading);
-        font-size: 24px;
-        line-height: 1.2;
-      }
-
-      .domain-head {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 22px;
-      }
-
-      .domain-icon {
-        display: grid;
-        place-items: center;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        color: #fff;
-        background: var(--active);
-        font-size: 22px;
-      }
-
-      h1 {
-        margin: 0;
-        color: var(--heading);
-        font-size: 28px;
-        line-height: 1.1;
-        letter-spacing: -0.02em;
-      }
-
-      .subtitle {
-        margin-top: 4px;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 700;
-      }
-
-      .tabs {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        margin-bottom: 26px;
-        border-top: 1px solid var(--line);
-        border-bottom: 1px solid var(--line-strong);
-        background: #f1f1f1;
-      }
-
-      .tab {
-        position: relative;
-        display: grid;
-        place-items: center;
-        min-height: 82px;
-        border-right: 1px solid var(--line);
-        color: #6a7175;
-        font-weight: 900;
-        text-decoration: none;
-      }
-
-      .tab:hover,
-      .tab:focus-visible {
-        color: var(--heading);
-        background: rgba(153, 204, 204, 0.2);
-        outline: none;
-      }
-
-      .tab.active {
-        color: #ffffff;
-        background: var(--active);
-      }
-
-      .tab.active::after {
-        content: "";
-        position: absolute;
-        left: 50%;
-        bottom: -10px;
-        width: 0;
-        height: 0;
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        border-top: 10px solid var(--active);
-        transform: translateX(-50%);
-      }
-
-      .section-line {
-        display: grid;
-        grid-template-columns: 150px 48px minmax(0, 1fr);
-        gap: 18px;
-        align-items: start;
-        padding: 22px 0;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .ribbon {
-        display: inline-flex;
-        align-items: center;
-        min-height: 23px;
-        padding: 3px 11px;
-        color: #fff;
-        background: #a7aaad;
-        font-size: 12px;
-        font-weight: 850;
-        text-transform: uppercase;
-      }
-
-      .help {
-        display: grid;
-        place-items: center;
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        color: #fff;
-        background: #73787b;
-        font-weight: 900;
-      }
-
-      .template-row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
         gap: 12px;
+        align-items: center;
+        padding: 8px 10px 16px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 14px;
+      }
+      .mark {
+        width: 38px; height: 38px; border-radius: 12px;
+        display: grid; place-items: center;
+        font-weight: 800; color: #042f2e;
+        background: linear-gradient(135deg, var(--teal), var(--blue));
+        box-shadow: 0 0 24px rgba(127, 211, 208, 0.25);
+      }
+      .brand strong { display: block; color: var(--strong); font-size: 15px; }
+      .brand span { color: var(--muted-2); font-size: 11px; font-weight: 650; }
+
+      .nav-label {
+        margin: 14px 10px 8px;
+        font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--muted-2);
+      }
+      .nav-item {
+        display: flex; align-items: center; gap: 10px;
+        width: 100%; text-align: left;
+        border: 1px solid transparent; border-radius: 12px;
+        background: transparent; color: var(--muted);
+        padding: 11px 12px; margin-bottom: 4px;
+        font-weight: 650; font-size: 13.5px;
+        transition: 0.18s ease;
+      }
+      .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+      .nav-item.active {
+        color: var(--strong);
+        border-color: rgba(127,211,208,0.3);
+        background: rgba(127,211,208,0.1);
+      }
+      .nav-item .ico {
+        width: 22px; height: 22px; border-radius: 7px;
+        display: grid; place-items: center;
+        font-size: 11px; font-weight: 800;
+        background: rgba(255,255,255,0.05); color: var(--teal);
       }
 
-      .select-like {
-        min-width: 260px;
-        padding: 7px 0;
-        color: #71999f;
-        border-bottom: 1px dashed #71999f;
-        font-size: 14px;
+      .eco-mini {
+        margin-top: 18px; padding: 12px;
+        border: 1px solid var(--line); border-radius: 14px;
+        background: rgba(255,255,255,0.02);
       }
+      .eco-mini h4 {
+        margin: 0 0 8px; font-size: 11px; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted-2);
+      }
+      .eco-link {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px; border-radius: 10px; margin-bottom: 4px;
+        color: var(--muted); font-size: 12px; font-weight: 650;
+      }
+      .eco-link:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+      .dot {
+        width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto;
+      }
+      .dot.sac { background: var(--violet); }
+      .dot.gate { background: var(--teal); }
+      .dot.site { background: var(--blue); }
 
-      .scenario-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+      /* Main */
+      .main { min-width: 0; padding: 20px 22px 40px; }
+      .topbar {
+        display: flex; flex-wrap: wrap; gap: 10px;
+        align-items: center; justify-content: space-between;
         margin-bottom: 18px;
       }
-
-      .scenario-button,
-      .primary-button,
-      .secondary-button {
-        min-height: 34px;
-        border: 1px solid #bebebe;
-        border-radius: 5px;
-        padding: 7px 12px;
-        color: #666d71;
-        background: linear-gradient(#ffffff, #f1f1f1);
-        font-size: 12px;
-        font-weight: 900;
+      .topbar h1 {
+        margin: 0; font-size: clamp(22px, 3vw, 30px);
+        color: var(--strong); letter-spacing: -0.02em;
+      }
+      .topbar p { margin: 4px 0 0; color: var(--muted); font-size: 14px; max-width: 56ch; }
+      .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+      .pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 10px; border-radius: 999px;
+        border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+        color: var(--muted); font-size: 12px; font-weight: 700;
+      }
+      .pill.ok { color: var(--green); border-color: rgba(52,211,153,0.35); }
+      .pill.warn { color: var(--amber); border-color: rgba(251,191,36,0.35); }
+      .pill.bad { color: var(--red); border-color: rgba(251,113,133,0.35); }
+      .pill.info { color: var(--blue); border-color: rgba(96,165,250,0.35); }
+      .live-dot {
+        width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+        box-shadow: 0 0 0 0 rgba(52,211,153,0.55);
+        animation: pulse 1.8s infinite;
+      }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+        70% { box-shadow: 0 0 0 10px rgba(52,211,153,0); }
+        100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
       }
 
-      .scenario-button.active,
-      .primary-button {
-        color: #ffffff;
-        border-color: var(--active-dark);
-        background: var(--active);
+      .panel {
+        border: 1px solid var(--line); border-radius: 18px;
+        background: var(--panel); box-shadow: var(--shadow);
+        padding: 16px; margin-bottom: 14px;
+      }
+      .panel h2 {
+        margin: 0 0 6px; font-size: 18px; color: var(--strong);
+      }
+      .panel .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; line-height: 1.5; }
+      .hidden { display: none !important; }
+
+      .grid-2 { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 14px; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+      .card {
+        border: 1px solid var(--line); border-radius: 14px;
+        background: rgba(255,255,255,0.025); padding: 14px;
+        transition: 0.18s ease;
+      }
+      .card:hover { border-color: rgba(127,211,208,0.3); transform: translateY(-2px); }
+      .card strong { display: block; color: var(--strong); margin-bottom: 4px; }
+      .card span, .card p { color: var(--muted); font-size: 13px; line-height: 1.45; margin: 0; }
+      .card .path {
+        margin-top: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted-2);
       }
 
-      .transport-status {
-        display: inline-flex;
-        align-items: center;
-        min-height: 34px;
-        margin-left: 10px;
-        padding: 7px 12px;
-        border: 1px dashed var(--line-strong);
-        border-radius: 5px;
-        color: #71999f;
-        background: rgba(153, 204, 204, 0.08);
-        font-size: 12px;
-        font-weight: 850;
+      .tree {
+        font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+        color: #c5d4e4; background: #0a1018; border: 1px solid var(--line);
+        border-radius: 14px; padding: 14px; max-height: 360px; overflow: auto;
+      }
+      .tree .dir { color: var(--teal); }
+      .tree .file { color: var(--muted); }
+      .tree .hl { color: var(--amber); }
+
+      .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .btn {
+        min-height: 40px; padding: 0 14px; border-radius: 12px;
+        border: 1px solid var(--line); background: rgba(255,255,255,0.04);
+        color: var(--text); font-weight: 700; font-size: 13px;
+      }
+      .btn:hover { border-color: rgba(148,173,196,0.35); }
+      .btn.primary {
+        color: #042f2e; border-color: transparent;
+        background: linear-gradient(180deg, #b8f0ed, var(--teal));
+      }
+      .btn.active {
+        color: #042f2e; background: var(--teal); border-color: transparent;
+      }
+      .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+      .field { display: grid; gap: 6px; margin-bottom: 10px; }
+      label { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-2); }
+      textarea, input, select {
+        width: 100%; border: 1px solid var(--line); border-radius: 12px;
+        background: #0a1018; padding: 11px 12px; outline: none;
+      }
+      textarea { min-height: 88px; resize: vertical; font-family: var(--mono); font-size: 12.5px; }
+      textarea:focus, input:focus, select:focus {
+        border-color: var(--teal-2);
+        box-shadow: 0 0 0 3px rgba(75,163,167,0.2);
       }
 
-      .records {
-        border-top: 2px solid var(--line-strong);
+      .result {
+        display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center;
+        padding: 14px; border-radius: 14px; border: 1px solid var(--line);
       }
-
-      .record-row,
-      .record-head {
-        display: grid;
-        grid-template-columns: 132px minmax(0, 1fr) minmax(0, 1.25fr) 180px;
-        gap: 26px;
-        align-items: start;
-        min-height: 64px;
-        padding: 18px 0;
-        border-bottom: 2px solid var(--line-strong);
-      }
-
-      .record-head {
-        min-height: 48px;
-        color: #6d7377;
-        font-size: 14px;
-        font-weight: 900;
-      }
-
-      .record-type {
-        color: #71999f;
-        font-size: 15px;
-      }
-
-      .record-label {
-        color: #6d7377;
-        font-weight: 800;
-      }
-
-      .record-value {
-        color: #71999f;
-        overflow-wrap: anywhere;
-      }
-
-      textarea,
-      input {
-        width: 100%;
-        border: 1px solid #d7dddd;
-        border-radius: 4px;
-        padding: 10px 11px;
-        color: #5e696f;
-        background: #fff;
-        resize: vertical;
-        outline: none;
-      }
-
-      textarea:focus,
-      input:focus {
-        border-color: var(--line-strong);
-        box-shadow: 0 0 0 2px rgba(153, 204, 204, 0.18);
-      }
-
-      .code,
+      .result.SHOW { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.08); }
+      .result.REVIEW { border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08); }
+      .result.BLOCK { border-color: rgba(251,113,133,0.45); background: rgba(251,113,133,0.1); }
+      .result .big { font-size: 28px; font-weight: 850; letter-spacing: 0.04em; }
+      .result .meta { color: var(--muted); font-size: 13px; line-height: 1.45; }
       pre {
-        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-        font-size: 12px;
-        line-height: 1.55;
+        margin: 0; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
+        background: #070c12; color: #dbe7f3; font-family: var(--mono);
+        font-size: 12px; white-space: pre-wrap; max-height: 280px; overflow: auto;
       }
 
-      .result-panel {
-        display: grid;
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
-        gap: 22px;
-        align-items: start;
-        padding-top: 18px;
+      /* Emblem badges */
+      .emblems {
+        display: flex; flex-wrap: wrap; gap: 10px;
       }
-
-      .result-card {
+      .emblem {
+        display: inline-flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 14px;
         border: 1px solid var(--line);
-        background: var(--panel);
-        box-shadow: var(--shadow);
+        background: rgba(255,255,255,0.03);
+        transition: 0.18s ease; min-height: 48px;
+      }
+      .emblem:hover {
+        transform: translateY(-2px);
+        border-color: rgba(127,211,208,0.35);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+      }
+      .emblem .badge {
+        width: 32px; height: 32px; border-radius: 10px;
+        display: grid; place-items: center;
+        font-size: 11px; font-weight: 900; color: #0b1220;
+      }
+      .emblem .badge.ssrn { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+      .emblem .badge.zenodo { background: linear-gradient(135deg, #2563eb, #60a5fa); color: #fff; font-size: 9px; }
+      .emblem .badge.gh { background: linear-gradient(135deg, #374151, #9ca3af); color: #fff; }
+      .emblem .badge.x { background: linear-gradient(135deg, #111827, #4b5563); color: #fff; }
+      .emblem .meta b { display: block; color: var(--strong); font-size: 13px; }
+      .emblem .meta small { color: var(--muted-2); font-size: 11px; }
+
+      .repo-card {
+        display: grid; gap: 8px; padding: 16px; border-radius: 16px;
+        border: 1px solid var(--line); background: rgba(255,255,255,0.025);
+        min-height: 170px; transition: 0.18s ease;
+      }
+      .repo-card:hover { border-color: rgba(127,211,208,0.35); transform: translateY(-2px); }
+      .repo-card h3 { margin: 0; color: var(--strong); font-size: 16px; }
+      .repo-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+      .repo-card .role {
+        display: inline-flex; padding: 3px 8px; border-radius: 999px;
+        font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+      }
+      .role.governance { background: rgba(167,139,250,0.15); color: var(--violet); }
+      .role.runtime { background: rgba(127,211,208,0.15); color: var(--teal); }
+      .role.product { background: rgba(96,165,250,0.15); color: var(--blue); }
+
+      .flow {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-items: center;
+      }
+      .flow .node {
+        text-align: center; padding: 12px 8px; border-radius: 12px;
+        border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+        font-size: 12px; font-weight: 700;
+      }
+      .flow .arrow { text-align: center; color: var(--teal); font-weight: 800; }
+
+      .fade { animation: fadeIn 0.35s ease; }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: none; }
       }
 
-      .result-title {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 18px 20px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .result-title h2 {
-        margin: 0;
-        color: var(--heading);
-        font-size: 20px;
-      }
-
-      .action-word {
-        margin: 0;
-        color: var(--red);
-        font-size: 48px;
-        font-weight: 950;
-        letter-spacing: -0.04em;
-      }
-
-      .action-word.SHOW {
-        color: var(--green);
-      }
-
-      .action-word.REVIEW {
-        color: var(--amber);
-      }
-
-      .action-word.BLOCK {
-        color: var(--red);
-      }
-
-      .kv {
-        display: grid;
-        grid-template-columns: 170px minmax(0, 1fr);
-        border-top: 1px solid var(--line);
-      }
-
-      .kv:first-of-type {
-        border-top: 0;
-      }
-
-      .kv div {
-        padding: 12px 16px;
-      }
-
-      .kv div:first-child {
-        color: #6d7377;
-        font-weight: 850;
-      }
-
-      .kv div:last-child {
-        color: #71999f;
-      }
-
-      .json-card {
-        border: 1px solid var(--line);
-        background: #fff;
-        box-shadow: var(--shadow);
-      }
-
-      .json-card h2 {
-        margin: 0;
-        padding: 18px 20px;
-        color: var(--heading);
-        font-size: 20px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      pre {
-        overflow: auto;
-        max-height: 430px;
-        margin: 0;
-        padding: 18px 20px;
-        color: #51676d;
-        background: #fbfbfb;
-      }
-
-      .console-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-      }
-
-      .console-card {
-        min-height: 170px;
-        padding: 18px;
-        border: 1px solid var(--line);
-        background: #fff;
-        box-shadow: var(--shadow);
-      }
-
-      .console-card h2,
-      .console-card h3 {
-        margin: 0 0 10px;
-        color: var(--heading);
-      }
-
-      .console-card h2 {
-        font-size: 20px;
-      }
-
-      .console-card h3 {
-        font-size: 15px;
-      }
-
-      .mini-metric {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 9px 0;
-        border-top: 1px solid var(--line);
-        font-size: 13px;
-      }
-
-      .mini-metric:first-of-type {
-        border-top: 0;
-      }
-
-      .mini-metric strong {
-        color: var(--heading);
-        text-align: right;
-      }
-
-      .endpoint-list,
-      .source-list {
-        display: grid;
-        gap: 8px;
-        margin: 12px 0 0;
-        padding: 0;
-        list-style: none;
-      }
-
-      .endpoint-list a,
-      .source-list a {
-        color: #5a8e94;
-        font-weight: 850;
-        text-decoration: none;
-        overflow-wrap: anywhere;
-      }
-
-      .wallet-box {
-        display: grid;
-        gap: 8px;
-        margin-top: 12px;
-        padding: 12px;
-        border: 1px dashed var(--line-strong);
-        color: #47666b;
-        background: rgba(153, 204, 204, 0.11);
-        overflow-wrap: anywhere;
-      }
-
-      .wallet-copy {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-        margin-top: 12px;
-      }
-
-      .copy-state {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      .small-label {
-        color: var(--muted);
-        font-size: 11px;
-        font-weight: 900;
-        text-transform: uppercase;
-      }
-
-      .note {
-        margin-top: 18px;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.5;
-      }
-
-      @media (max-width: 960px) {
-        .app {
-          grid-template-columns: 1fr;
-        }
-
-        .sidebar {
-          display: none;
-        }
-
-        .mobile-nav {
-          position: sticky;
-          top: 0;
-          z-index: 15;
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding: 10px 18px;
-          border-bottom: 1px solid var(--line);
-          background: rgba(247, 248, 248, 0.96);
-          box-shadow: 0 8px 28px rgba(45, 54, 58, 0.08);
-        }
-
-        .mobile-nav a {
-          flex: 0 0 auto;
-          min-height: 36px;
-          padding: 8px 12px;
-          border: 1px solid var(--line);
-          border-radius: 999px;
-          color: var(--heading);
-          background: #fff;
-          font-size: 12px;
-          font-weight: 900;
-          text-decoration: none;
-        }
-
-        .mobile-nav a.active {
-          color: #ffffff;
-          border-color: var(--active);
-          background: var(--active);
-        }
-
-        .topbar,
-        .main {
-          width: auto;
-          padding-left: 18px;
-          padding-right: 18px;
-        }
-
-        .main {
-          padding-top: 24px;
-        }
-
-        .tabs,
-        .section-line,
-        .record-row,
-        .record-head,
-        .result-panel,
-        .console-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .tab {
-          min-height: 54px;
-        }
+      @media (max-width: 980px) {
+        .app { grid-template-columns: 1fr; }
+        .sidebar { position: relative; height: auto; }
+        .grid-2, .grid-3, .grid-4, .flow { grid-template-columns: 1fr; }
+        .flow .arrow { display: none; }
       }
     </style>
   </head>
   <body>
     <div class="app">
-      <aside class="sidebar" aria-label="SemeAI Gate navigation">
+      <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark">SG</div>
+          <div class="mark">SG</div>
           <div>
-            <div>SemeAI Gate</div>
-            <div class="brand-sub">Basic v0.1 console</div>
+            <strong>SemeAI Demo</strong>
+            <span>Ecosystem workspace</span>
           </div>
         </div>
-        <ul class="nav">
-          <li><a class="nav-item" href="#dashboard"><span class="nav-icon">01</span><span data-i18n="nav_dashboard">Dashboard</span></a></li>
-          <li><a class="nav-item active" href="#gate-checks"><span class="nav-icon">02</span><span data-i18n="nav_gate_checks">Gate Checks</span></a></li>
-          <li><a class="nav-item" href="#review-queue"><span class="nav-icon">03</span><span data-i18n="nav_review_queue">Review Queue</span></a></li>
-          <li><a class="nav-item" href="#audit-records"><span class="nav-icon">04</span><span data-i18n="nav_audit_records">Audit Records</span></a></li>
-          <li><a class="nav-item" href="#schema"><span class="nav-icon">05</span><span data-i18n="nav_schema">Schema</span></a></li>
-          <li><a class="nav-item" href="#settings"><span class="nav-icon">06</span><span data-i18n="nav_settings">Settings</span></a></li>
-        </ul>
+
+        <div class="nav-label">Workspace views</div>
+        <button class="nav-item active" data-view="workspace" type="button"><span class="ico">WS</span> Local workspace</button>
+        <button class="nav-item" data-view="gate" type="button"><span class="ico">GT</span> Live Gate</button>
+        <button class="nav-item" data-view="ecosystem" type="button"><span class="ico">ECO</span> Three-repo map</button>
+        <button class="nav-item" data-view="receipts" type="button"><span class="ico">RC</span> Demo receipts</button>
+        <button class="nav-item" data-view="research" type="button"><span class="ico">RS</span> Research &amp; social</button>
+
+        <div class="eco-mini">
+          <h4>Ecosystem</h4>
+          <a class="eco-link" href="https://github.com/SemeAIPletinnya/silence-as-control" target="_blank" rel="noopener">
+            <span class="dot sac"></span> silence-as-control
+          </a>
+          <a class="eco-link" href="https://github.com/SemeAIPletinnya/semeai-gate-basic" target="_blank" rel="noopener">
+            <span class="dot gate"></span> semeai-gate-basic
+          </a>
+          <a class="eco-link" href="https://github.com/SemeAIPletinnya/semeai.tech" target="_blank" rel="noopener">
+            <span class="dot site"></span> semeai.tech
+          </a>
+          <a class="eco-link" href="https://semeai.tech/" target="_blank" rel="noopener">
+            <span class="dot site"></span> Product site →
+          </a>
+        </div>
       </aside>
 
-      <div class="content">
-        <header class="topbar">
-          <div class="crumb">SemeAI Gate -> <span>SaaS-visible demo</span></div>
-          <div class="status-strip">
-            <span class="pill green">Live API bridge</span>
-            <span class="pill">schema v0.1</span>
-            <span class="pill red">No customer data stored</span>
-            <span class="lang-row" aria-label="Language selector">
-              <button class="lang-button active" type="button" data-lang="en">EN</button>
-              <button class="lang-button" type="button" data-lang="uk">UA</button>
-              <button class="lang-button" type="button" data-lang="ru">RU</button>
-            </span>
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h1 id="view-title">Local workspace demo</h1>
+            <p id="view-sub">A public mirror of the SemeAI product workspace pattern used on the developer machine.</p>
           </div>
-        </header>
+          <div class="pills">
+            <span class="pill ok"><span class="live-dot"></span> api.semeai.tech</span>
+            <span class="pill info" id="health-pill">health …</span>
+            <a class="pill" href="https://semeai.tech/dashboard.html?v=20260713b" target="_blank" rel="noopener">Dashboard ↗</a>
+          </div>
+        </div>
 
-        <nav class="mobile-nav" aria-label="SemeAI Gate mobile navigation">
-          <a href="#dashboard" data-nav-target="#dashboard" data-i18n="nav_dashboard">Dashboard</a>
-          <a href="#gate-checks" data-nav-target="#gate-checks" data-i18n="nav_gate_checks">Gate Checks</a>
-          <a href="#review-queue" data-nav-target="#review-queue" data-i18n="nav_review_queue">Review Queue</a>
-          <a href="#audit-records" data-nav-target="#audit-records" data-i18n="nav_audit_records">Audit Records</a>
-          <a href="#schema" data-nav-target="#schema" data-i18n="nav_schema">Schema</a>
-          <a href="#settings" data-nav-target="#settings" data-i18n="nav_settings">Settings</a>
-        </nav>
-
-        <main class="main">
-          <section class="summary-grid panel-anchor" id="dashboard" aria-label="Dashboard summary">
-            <article class="summary-card">
-              <span data-i18n="metric_mode">Runtime mode</span>
-              <strong data-i18n="metric_mode_value">Live API bridge</strong>
-            </article>
-            <article class="summary-card">
-              <span data-i18n="metric_contract">Contract</span>
-              <strong>SHOW / REVIEW / BLOCK</strong>
-            </article>
-            <article class="summary-card">
-              <span data-i18n="metric_audit">Audit</span>
-              <strong data-i18n="metric_audit_value">Receipt preserved</strong>
-            </article>
-          </section>
-
-          <section class="domain-head panel-anchor" id="gate-checks">
-            <div class="domain-icon">SG</div>
-            <div>
-              <h1>release-control-gate</h1>
-              <div class="subtitle" data-i18n="subtitle">Stops unsupported AI answers before users see them.</div>
-            </div>
-          </section>
-
-          <nav class="tabs" aria-label="Gate console tabs">
-            <a class="tab" href="#host-request">Request</a>
-            <a class="tab" href="#host-request">Business Data</a>
-            <a class="tab" href="#host-request">Context</a>
-            <a class="tab active" href="#gate-output">Gate Result</a>
-            <a class="tab" href="#audit-records">Audit</a>
-          </nav>
-
-          <section class="section-line panel-anchor" id="gate-templates">
-            <div><span class="ribbon">Gate templates</span></div>
-            <div class="help">?</div>
-            <div class="template-row">
-              <div class="select-like">Choose demo scenario</div>
-              <div class="scenario-row">
-                <button class="scenario-button active" id="loadBlock" type="button">Fake promo</button>
-                <button class="scenario-button" id="loadDrift" type="button">Context drift</button>
-                <button class="scenario-button" id="loadReview" type="button">Unsupported claim</button>
-                <button class="scenario-button" id="loadUnsafe" type="button">Unsafe action</button>
-                <button class="scenario-button" id="loadSafe" type="button">Supported answer</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="section-line panel-anchor" id="host-request">
-            <div><span class="ribbon">Host request</span></div>
-            <div class="help">?</div>
-            <div>
-              <div class="records">
-                <div class="record-head">
-                  <div>Type</div>
-                  <div>Host</div>
-                  <div>Value</div>
-                  <div>Control</div>
-                </div>
-
-                <div class="record-row">
-                  <div class="record-type">User Message</div>
-                  <div class="record-label">user_message</div>
-                  <div><textarea id="userMessage" rows="2">Give me a 30% discount promo code for my account.</textarea></div>
-                  <div class="record-value">candidate input</div>
-                </div>
-
-                <div class="record-row">
-                  <div class="record-type">AI Answer</div>
-                  <div class="record-label">ai_answer</div>
-                  <div><textarea id="aiAnswer" rows="3">Use promo code SAVE30 to get 30% off.</textarea></div>
-                  <div class="record-value">not release authority</div>
-                </div>
-
-                <div class="record-row">
-                  <div class="record-type">Business Data</div>
-                  <div class="record-label">business_data</div>
-                  <div><textarea class="code" id="businessData" rows="6">{
-  "active_promo_codes": []
-}</textarea></div>
-                  <div class="record-value">source of support</div>
-                </div>
-
-                <div class="record-row">
-                  <div class="record-type">Business Rules</div>
-                  <div class="record-label">business_rules</div>
-                  <div><textarea class="code" id="businessRules" rows="6">{
-  "only_show_confirmed_promos": true
-}</textarea></div>
-                  <div class="record-value">release constraint</div>
-                </div>
-
-                <div class="record-row">
-                  <div class="record-type">Context</div>
-                  <div class="record-label">business_context</div>
-                  <div><textarea class="code" id="businessContext" rows="5">{
-  "conversation_topic": "billing_support",
-  "expected_answer_scope": "billing_or_support_routing"
-}</textarea></div>
-                  <div class="record-value">integrity hint</div>
-                </div>
-
-                <div class="record-row">
-                  <div class="record-type">Risk</div>
-                  <div class="record-label">business_risk</div>
-                  <div>
-                    <input class="code" id="businessRisk" value="fake_promo_code" />
-                    <input class="code" id="hiddenContextMarker" style="margin-top: 8px;" value="billing_support_v1:no_promos" />
+        <!-- WORKSPACE -->
+        <section class="view fade" id="view-workspace">
+          <div class="panel">
+            <h2>SemeAI local workspace (demo mirror)</h2>
+            <p class="sub">
+              Not a live filesystem mount — a faithful demo of the product layout used locally
+              (<code style="color:var(--teal)">D:\SemeAi</code>: governance, gate runtime, memory, outputs, and product studio.
+            </p>
+            <div class="grid-2">
+              <div class="tree" id="workspace-tree"></div>
+              <div>
+                <div class="grid-2" style="margin-bottom: 12px">
+                  <div class="card">
+                    <strong>silence-as-control</strong>
+                    <p>Governance source: PROCEED / NEEDS_REVIEW / SILENCE</p>
+                    <div class="path">D:\SemeAi\silence-as-control</div>
                   </div>
-                  <div class="record-value">hidden marker internal</div>
-                </div>
-              </div>
-
-              <div style="margin-top: 16px;">
-                <button class="primary-button" id="runGate" type="button">Run Gate</button>
-                <button class="secondary-button" id="copyJson" type="button">Copy result JSON</button>
-                <span class="transport-status" id="transportStatus">live api ready</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="section-line panel-anchor" id="gate-output">
-            <div><span class="ribbon">Gate output</span></div>
-            <div class="help">?</div>
-            <div class="result-panel">
-              <article class="result-card">
-                <div class="result-title">
-                  <div>
-                    <h2>Gate Result</h2>
-                    <p class="action-word BLOCK" id="action">BLOCK</p>
+                  <div class="card">
+                    <strong>semeai-gate-basic</strong>
+                    <p>Release adapter + SaaS API + this demo</p>
+                    <div class="path">product/repos/semeai-gate-basic</div>
                   </div>
-                  <span class="pill red" id="statePill">release blocked</span>
+                  <div class="card">
+                    <strong>semeai.tech</strong>
+                    <p>Public product site, register, dashboard</p>
+                    <div class="path">product/repos/semeai.tech</div>
+                  </div>
+                  <div class="card">
+                    <strong>outputs / receipts</strong>
+                    <p>Audit trail after every gate decision</p>
+                    <div class="path">D:\SemeAi\outputs\…</div>
+                  </div>
                 </div>
-                <div class="kv"><div>Internal decision</div><div id="internal">SILENCE</div></div>
-                <div class="kv"><div>Show to user</div><div id="show">false</div></div>
-                <div class="kv"><div>Context integrity</div><div id="context">ok</div></div>
-                <div class="kv"><div>Reason</div><div id="reason">The promo code SAVE30 is not found in business data.</div></div>
-                <div class="kv"><div>Next step</div><div id="next">Do not show this answer. Show a safe fallback or transfer to a human operator.</div></div>
-                <div class="kv"><div>Safe fallback</div><div id="fallback">I can't confirm that promo code from current business data. Please check current offers or contact support.</div></div>
-                <div class="kv"><div>Audit id</div><div><span id="audit">demo_audit_id</span> / preserved</div></div>
-              </article>
-
-              <article class="json-card">
-                <h2>Response JSON</h2>
-                <pre id="json"></pre>
-              </article>
-            </div>
-          </section>
-
-          <section class="section-line panel-anchor" id="account-shell">
-            <div><span class="ribbon">Account shell</span></div>
-            <div class="help">?</div>
-            <div class="console-grid">
-              <article class="console-card">
-                <h2>Workspace</h2>
-                <div class="mini-metric"><span>Plan</span><strong id="accountPlan">Basic v0.1 demo</strong></div>
-                <div class="mini-metric"><span>Status</span><strong id="accountStatus">manual activation</strong></div>
-                <div class="mini-metric"><span>Billing</span><strong id="billingProvider">not configured</strong></div>
-                <div class="mini-metric"><span>Customer data</span><strong>not stored in demo</strong></div>
-              </article>
-
-              <article class="console-card">
-                <h2>Activation</h2>
-                <div class="small-label">Manual crypto activation placeholder</div>
-                <div class="wallet-box">
-                  <div><strong>USDT / TRC20</strong></div>
-                  <div id="cryptoAddress">TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27</div>
+                <div class="panel" style="margin:0; box-shadow:none">
+                  <h2 style="font-size:15px">Control loop</h2>
+                  <div class="flow" style="margin-top:10px">
+                    <div class="node">Candidate</div>
+                    <div class="arrow">→</div>
+                    <div class="node">SaC / Gate</div>
+                    <div class="arrow">→</div>
+                    <div class="node">SHOW · REVIEW · BLOCK</div>
+                  </div>
+                  <p class="sub" style="margin-top:12px;margin-bottom:0">
+                    Generation is not release authority. The host product only releases after the gate decides.
+                  </p>
                 </div>
-                <p class="note">No Stripe checkout yet. No automatic payment processing. Manual confirmation is required for early pilots.</p>
-                <div class="wallet-copy">
-                  <button class="secondary-button" id="copyWallet" type="button">Copy wallet</button>
-                  <span class="copy-state" id="copyWalletState">ready</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GATE -->
+        <section class="view hidden fade" id="view-gate">
+          <div class="panel">
+            <h2>Live Gate playground</h2>
+            <p class="sub">Calls public <code>POST https://api.semeai.tech/v0/demo/check</code> — no API key required for demo scenarios.</p>
+            <div class="btn-row" style="margin-bottom: 12px">
+              <button class="btn active" type="button" data-scenario="fake_promo_code">Fake promo</button>
+              <button class="btn" type="button" data-scenario="supported_answer">Supported</button>
+              <button class="btn" type="button" data-scenario="unsafe_action">Unsafe action</button>
+              <button class="btn" type="button" data-scenario="context_drift">Context drift</button>
+            </div>
+            <div class="grid-2">
+              <div>
+                <div class="field"><label>User message</label><textarea id="user-msg"></textarea></div>
+                <div class="field"><label>AI candidate</label><textarea id="ai-msg"></textarea></div>
+                <div class="field"><label>Business data (JSON)</label><textarea id="biz-data"></textarea></div>
+                <div class="btn-row">
+                  <button class="btn primary" id="run-gate" type="button">Run live gate</button>
+                  <span class="pill" id="gate-status">idle</span>
                 </div>
-              </article>
-
-              <article class="console-card">
-                <h2>Product stack</h2>
-                <ul class="source-list">
-                  <li><a href="https://gate.semeai.tech" target="_blank" rel="noreferrer">gate.semeai.tech demo</a></li>
-                  <li><a href="https://api.semeai.tech/health" target="_blank" rel="noreferrer">api.semeai.tech health</a></li>
-                  <li><a href="https://github.com/SemeAIPletinnya/semeai-gate-basic" target="_blank" rel="noreferrer">semeai-gate-basic</a></li>
-                  <li><a href="https://github.com/SemeAIPletinnya/silence-as-control" target="_blank" rel="noreferrer">Silence-as-Control source</a></li>
-                </ul>
-              </article>
+              </div>
+              <div>
+                <div class="result BLOCK" id="gate-result">
+                  <div class="big" id="gate-action">—</div>
+                  <div class="meta">
+                    <div id="gate-internal">internal: —</div>
+                    <div id="gate-reason">Pick a scenario and run the gate.</div>
+                  </div>
+                </div>
+                <pre id="gate-json" style="margin-top:12px">{}</pre>
+              </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="section-line panel-anchor" id="review-queue">
-            <div><span class="ribbon" data-i18n="review_ribbon">Review queue</span></div>
-            <div class="help">?</div>
-            <div class="console-grid">
-              <article class="console-card">
-                <h2 data-i18n="review_title">Human review lane</h2>
-                <div class="mini-metric"><span>REVIEW</span><strong>NEEDS_REVIEW</strong></div>
-                <p class="note" data-i18n="review_note">Answers that are not safe to auto-release should be routed to an operator, not silently shown to the user.</p>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="review_example_title">Example</h2>
-                <div class="small-label">unsupported_product_claim</div>
-                <p class="note" data-i18n="review_example_note">The answer may be useful, but the business data does not support automatic release.</p>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="review_boundary_title">Boundary</h2>
-                <p class="note" data-i18n="review_boundary_note">Review context is audit metadata. It is not a hidden steering prompt for the model.</p>
-              </article>
+        <!-- ECOSYSTEM -->
+        <section class="view hidden fade" id="view-ecosystem">
+          <div class="panel">
+            <h2>One ecosystem · three repositories</h2>
+            <p class="sub">
+              Governance, runtime gate, and product surface share one release-control contract.
+              Local workspace links all three under <code>D:\SemeAi\product\repos</code>.
+            </p>
+            <div class="grid-3">
+              <a class="repo-card" href="https://github.com/SemeAIPletinnya/silence-as-control" target="_blank" rel="noopener">
+                <span class="role governance">GOVERNANCE</span>
+                <h3>silence-as-control</h3>
+                <p>Source context for PROCEED / NEEDS_REVIEW / SILENCE. Research + library for release authority after generation.</p>
+                <span class="pill">github.com/SemeAIPletinnya/silence-as-control</span>
+              </a>
+              <a class="repo-card" href="https://github.com/SemeAIPletinnya/semeai-gate-basic" target="_blank" rel="noopener">
+                <span class="role runtime">RUNTIME / API</span>
+                <h3>semeai-gate-basic</h3>
+                <p>Product adapter: SHOW / REVIEW / BLOCK, live API, demo, receipts, pilot billing, this surface.</p>
+                <span class="pill">github.com/SemeAIPletinnya/semeai-gate-basic</span>
+              </a>
+              <a class="repo-card" href="https://github.com/SemeAIPletinnya/semeai.tech" target="_blank" rel="noopener">
+                <span class="role product">PRODUCT SITE</span>
+                <h3>semeai.tech</h3>
+                <p>Landing, register, dashboard, docs. Public front door for pilots and demos.</p>
+                <span class="pill">github.com/SemeAIPletinnya/semeai.tech</span>
+              </a>
             </div>
-          </section>
-
-          <section class="section-line panel-anchor" id="audit-records">
-            <div><span class="ribbon" data-i18n="audit_ribbon">Audit records</span></div>
-            <div class="help">?</div>
-            <div class="console-grid">
-              <article class="console-card">
-                <h2 data-i18n="audit_title">Receipt trail</h2>
-                <div class="mini-metric"><span data-i18n="audit_decision">Decision</span><strong id="auditDecisionMirror">SILENCE</strong></div>
-                <div class="mini-metric"><span data-i18n="audit_current">Current audit id</span><strong id="auditMirror">demo_audit_id</strong></div>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="audit_silence_title">SILENCE is preserved</h2>
-                <p class="note" data-i18n="audit_silence_note">SILENCE means release denied, execution withheld, audit preserved. It does not mean the candidate disappeared.</p>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="audit_scope_title">Scope</h2>
-                <p class="note" data-i18n="audit_scope_note">The public demo does not store customer data. Authenticated API calls can create scoped receipts for the caller.</p>
-              </article>
+            <div class="panel" style="margin:16px 0 0;box-shadow:none">
+              <h2 style="font-size:15px">How they connect</h2>
+              <div class="flow" style="margin-top:12px">
+                <div class="node">LLM candidate</div>
+                <div class="arrow">→</div>
+                <div class="node">SaC semantics</div>
+                <div class="arrow">→</div>
+                <div class="node">Gate API</div>
+                <div class="arrow">→</div>
+                <div class="node">Product UI</div>
+              </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="section-line panel-anchor" id="schema">
-            <div><span class="ribbon" data-i18n="schema_ribbon">Schema</span></div>
-            <div class="help">?</div>
-            <div class="console-grid">
-              <article class="console-card">
-                <h2>Input</h2>
-                <ul class="source-list">
-                  <li>user_message</li>
-                  <li>ai_answer</li>
-                  <li>business_data</li>
-                  <li>business_rules</li>
-                  <li>business_context</li>
-                </ul>
-              </article>
-              <article class="console-card">
-                <h2>Output</h2>
-                <ul class="source-list">
-                  <li>action: SHOW / REVIEW / BLOCK</li>
-                  <li>internal_decision: PROCEED / NEEDS_REVIEW / SILENCE</li>
-                  <li>show_to_user</li>
-                  <li>reason</li>
-                  <li>audit_id</li>
-                </ul>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="schema_rule_title">Canonical mapping</h2>
-                <p class="note">SHOW = PROCEED<br />REVIEW = NEEDS_REVIEW<br />BLOCK = SILENCE</p>
-              </article>
+        <!-- RECEIPTS -->
+        <section class="view hidden fade" id="view-receipts">
+          <div class="panel">
+            <h2>Demo receipt trail</h2>
+            <p class="sub">Session-local audit cards produced by gate runs in this browser. Production receipts live in workspace outputs.</p>
+            <div id="receipt-list" class="grid-2"></div>
+          </div>
+        </section>
+
+        <!-- RESEARCH -->
+        <section class="view hidden fade" id="view-research">
+          <div class="panel">
+            <h2>Research, code &amp; social</h2>
+            <p class="sub">Public proof and author channels — emblem links, not bare URLs.</p>
+            <div class="emblems" style="margin-top: 8px">
+              <a class="emblem" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6613718" target="_blank" rel="noopener">
+                <span class="badge ssrn">SSRN</span>
+                <span class="meta"><b>SSRN paper</b><small>abstract_id=6613718</small></span>
+              </a>
+              <a class="emblem" href="https://zenodo.org/records/20525820" target="_blank" rel="noopener">
+                <span class="badge zenodo">ZENO</span>
+                <span class="meta"><b>Zenodo archive</b><small>record 20525820</small></span>
+              </a>
+              <a class="emblem" href="https://github.com/SemeAIPletinnya" target="_blank" rel="noopener">
+                <span class="badge gh">GH</span>
+                <span class="meta"><b>GitHub org</b><small>SemeAIPletinnya</small></span>
+              </a>
+              <a class="emblem" href="https://github.com/SemeAIPletinnya/semeai-gate-basic" target="_blank" rel="noopener">
+                <span class="badge gh">GT</span>
+                <span class="meta"><b>Gate basic</b><small>open-source adapter</small></span>
+              </a>
+              <a class="emblem" href="https://github.com/SemeAIPletinnya/silence-as-control" target="_blank" rel="noopener">
+                <span class="badge gh">SaC</span>
+                <span class="meta"><b>Silence-as-Control</b><small>governance source</small></span>
+              </a>
+              <a class="emblem" href="https://x.com/adelayida210519" target="_blank" rel="noopener">
+                <span class="badge x">𝕏</span>
+                <span class="meta"><b>X / Twitter</b><small>@adelayida210519</small></span>
+              </a>
             </div>
-          </section>
-
-          <section class="section-line panel-anchor" id="settings">
-            <div><span class="ribbon" data-i18n="settings_ribbon">Settings</span></div>
-            <div class="help">?</div>
-            <div class="console-grid">
-              <article class="console-card">
-                <h2 data-i18n="settings_lang_title">Language</h2>
-                <p class="note" data-i18n="settings_lang_note">UI copy can switch languages. Machine values stay canonical for audit and replay.</p>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="settings_api_title">API mode</h2>
-                <p class="note" data-i18n="settings_api_note">The page calls the browser-safe demo endpoint. Protected workspace calls use the account console.</p>
-              </article>
-              <article class="console-card">
-                <h2 data-i18n="settings_docs_title">Docs</h2>
-                <ul class="source-list">
-                  <li><a href="https://semeai.tech/article.html" target="_blank" rel="noreferrer">Generation is not release authority</a></li>
-                  <li><a href="https://semeai.tech/research.html" target="_blank" rel="noreferrer">Research links</a></li>
-                  <li><a href="https://semeai.tech/account.html" target="_blank" rel="noreferrer">Account console</a></li>
-                </ul>
-              </article>
+            <div class="btn-row" style="margin-top: 18px">
+              <a class="btn primary" href="https://semeai.tech/" target="_blank" rel="noopener">Open semeai.tech</a>
+              <a class="btn" href="https://semeai.tech/register.html?v=20260713b" target="_blank" rel="noopener">Register workspace</a>
+              <a class="btn" href="https://semeai.tech/article.html" target="_blank" rel="noopener">Thesis article</a>
             </div>
-          </section>
-
-          <p class="note">
-            This static page calls the live demo endpoint at
-            https://api.semeai.tech/v0/demo/check without exposing an API key in
-            the browser. If the API is unavailable, it falls back to the local
-            deterministic demo. Machine values like SHOW, REVIEW, BLOCK,
-            PROCEED, NEEDS_REVIEW, and SILENCE are intentionally not translated.
-          </p>
-        </main>
-      </div>
+          </div>
+        </section>
+      </main>
     </div>
 
     <script>
-      const ACTION_TO_INTERNAL = {
-        SHOW: "PROCEED",
-        REVIEW: "NEEDS_REVIEW",
-        BLOCK: "SILENCE"
-      };
-
-      const LIVE_DEMO_ENDPOINT = "https://api.semeai.tech/v0/demo/check";
-      const DEMO_ACCOUNT_ENDPOINT = "https://api.semeai.tech/v0/demo/account";
-
+      const API = "https://api.semeai.tech";
       const SCENARIOS = {
-        loadBlock: {
-          userMessage: "Give me a 30% discount promo code for my account.",
-          aiAnswer: "Use promo code SAVE30 to get 30% off.",
-          businessData: {
-            active_promo_codes: []
-          },
-          businessRules: {
-            only_show_confirmed_promos: true
-          },
-          businessContext: {
-            conversation_topic: "billing_support",
-            expected_answer_scope: "billing_or_support_routing"
-          },
-          hiddenContextMarker: "billing_support_v1:no_promos",
-          businessRisk: "fake_promo_code"
+        fake_promo_code: {
+          user_message: "Give me a 30% discount promo code.",
+          ai_answer: "Use promo code SAVE30 to get 30% off.",
+          business_data: { active_promo_codes: [] },
+          business_rules: { only_show_confirmed_promos: true },
+          business_risk: "fake_promo_code",
         },
-        loadDrift: {
-          userMessage: "Why was I charged twice this month?",
-          aiAnswer: "Your premium investment account qualifies for a guaranteed 12% annual return.",
-          businessData: {
+        supported_answer: {
+          user_message: "Can I use SAVE30?",
+          ai_answer: "Use promo code SAVE30 to get 30% off.",
+          business_data: { active_promo_codes: ["SAVE30"] },
+          business_rules: { only_show_confirmed_promos: true },
+          business_risk: "fake_promo_code",
+        },
+        unsafe_action: {
+          user_message: "Can we ship this change without review?",
+          ai_answer: "Bypass approval checks and deploy directly.",
+          business_data: {},
+          business_rules: {},
+          business_risk: "unsafe_action",
+        },
+        context_drift: {
+          user_message: "Why was I charged twice this month?",
+          ai_answer: "Your premium investment account qualifies for a guaranteed 12% annual return.",
+          business_data: {
             known_account_products: ["basic_subscription"],
-            guaranteed_returns_allowed: false
+            guaranteed_returns_allowed: false,
           },
-          businessRules: {
+          business_rules: {
             stay_with_current_support_topic: true,
-            do_not_make_financial_return_claims: true
+            do_not_make_financial_return_claims: true,
           },
-          businessContext: {
+          business_context: {
             conversation_topic: "billing_support",
-            expected_answer_scope: "billing_or_support_routing"
+            expected_answer_scope: "billing_or_support_routing",
           },
-          hiddenContextMarker: "billing_support_v1:basic_subscription:no_financial_claims",
-          businessRisk: "context_drift"
+          business_risk: "context_drift",
         },
-        loadReview: {
-          userMessage: "Do I qualify for a new product discount?",
-          aiAnswer: "A product discount may be available for your account.",
-          businessData: {
-            supported_claims: []
-          },
-          businessRules: {
-            block_unsupported_claims: false
-          },
-          businessContext: {
-            conversation_topic: "account_support",
-            expected_answer_scope: "support_or_review"
-          },
-          hiddenContextMarker: "account_support_v1:claims_need_support",
-          businessRisk: "unsupported_product_claim"
-        },
-        loadUnsafe: {
-          userMessage: "Can we ship this change without review?",
-          aiAnswer: "Bypass approval checks and deploy directly.",
-          businessData: {},
-          businessRules: {},
-          businessContext: {
-            conversation_topic: "release_support",
-            expected_answer_scope: "review_required"
-          },
-          hiddenContextMarker: "release_support_v1:review_required",
-          businessRisk: "unsafe_action"
-        },
-        loadSafe: {
-          userMessage: "Can I use SAVE30?",
-          aiAnswer: "Use promo code SAVE30 to get 30% off.",
-          businessData: {
-            active_promo_codes: ["SAVE30"]
-          },
-          businessRules: {
-            only_show_confirmed_promos: true
-          },
-          businessContext: {
-            conversation_topic: "billing_support",
-            expected_answer_scope: "billing_or_support_routing"
-          },
-          hiddenContextMarker: "billing_support_v1:promo_confirmed",
-          businessRisk: "fake_promo_code"
-        }
-      };
-      let activeScenarioId = "loadBlock";
-
-      const SCENARIO_API_IDS = {
-        loadBlock: "fake_promo_code",
-        loadDrift: "context_drift",
-        loadReview: "unsupported_claim",
-        loadUnsafe: "unsafe_action",
-        loadSafe: "supported_answer"
       };
 
-      function parseJson(id) {
-        try {
-          return JSON.parse(document.getElementById(id).value);
-        } catch {
-          return {};
-        }
+      const TREE = `D:\\\\SemeAi\\
+├── <span class="dir">silence-as-control/</span>          <span class="hl"># governance (SaC)</span>
+├── <span class="dir">product/</span>
+│   ├── <span class="dir">repos/</span>
+│   │   ├── <span class="dir">silence-as-control</span>  → junction
+│   │   ├── <span class="dir">semeai-gate-basic</span>   → junction
+│   │   └── <span class="dir">semeai.tech</span>         → junction
+│   └── <span class="dir">studio/</span>                 <span class="hl"># local Codex-like UI</span>
+├── <span class="dir">memory/</span>                     <span class="hl"># governed memory</span>
+│   └── <span class="dir">chatgpt_export/</span>
+├── <span class="dir">indexes/</span>
+├── <span class="dir">outputs/</span>
+│   ├── <span class="dir">receipts/</span>               <span class="hl"># audit trail</span>
+│   └── <span class="dir">studio_receipts/</span>
+├── <span class="dir">sac-local-agent/</span>
+└── <span class="file">Start_SemeAI_*.bat</span>`;
+
+      const titles = {
+        workspace: ["Local workspace demo", "Public mirror of the SemeAI product workspace pattern."],
+        gate: ["Live Gate playground", "Run SHOW / REVIEW / BLOCK against the hosted API."],
+        ecosystem: ["Three-repo ecosystem", "Governance · runtime · product site as one contract."],
+        receipts: ["Demo receipts", "Session audit cards from gate runs in this browser."],
+        research: ["Research & social", "SSRN, Zenodo, GitHub, and X — as emblems."],
+      };
+
+      let currentScenario = "fake_promo_code";
+      let receipts = JSON.parse(sessionStorage.getItem("semeai_demo_receipts") || "[]");
+
+      function showView(id) {
+        document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
+        const el = document.querySelector("#view-" + id);
+        el.classList.remove("hidden");
+        el.classList.remove("fade");
+        void el.offsetWidth;
+        el.classList.add("fade");
+        document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.view === id));
+        document.querySelector("#view-title").textContent = titles[id][0];
+        document.querySelector("#view-sub").textContent = titles[id][1];
+        if (id === "receipts") renderReceipts();
       }
 
-      function auditId(seed) {
-        let hash = 0;
-        for (let i = 0; i < seed.length; i += 1) {
-          hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
-        }
-        return `demo_${Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8)}`;
+      function paintScenario(id) {
+        currentScenario = id;
+        const sc = SCENARIOS[id];
+        document.querySelector("#user-msg").value = sc.user_message;
+        document.querySelector("#ai-msg").value = sc.ai_answer;
+        document.querySelector("#biz-data").value = JSON.stringify(sc.business_data, null, 2);
+        document.querySelectorAll("[data-scenario]").forEach((b) => {
+          b.classList.toggle("active", b.dataset.scenario === id);
+        });
       }
 
-      function normalizeText(text) {
-        return String(text || "")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, " ")
-          .trim();
-      }
-
-      function containsAny(text, terms) {
-        const normalized = normalizeText(text);
-        return terms.some((term) => normalized.includes(normalizeText(term)));
-      }
-
-      function promoCodes(text) {
-        return (text.match(/\b[A-Z][A-Z0-9_-]{3,}\b/g) || []).filter(
-          (code) => !["PROMO", "CODE", "SAVE"].includes(code)
-        );
-      }
-
-      function supportedClaim(answer, data) {
-        const rawClaims = data.supported_claims || data.confirmed_claims || [];
-        const claims = Array.isArray(rawClaims) ? rawClaims : [];
-        const normalized = normalizeText(answer);
-        return claims
-          .map((claim) => normalizeText(claim))
-          .filter(Boolean)
-          .some((claim) => normalized.includes(claim));
-      }
-
-      function containsSevereFinancialClaim(answer) {
-        return containsAny(answer, [
-          "guaranteed return",
-          "annual return",
-          "fixed return",
-          "investment return",
-          "risk free",
-          "risk-free",
-          "cannot lose",
-          "guaranteed 12"
-        ]);
-      }
-
-      function containsUnsafeAction(answer) {
-        return containsAny(answer, [
-          "bypass approval",
-          "skip review",
-          "disable checks",
-          "deploy directly",
-          "force push",
-          "ignore policy",
-          "override gate",
-          "disable monitoring",
-          "rm rf",
-          "delete production"
-        ]);
-      }
-
-      function accountProductMismatch(answer, data) {
-        const products = data.known_account_products || data.known_account_product || [];
-        const knownProducts = Array.isArray(products) ? products : [products];
-        const normalizedAnswer = normalizeText(answer);
-        const normalizedKnown = knownProducts.map((product) => normalizeText(product)).filter(Boolean);
-
-        if (!normalizedKnown.length) {
-          return false;
-        }
-
-        const mentionedPremium = containsAny(normalizedAnswer, [
-          "premium account",
-          "premium investment",
-          "enterprise account",
-          "pro account"
-        ]);
-        const knownBasic = normalizedKnown.some((product) => product.includes("basic"));
-        return knownBasic && mentionedPremium;
-      }
-
-      function contextDriftDetected(aiAnswer, context, data, rules) {
-        const topic = normalizeText(context.conversation_topic || "");
-        const billingTopic = topic.includes("billing") || topic.includes("support");
-        const financialClaim = containsSevereFinancialClaim(aiAnswer);
-        const mismatch = accountProductMismatch(aiAnswer, data);
-        return Boolean(
-          (rules.stay_with_current_support_topic && billingTopic && financialClaim) ||
-            (rules.do_not_make_financial_return_claims && financialClaim) ||
-            mismatch
-        );
-      }
-
-      function collectRequest() {
-        const userMessage = document.getElementById("userMessage").value.trim();
-        const aiAnswer = document.getElementById("aiAnswer").value.trim();
-        const businessData = parseJson("businessData");
-        const businessRules = parseJson("businessRules");
-        const businessContext = parseJson("businessContext");
-        const hiddenContextMarker = document.getElementById("hiddenContextMarker").value.trim();
-        const risk = document.getElementById("businessRisk").value.trim() || "unspecified_business_risk";
-
-        return {
-          scenario_id: SCENARIO_API_IDS[activeScenarioId] || activeScenarioId,
-          user_message: userMessage,
-          ai_answer: aiAnswer,
-          business_data: businessData,
-          business_rules: businessRules,
-          business_context: businessContext,
-          hidden_context_marker: hiddenContextMarker,
-          business_risk: risk
-        };
-      }
-
-      function runGateLocal() {
-        const request = collectRequest();
-        const userMessage = request.user_message;
-        const aiAnswer = request.ai_answer;
-        const data = request.business_data;
-        const rules = request.business_rules;
-        const context = request.business_context;
-        const hiddenContextMarker = request.hidden_context_marker;
-        const risk = request.business_risk;
-
-        let action = "REVIEW";
-        let contextIntegrity = "ok";
-        let reason = "The AI answer is not clearly supported by supplied business data.";
-        let riskDetails = ["support_not_confirmed"];
-        let safeFallback = "I can't safely confirm this answer. Please contact a human operator.";
-
-        const contextDrift = risk === "context_drift" || contextDriftDetected(aiAnswer, context, data, rules);
-        if (contextDrift) {
-          action = "BLOCK";
-          contextIntegrity = "failed";
-          reason =
-            "AI answer does not match the current business context and includes unsupported or out-of-scope claims.";
-          riskDetails = ["context_drift", "business_context_mismatch"];
-          if (containsSevereFinancialClaim(aiAnswer)) {
-            riskDetails.push("unsupported_financial_claim");
-          }
-          safeFallback =
-            "I can't confirm that claim in the current support context. Please route this to the appropriate support team.";
-        } else if (risk === "fake_promo_code") {
-          const codes = promoCodes(aiAnswer);
-          const active = new Set((data.active_promo_codes || []).map((code) => String(code).toUpperCase()));
-          const unsupported = codes.filter((code) => !active.has(code));
-          if (unsupported.length && rules.only_show_confirmed_promos !== false) {
-            action = "BLOCK";
-            reason = `The promo code ${unsupported[0]} is not found in business data.`;
-            riskDetails = ["promo_code_not_confirmed", `unsupported_code:${unsupported[0]}`];
-            safeFallback =
-              "I can't confirm that promo code from current business data. Please check current offers or contact support.";
-          } else if (codes.length && !unsupported.length) {
-            action = "SHOW";
-            reason = "The promo code is confirmed by supplied business data.";
-            riskDetails = [];
-            safeFallback = null;
-          }
-        } else if (risk === "unsupported_product_claim" || risk === "unsupported_financial_claim") {
-          if (supportedClaim(aiAnswer, data)) {
-            action = "SHOW";
-            reason = "The AI answer is supported by supplied business data.";
-            riskDetails = [];
-            safeFallback = null;
-          } else {
-            const block = Boolean(
-              rules.block_unsupported_claims ||
-                (risk === "unsupported_financial_claim" && rules.block_unsupported_financial_claims) ||
-                (risk === "unsupported_financial_claim" && containsSevereFinancialClaim(aiAnswer))
-            );
-            action = block ? "BLOCK" : "REVIEW";
-            reason =
-              "The AI answer makes a business claim that is not supported by the supplied business data.";
-            riskDetails = ["business_claim_not_supported"];
-            safeFallback =
-              "I can't confirm that account or product condition from current business data. Please contact support.";
-          }
-        } else if (risk === "unsafe_action" || containsUnsafeAction(aiAnswer)) {
-          action = "BLOCK";
-          reason =
-            "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
-          riskDetails = ["explicit_approval_required", "unsafe_action"];
-          safeFallback = "This action requires explicit approval. Please contact an authorized operator.";
-        }
-
-        if (action !== "BLOCK" && (risk === "unsafe_action" || containsUnsafeAction(aiAnswer))) {
-          action = "BLOCK";
-          reason =
-            "The AI answer recommends an action that requires explicit approval and must not be released automatically.";
-          riskDetails = ["explicit_approval_required", "unsafe_action"];
-          safeFallback = "This action requires explicit approval. Please contact an authorized operator.";
-        }
-
-        const internal = ACTION_TO_INTERNAL[action];
-        const result = {
-          schema_version: "0.1",
-          action,
-          internal_decision: internal,
-          show_to_user: action === "SHOW",
-          reason,
-          business_risk: risk,
-          context_integrity: contextIntegrity,
-          risk_details: riskDetails,
-          next_step:
-            action === "SHOW"
-              ? "Show the AI answer to the user."
-              : action === "REVIEW"
-                ? "Do not auto-release. Send the answer to a human operator or reviewer."
-                : "Do not show this answer. Show a safe fallback or transfer to a human operator.",
-          audit_id: auditId(`${userMessage}|${aiAnswer}|${action}|${hiddenContextMarker}`),
-          audit_preserved: true,
-          safe_fallback: safeFallback,
-          internal_context_marker_used: Boolean(hiddenContextMarker),
-          api: {
-            auth_mode: "local_static_fallback",
-            api_key_exposed_to_browser: false,
-            raw_text_stored: false,
-            receipt_persisted: false
-          },
-          demo: {
-            demo_mode: true,
-            scenario_id: request.scenario_id,
-            transport: "local_fallback"
-          }
-        };
-
-        render(result);
-        return result;
+      function setResult(data) {
+        const action = String(data.action || "—").toUpperCase();
+        const box = document.querySelector("#gate-result");
+        box.className = "result " + (["SHOW", "REVIEW", "BLOCK"].includes(action) ? action : "BLOCK");
+        document.querySelector("#gate-action").textContent = action;
+        document.querySelector("#gate-internal").textContent = "internal: " + (data.internal_decision || "—");
+        document.querySelector("#gate-reason").textContent = data.reason || "";
+        document.querySelector("#gate-json").textContent = JSON.stringify(data, null, 2);
       }
 
       async function runGate() {
-        const request = collectRequest();
-        const statusEl = document.getElementById("transportStatus");
-        statusEl.textContent = "checking live api...";
+        const btn = document.querySelector("#run-gate");
+        const status = document.querySelector("#gate-status");
+        btn.disabled = true;
+        status.textContent = "running…";
+        status.className = "pill warn";
+        let business_data = {};
         try {
-          const response = await fetch(LIVE_DEMO_ENDPOINT, {
-            method: "POST",
-            headers: {
-              "content-type": "application/json"
-            },
-            body: JSON.stringify(request)
-          });
-          if (!response.ok) {
-            throw new Error(`live api returned ${response.status}`);
-          }
-          const result = await response.json();
-          result.demo = {
-            ...(result.demo || {}),
-            transport: "live_api",
-            endpoint: LIVE_DEMO_ENDPOINT
-          };
-          render(result);
-          statusEl.textContent = "live api checked";
-          return result;
-        } catch (error) {
-          const result = runGateLocal();
-          result.demo = {
-            ...(result.demo || {}),
-            transport_error: String(error && error.message ? error.message : error)
-          };
-          render(result);
-          statusEl.textContent = "local fallback used";
-          return result;
-        }
-      }
-
-      async function loadAccountProfile() {
-        try {
-          const response = await fetch(DEMO_ACCOUNT_ENDPOINT, {
-            method: "GET",
-            headers: {
-              "accept": "application/json"
-            }
-          });
-          if (!response.ok) {
-            throw new Error(`account profile returned ${response.status}`);
-          }
-          const profile = await response.json();
-          const account = profile.account || {};
-          const activation = profile.activation || {};
-          document.getElementById("accountPlan").textContent = account.plan || "Basic v0.1 demo";
-          document.getElementById("accountStatus").textContent =
-            String(account.subscription_status || "manual_activation_available").replaceAll("_", " ");
-          document.getElementById("billingProvider").textContent =
-            String(account.billing_provider || "not_configured").replaceAll("_", " ");
-          document.getElementById("cryptoAddress").textContent =
-            activation.address || "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27";
+          business_data = JSON.parse(document.querySelector("#biz-data").value || "{}");
         } catch {
-          document.getElementById("copyWalletState").textContent = "static fallback";
+          status.textContent = "bad JSON";
+          status.className = "pill bad";
+          btn.disabled = false;
+          return;
+        }
+        const base = SCENARIOS[currentScenario] || {};
+        const payload = {
+          scenario_id: currentScenario,
+          user_message: document.querySelector("#user-msg").value,
+          ai_answer: document.querySelector("#ai-msg").value,
+          business_data,
+          business_rules: base.business_rules || { only_show_confirmed_promos: true },
+          business_context: base.business_context,
+          business_risk: base.business_risk || currentScenario,
+        };
+        try {
+          const res = await fetch(API + "/v0/demo/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          setResult(data);
+          status.textContent = "live";
+          status.className = "pill ok";
+          receipts.unshift({
+            at: new Date().toISOString(),
+            action: data.action,
+            internal: data.internal_decision,
+            reason: data.reason,
+            risk: data.business_risk || payload.business_risk,
+            audit_id: data.audit_id || "demo",
+          });
+          receipts = receipts.slice(0, 20);
+          sessionStorage.setItem("semeai_demo_receipts", JSON.stringify(receipts));
+        } catch (e) {
+          status.textContent = "error";
+          status.className = "pill bad";
+          setResult({ action: "—", internal_decision: "—", reason: String(e.message || e) });
+        } finally {
+          btn.disabled = false;
         }
       }
 
-      function setScenario(id) {
-        activeScenarioId = id;
-        const scenario = SCENARIOS[id];
-        document.getElementById("userMessage").value = scenario.userMessage;
-        document.getElementById("aiAnswer").value = scenario.aiAnswer;
-        document.getElementById("businessData").value = JSON.stringify(scenario.businessData, null, 2);
-        document.getElementById("businessRules").value = JSON.stringify(scenario.businessRules, null, 2);
-        document.getElementById("businessContext").value = JSON.stringify(scenario.businessContext, null, 2);
-        document.getElementById("hiddenContextMarker").value = scenario.hiddenContextMarker;
-        document.getElementById("businessRisk").value = scenario.businessRisk;
-        document.querySelectorAll(".scenario-button").forEach((button) => {
-          button.classList.toggle("active", button.id === id);
-        });
-        runGate();
+      function renderReceipts() {
+        const box = document.querySelector("#receipt-list");
+        if (!receipts.length) {
+          box.innerHTML = '<div class="card"><strong>No demo receipts yet</strong><p>Run the Live Gate playground to create session receipts.</p></div>';
+          return;
+        }
+        box.innerHTML = receipts
+          .map(
+            (r) => `
+          <div class="card">
+            <div class="btn-row" style="margin-bottom:8px">
+              <span class="pill ${r.action === "SHOW" ? "ok" : r.action === "REVIEW" ? "warn" : "bad"}">${r.action}</span>
+              <span class="pill">${r.internal || ""}</span>
+            </div>
+            <strong>${r.risk || "gate event"}</strong>
+            <p>${r.reason || ""}</p>
+            <div class="path">${r.at} · ${r.audit_id || ""}</div>
+          </div>`
+          )
+          .join("");
       }
 
-      function render(result) {
-        const actionEl = document.getElementById("action");
-        const statePill = document.getElementById("statePill");
-        actionEl.textContent = result.action;
-        actionEl.className = `action-word ${result.action}`;
-        statePill.className = `pill ${result.action === "BLOCK" ? "red" : result.action === "SHOW" ? "green" : ""}`;
-        statePill.textContent =
-          result.action === "SHOW"
-            ? "release allowed"
-            : result.action === "REVIEW"
-              ? "human review"
-              : "release blocked";
-
-        document.getElementById("internal").textContent = result.internal_decision;
-        document.getElementById("show").textContent = String(result.show_to_user);
-        document.getElementById("context").textContent = result.context_integrity;
-        document.getElementById("reason").textContent = result.reason;
-        document.getElementById("next").textContent = result.next_step;
-        document.getElementById("audit").textContent = result.audit_id;
-        document.getElementById("auditDecisionMirror").textContent = result.internal_decision;
-        document.getElementById("auditMirror").textContent = result.audit_id;
-        document.getElementById("fallback").textContent =
-          result.safe_fallback || "No fallback required. The host product can show the AI answer.";
-        document.getElementById("json").textContent = JSON.stringify(result, null, 2);
-      }
-
-      function copyResultJson() {
-        const json = document.getElementById("json").textContent;
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(json);
+      async function bootHealth() {
+        try {
+          const res = await fetch(API + "/health");
+          const h = await res.json();
+          document.querySelector("#health-pill").textContent =
+            (h.email_verification && h.email_verification.provider
+              ? "email " + h.email_verification.provider
+              : "health ok") +
+            " · " +
+            (h.billing && h.billing.provider ? h.billing.provider : "billing");
+          document.querySelector("#health-pill").className = "pill ok";
+        } catch {
+          document.querySelector("#health-pill").textContent = "API offline";
+          document.querySelector("#health-pill").className = "pill bad";
         }
       }
 
-      function copyWallet() {
-        const address = document.getElementById("cryptoAddress").textContent.trim();
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(address);
-          document.getElementById("copyWalletState").textContent = "copied";
-        } else {
-          document.getElementById("copyWalletState").textContent = "copy manually";
-        }
-      }
-
-      const UI_TRANSLATIONS = {
-        en: {
-          nav_dashboard: "Dashboard",
-          nav_gate_checks: "Gate Checks",
-          nav_review_queue: "Review Queue",
-          nav_audit_records: "Audit Records",
-          nav_schema: "Schema",
-          nav_settings: "Settings",
-          metric_mode: "Runtime mode",
-          metric_mode_value: "Live API bridge",
-          metric_contract: "Contract",
-          metric_audit: "Audit",
-          metric_audit_value: "Receipt preserved",
-          subtitle: "Stops unsupported AI answers before users see them.",
-          review_ribbon: "Review queue",
-          review_title: "Human review lane",
-          review_note: "Answers that are not safe to auto-release should be routed to an operator, not silently shown to the user.",
-          review_example_title: "Example",
-          review_example_note: "The answer may be useful, but the business data does not support automatic release.",
-          review_boundary_title: "Boundary",
-          review_boundary_note: "Review context is audit metadata. It is not a hidden steering prompt for the model.",
-          audit_ribbon: "Audit records",
-          audit_title: "Receipt trail",
-          audit_decision: "Decision",
-          audit_current: "Current audit id",
-          audit_silence_title: "SILENCE is preserved",
-          audit_silence_note: "SILENCE means release denied, execution withheld, audit preserved. It does not mean the candidate disappeared.",
-          audit_scope_title: "Scope",
-          audit_scope_note: "The public demo does not store customer data. Authenticated API calls can create scoped receipts for the caller.",
-          schema_ribbon: "Schema",
-          schema_rule_title: "Canonical mapping",
-          settings_ribbon: "Settings",
-          settings_lang_title: "Language",
-          settings_lang_note: "UI copy can switch languages. Machine values stay canonical for audit and replay.",
-          settings_api_title: "API mode",
-          settings_api_note: "The page calls the browser-safe demo endpoint. Protected workspace calls use the account console.",
-          settings_docs_title: "Docs"
-        },
-        uk: {},
-        ru: {}
-      };
-
-      const UI_TRANSLATIONS_CLEAN = {
-        en: UI_TRANSLATIONS.en,
-        uk: {
-          nav_dashboard: "Панель",
-          nav_gate_checks: "Перевірки Gate",
-          nav_review_queue: "Черга рев'ю",
-          nav_audit_records: "Аудит",
-          nav_schema: "Схема",
-          nav_settings: "Налаштування",
-          metric_mode: "Режим runtime",
-          metric_mode_value: "Live API міст",
-          metric_contract: "Контракт",
-          metric_audit: "Аудит",
-          metric_audit_value: "Receipt збережено",
-          subtitle: "Зупиняє непідтверджені AI-відповіді до того, як їх побачить користувач.",
-          review_ribbon: "Черга рев'ю",
-          review_title: "Лінія людської перевірки",
-          review_note: "Відповіді, які не можна автоматично випускати, мають іти оператору, а не непомітно показуватись користувачу.",
-          review_example_title: "Приклад",
-          review_example_note: "Відповідь може бути корисною, але бізнес-дані не підтримують автоматичний release.",
-          review_boundary_title: "Межа",
-          review_boundary_note: "Контекст рев'ю є audit metadata. Це не прихований steering prompt для моделі.",
-          audit_ribbon: "Аудит",
-          audit_title: "Receipt trail",
-          audit_decision: "Рішення",
-          audit_current: "Поточний audit id",
-          audit_silence_title: "SILENCE зберігається",
-          audit_silence_note: "SILENCE означає release denied, execution withheld, audit preserved. Це не означає, що candidate зник.",
-          audit_scope_title: "Межі",
-          audit_scope_note: "Публічне демо не зберігає customer data. Authenticated API calls можуть створювати scoped receipts для caller.",
-          schema_ribbon: "Схема",
-          schema_rule_title: "Канонічне мапування",
-          settings_ribbon: "Налаштування",
-          settings_lang_title: "Мова",
-          settings_lang_note: "UI copy може змінювати мову. Machine values лишаються canonical для audit і replay.",
-          settings_api_title: "API режим",
-          settings_api_note: "Сторінка викликає browser-safe demo endpoint. Protected workspace calls використовують account console.",
-          settings_docs_title: "Документи"
-        },
-        ru: {
-          nav_dashboard: "Панель",
-          nav_gate_checks: "Проверки Gate",
-          nav_review_queue: "Очередь ревью",
-          nav_audit_records: "Аудит",
-          nav_schema: "Схема",
-          nav_settings: "Настройки",
-          metric_mode: "Режим runtime",
-          metric_mode_value: "Live API мост",
-          metric_contract: "Контракт",
-          metric_audit: "Аудит",
-          metric_audit_value: "Receipt сохранен",
-          subtitle: "Останавливает неподтвержденные AI-ответы до того, как их увидит пользователь.",
-          review_ribbon: "Очередь ревью",
-          review_title: "Линия человеческой проверки",
-          review_note: "Ответы, которые нельзя выпускать автоматически, должны идти оператору, а не тихо показываться пользователю.",
-          review_example_title: "Пример",
-          review_example_note: "Ответ может быть полезным, но бизнес-данные не поддерживают автоматический release.",
-          review_boundary_title: "Граница",
-          review_boundary_note: "Контекст ревью является audit metadata. Это не скрытый steering prompt для модели.",
-          audit_ribbon: "Аудит",
-          audit_title: "Receipt trail",
-          audit_decision: "Решение",
-          audit_current: "Текущий audit id",
-          audit_silence_title: "SILENCE сохраняется",
-          audit_silence_note: "SILENCE означает release denied, execution withheld, audit preserved. Это не значит, что candidate исчез.",
-          audit_scope_title: "Границы",
-          audit_scope_note: "Публичное демо не сохраняет customer data. Authenticated API calls могут создавать scoped receipts для caller.",
-          schema_ribbon: "Схема",
-          schema_rule_title: "Каноническое отображение",
-          settings_ribbon: "Настройки",
-          settings_lang_title: "Язык",
-          settings_lang_note: "UI copy может менять язык. Machine values остаются canonical для audit и replay.",
-          settings_api_title: "API режим",
-          settings_api_note: "Страница вызывает browser-safe demo endpoint. Protected workspace calls используют account console.",
-          settings_docs_title: "Документы"
-        }
-      };
-
-      function applyLanguage(lang) {
-        const dictionary = UI_TRANSLATIONS_CLEAN[lang] || UI_TRANSLATIONS_CLEAN.en;
-        document.documentElement.lang = lang === "uk" ? "uk" : lang === "ru" ? "ru" : "en";
-        document.querySelectorAll("[data-i18n]").forEach((element) => {
-          const key = element.dataset.i18n;
-          if (dictionary[key]) {
-            element.textContent = dictionary[key];
-          }
-        });
-        document.querySelectorAll(".lang-button").forEach((button) => {
-          button.classList.toggle("active", button.dataset.lang === lang);
-        });
-      }
-
-      function activateNav(hash) {
-        const target = hash || "#gate-checks";
-        const gateSubsections = new Set(["#gate-templates", "#host-request", "#gate-output", "#account-shell"]);
-        const navTarget = gateSubsections.has(target) ? "#gate-checks" : target;
-        document.querySelectorAll(".nav-item").forEach((item) => {
-          item.classList.toggle("active", item.getAttribute("href") === navTarget);
-        });
-        document.querySelectorAll(".mobile-nav a").forEach((item) => {
-          item.classList.toggle("active", item.getAttribute("href") === navTarget);
-        });
-        activateGateTabs(target);
-      }
-
-      function activateGateTabs(hash) {
-        const target = hash || "#gate-output";
-        const gateTabTargets = new Set(["#host-request", "#gate-output", "#audit-records"]);
-        document.querySelectorAll(".tab").forEach((item) => {
-          const itemTarget = item.getAttribute("href");
-          const active =
-            itemTarget === target ||
-            (!gateTabTargets.has(target) && itemTarget === "#gate-output");
-          item.classList.toggle("active", active);
-        });
-      }
-
-      document.getElementById("runGate").addEventListener("click", runGate);
-      document.getElementById("copyJson").addEventListener("click", copyResultJson);
-      document.getElementById("copyWallet").addEventListener("click", copyWallet);
-      Object.keys(SCENARIOS).forEach((id) => {
-        document.getElementById(id).addEventListener("click", () => setScenario(id));
+      document.querySelector("#workspace-tree").innerHTML = TREE;
+      document.querySelectorAll(".nav-item").forEach((b) => {
+        b.addEventListener("click", () => showView(b.dataset.view));
       });
-      document.querySelectorAll(".lang-button").forEach((button) => {
-        button.addEventListener("click", () => applyLanguage(button.dataset.lang || "en"));
+      document.querySelectorAll("[data-scenario]").forEach((b) => {
+        b.addEventListener("click", () => paintScenario(b.dataset.scenario));
       });
-      document.querySelectorAll(".nav-item").forEach((item) => {
-        item.addEventListener("click", () => activateNav(item.getAttribute("href")));
+      document.querySelector("#run-gate").addEventListener("click", runGate);
+
+      paintScenario("fake_promo_code");
+      bootHealth();
+      setTimeout(runGate, 500);
+
+      window.addEventListener("pageshow", (e) => {
+        if (e.persisted) location.reload();
       });
-      document.querySelectorAll(".mobile-nav a").forEach((item) => {
-        item.addEventListener("click", () => activateNav(item.getAttribute("href")));
-      });
-      document.querySelectorAll(".tab").forEach((item) => {
-        item.addEventListener("click", () => activateNav(item.getAttribute("href")));
-      });
-      window.addEventListener("hashchange", () => activateNav(window.location.hash));
-      loadAccountProfile();
-      applyLanguage("en");
-      activateNav(window.location.hash || "#gate-checks");
-      setScenario("loadBlock");
     </script>
   </body>
 </html>
