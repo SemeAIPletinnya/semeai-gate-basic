@@ -279,6 +279,8 @@ def _send_resend(payload: dict[str, Any], values: Mapping[str, str]) -> dict[str
     if payload.get("reply_to"):
         body["reply_to"] = payload["reply_to"]
     data = json.dumps(body).encode("utf-8")
+    # Cloudflare can reject bare-python urllib defaults (HTTP 403 / error 1010)
+    # from some cloud egress paths. Send explicit client headers.
     req = urllib.request.Request(
         "https://api.resend.com/emails",
         data=data,
@@ -286,6 +288,8 @@ def _send_resend(payload: dict[str, Any], values: Mapping[str, str]) -> dict[str
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "semeai-gate-basic/0.2 (+https://semeai.tech)",
         },
     )
     try:
@@ -295,6 +299,8 @@ def _send_resend(payload: dict[str, Any], values: Mapping[str, str]) -> dict[str
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise EmailDeliveryError(f"Resend HTTP {exc.code}: {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise EmailDeliveryError(f"Resend network error: {exc}") from exc
 
 
 def _send_smtp(payload: dict[str, Any], values: Mapping[str, str]) -> str:
