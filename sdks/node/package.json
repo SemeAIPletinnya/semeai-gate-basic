@@ -1,9 +1,18 @@
 {
   "name": "semeai-gate-basic",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Local release-control gate for AI answers",
+  "version": "0.2.0",
+  "private": false,
+  "description": "SemeAI Gate SDK — local adapter + remote SaaS client (SHOW / REVIEW / BLOCK)",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./remote": "./remote.js"
+  },
   "author": "Anton Semenenko / SemeAI",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SemeAIPletinnya/semeai-gate-basic.git"
+  },
+  "keywords": ["semeai", "llm", "guardrails", "release-control", "SHOW", "REVIEW", "BLOCK"]
 }

@@ -23,8 +23,11 @@ function checkAIAnswer(request, options = {}) {
   return JSON.parse(completed.stdout);
 }
 
+const { createClient } = require("./remote");
+
 module.exports = {
   checkAIAnswer,
+  createClient,
   ACTION_TO_INTERNAL: {
     SHOW: "PROCEED",
     REVIEW: "NEEDS_REVIEW",

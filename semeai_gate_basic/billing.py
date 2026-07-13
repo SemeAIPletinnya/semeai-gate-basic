@@ -168,6 +168,25 @@ def submit_manual_crypto_txid(
 
     submitted_at = _now()
     txid_hash = _hash(txid)
+    crypto_cfg = _manual_crypto_config(env=env)
+    onchain: dict[str, Any] = {}
+    try:
+        from .crypto_verify import verify_usdt_trc20_txid
+
+        onchain = verify_usdt_trc20_txid(
+            txid,
+            expected_to=str(crypto_cfg.get("payment_address") or DEFAULT_USDT_TRC20_ADDRESS),
+            expected_amount_usdt=invoice.get("amount_usdt") or crypto_cfg.get("default_amount_usdt"),
+            env=env,
+        )
+    except Exception as exc:  # noqa: BLE001
+        onchain = {
+            "verification_status": "unavailable",
+            "ok": False,
+            "error": str(exc),
+            "automatic_onchain_verification": False,
+        }
+
     proof = {
         "schema_version": BILLING_SCHEMA_VERSION,
         "invoice_id": invoice_id,
@@ -179,8 +198,9 @@ def submit_manual_crypto_txid(
         "txid_hash": txid_hash,
         "raw_txid_stored": True,
         "manual_review_required": True,
-        "automatic_onchain_verification": False,
-        "external_billing_calls": False,
+        "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
+        "onchain": onchain,
+        "external_billing_calls": bool(onchain.get("provider") == "trongrid"),
         "audit_preserved": True,
         "submitted_at": submitted_at,
         "operator_note": _clean_field(payload.get("operator_note") or payload.get("note") or "", max_len=500),
@@ -196,6 +216,7 @@ def submit_manual_crypto_txid(
             "raw_txid_stored": True,
             "manual_review_required": True,
             "submitted_at": submitted_at,
+            "onchain_verification_status": onchain.get("verification_status"),
         }
     )
     _write_invoice(root, invoice)
@@ -211,13 +232,14 @@ def submit_manual_crypto_txid(
             "latest_txid_hash": txid_hash,
             "latest_txid_submitted_at": submitted_at,
             "manual_review_required": True,
-            "automatic_onchain_verification": False,
-            "external_billing_calls": False,
+            "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
+            "onchain_verification_status": onchain.get("verification_status"),
+            "external_billing_calls": bool(onchain.get("provider") == "trongrid"),
             "private_keys_stored": False,
         },
     )
     _append_billing_event(root, {"event_type": "manual_crypto_txid_submitted", **_event_projection(proof)})
-    review_email = _manual_crypto_config(env=env).get("feedback_email")
+    review_email = crypto_cfg.get("feedback_email")
     email_result: dict[str, Any] = {}
     try:
         from .email_provider import send_billing_review_email
@@ -240,7 +262,8 @@ def submit_manual_crypto_txid(
         "invoice_id": invoice_id,
         "txid_hash": txid_hash,
         "manual_review_required": True,
-        "automatic_onchain_verification": False,
+        "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
+        "onchain": onchain,
         "audit_preserved": True,
         "next_step": (
             "Do not assume paid activation until the operator verifies this transaction. "

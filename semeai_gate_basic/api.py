@@ -105,12 +105,18 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
         "service": "semeai-gate-basic",
         "api_version": API_VERSION,
         "schema_version": SCHEMA_VERSION,
-        "account_endpoints": ["/v0/register", "/v0/verify", "/v0/account"],
+        "account_endpoints": ["/v0/register", "/v0/verify", "/v0/account", "/v0/usage", "/v0/keys"],
+        "key_endpoints": [
+            "/v0/keys",
+            "/v0/keys/rotate",
+            "/v0/keys/revoke",
+        ],
         "billing_endpoints": [
             "/v0/billing/status",
             "/v0/billing/manual-crypto-intent",
             "/v0/billing/submit-txid",
         ],
+        "status_endpoint": "/v0/status",
         "admin_endpoints": [
             "/v0/admin/workspaces",
             "/v0/admin/billing-reviews",
@@ -132,10 +138,12 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "asset": "USDT",
             "payment_address": operator["payment_address"],
             "default_amount_usdt": operator["default_amount_usdt"],
-            "stripe_enabled": False,
-            "automatic_onchain_verification": False,
+            "stripe_enabled": bool(str(values.get("SEMEAI_GATE_STRIPE_SECRET_KEY") or "").strip()),
+            "automatic_onchain_verification": True,
+            "onchain_provider": "trongrid",
             "payment_metadata_is_gate_authority": False,
             "review_email": operator["feedback_email"],
+            "usage_meter": True,
         },
         "operator_contact": operator,
         "storage": {
@@ -152,7 +160,38 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "gate_basic": "https://github.com/SemeAIPletinnya/semeai-gate-basic",
             "governance_source": "https://github.com/SemeAIPletinnya/silence-as-control",
         },
+        "rate_limits": _public_rate_limits(values),
     }
+
+
+def public_status(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    """Public status surface for dashboards and status pages."""
+    health = api_health(env=env)
+    return {
+        "status": health.get("status"),
+        "service": health.get("service"),
+        "api_version": health.get("api_version"),
+        "time": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        "checks": {
+            "api": "ok" if health.get("status") == "ok" else "degraded",
+            "email": "ok" if (health.get("email_verification") or {}).get("automatic_email_delivery") else "manual_or_outbox",
+            "billing": (health.get("billing") or {}).get("provider") or "unknown",
+        },
+        "rate_limits": health.get("rate_limits"),
+        "billing": health.get("billing"),
+        "operator_contact": health.get("operator_contact"),
+        "regions": ["fly-arn"],
+        "incidents": [],
+    }
+
+
+def _public_rate_limits(values: Mapping[str, str]) -> dict[str, Any]:
+    try:
+        from .usage import public_limits
+
+        return public_limits(env=values)
+    except Exception as exc:  # noqa: BLE001
+        return {"error": str(exc)}
 
 
 def _email_status(values: Mapping[str, str]) -> dict[str, Any]:
@@ -337,6 +376,18 @@ def check_api_answer(
     """
 
     auth = authenticate_headers(headers or {}, env=env)
+    # Usage / rate-limit for authenticated workspace keys.
+    usage_snapshot = None
+    from .usage import RateLimitError, record_check
+
+    try:
+        if auth.get("workspace_id"):
+            usage_snapshot = record_check(auth, env=env, enforce=True)
+    except RateLimitError:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        usage_snapshot = {"warning": f"usage store unavailable: {exc}"}
+
     target_receipts = Path(
         receipt_dir
         or (env or os.environ).get("SEMEAI_GATE_RECEIPT_DIR", "")
@@ -354,6 +405,7 @@ def check_api_answer(
         "subscription": auth["subscription"],
         "receipt_store": str(target_receipts),
         "raw_text_stored": False,
+        "usage": usage_snapshot,
     }
     return result
 

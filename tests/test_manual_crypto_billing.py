@@ -93,16 +93,16 @@ def test_submit_txid_moves_to_pending_review_not_paid_active(tmp_path: Path) -> 
     assert result["status"] == "pending_review"
     assert result["payment_status"] == "pending_review"
     assert result["manual_review_required"] is True
-    assert result["automatic_onchain_verification"] is False
+    # On-chain lookup may run (TronGrid) but never auto-activates paid access.
     assert result["audit_preserved"] is True
     assert "txid_hash" in result
     assert "txid" not in result
+    assert "onchain" in result
 
     workspace = _load_only_workspace(tmp_path)
     assert workspace["billing"]["status"] == "pending_review"
     assert workspace["billing"]["payment_status"] == "pending_review"
     assert workspace["subscription"]["status"] == "active"
-    assert workspace["subscription"]["external_billing_calls"] is False
 
 
 def test_invalid_txid_is_rejected_without_activation(tmp_path: Path) -> None:

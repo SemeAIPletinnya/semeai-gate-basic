@@ -22,8 +22,12 @@ from .api import (
     list_receipts,
     list_demo_scenarios,
     parse_api_keys,
+    public_status,
     read_receipt,
 )
+from .keys import KeyError_ as KeyManageError
+from .keys import list_keys, revoke_key, rotate_key
+from .usage import RateLimitError, get_usage
 from .admin import (
     AdminActionError,
     AdminAuthError,
@@ -62,6 +66,10 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             self._send_json(api_health())
             return
 
+        if path == "/v0/status":
+            self._send_json(public_status())
+            return
+
         if path == "/v0/demo/scenarios":
             self._send_json(list_demo_scenarios())
             return
@@ -77,6 +85,16 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": str(exc)}, status=exc.status_code)
                 return
             billing = billing_status(auth, env=os.environ)
+            usage = {}
+            keys = {}
+            try:
+                usage = get_usage(auth, env=os.environ)
+            except Exception as exc:  # noqa: BLE001
+                usage = {"error": str(exc)}
+            try:
+                keys = list_keys(auth, env=os.environ)
+            except Exception as exc:  # noqa: BLE001
+                keys = {"error": str(exc)}
             self._send_json(
                 {
                     "api_version": API_VERSION,
@@ -88,8 +106,30 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                     "subscription": auth["subscription"],
                     "billing": billing["billing"],
                     "manual_crypto": billing["manual_crypto"],
+                    "usage": usage,
+                    "keys": keys,
                 }
             )
+            return
+
+        if path == "/v0/usage":
+            try:
+                auth = authenticate_headers(self.headers)
+                self._send_json(get_usage(auth, env=os.environ))
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+            except Exception as exc:  # noqa: BLE001
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+            return
+
+        if path == "/v0/keys":
+            try:
+                auth = authenticate_headers(self.headers)
+                self._send_json(list_keys(auth, env=os.environ))
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+            except KeyManageError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
             return
 
         if path == "/v0/billing/status":
@@ -251,6 +291,34 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             self._send_json(result)
             return
 
+        if path == "/v0/keys/rotate":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body() if int(self.headers.get("content-length") or 0) else {}
+                label = str((payload or {}).get("label") or "rotated")
+                self._send_json(rotate_key(auth, env=os.environ, label=label))
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+            except KeyManageError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+            return
+
+        if path == "/v0/keys/revoke":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body()
+                fingerprint = str(payload.get("fingerprint") or payload.get("api_key_fingerprint") or "")
+                self._send_json(revoke_key(auth, fingerprint, env=os.environ))
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+            except KeyManageError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+            return
+
         if path != "/v0/check":
             self._send_json({"error": "not found"}, status=HTTPStatus.NOT_FOUND)
             return
@@ -260,6 +328,12 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             result = check_api_answer(payload, headers=self.headers)
         except ApiAuthError as exc:
             self._send_json({"error": str(exc)}, status=exc.status_code)
+            return
+        except RateLimitError as exc:
+            self._send_json(
+                {"error": str(exc), "retry_after": exc.retry_after},
+                status=exc.status_code,
+            )
             return
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
             self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
