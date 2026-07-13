@@ -117,12 +117,14 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "/v0/admin/workspaces/{workspace_id}/activate",
         ],
         "email_verification": {
+            **_email_status(values),
             "required": True,
-            "delivery_provider": "manual_link_v0_1",
-            "automatic_email_delivery": False,
             "operator_email": operator["operator_email"],
             "feedback_email": operator["feedback_email"],
-            "note": "v0.1 returns a verification link; operator can also complete setup via feedback email.",
+            "note": (
+                "When Resend/SMTP is configured, verification emails are sent automatically. "
+                "Otherwise a durable outbox + verification URL is used."
+            ),
         },
         "billing": {
             "provider": "manual_usdt_trc20",
@@ -151,6 +153,20 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "governance_source": "https://github.com/SemeAIPletinnya/silence-as-control",
         },
     }
+
+
+def _email_status(values: Mapping[str, str]) -> dict[str, Any]:
+    try:
+        from .email_provider import email_provider_status
+
+        return email_provider_status(env=values)
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "configured": False,
+            "provider": "unavailable",
+            "automatic_email_delivery": False,
+            "error": str(exc),
+        }
 
 
 def public_operator_contact(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:

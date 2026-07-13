@@ -218,6 +218,20 @@ def submit_manual_crypto_txid(
     )
     _append_billing_event(root, {"event_type": "manual_crypto_txid_submitted", **_event_projection(proof)})
     review_email = _manual_crypto_config(env=env).get("feedback_email")
+    email_result: dict[str, Any] = {}
+    try:
+        from .email_provider import send_billing_review_email
+
+        email_result = send_billing_review_email(
+            workspace_id=str(auth.get("workspace_id") or ""),
+            invoice_id=invoice_id,
+            txid=txid,
+            workspace_name=str(auth.get("workspace_name") or workspace.get("workspace_name") or ""),
+            env=env,
+            account_dir=root,
+        )
+    except Exception as exc:  # noqa: BLE001
+        email_result = {"ok": False, "error": str(exc)}
     return {
         "schema_version": BILLING_SCHEMA_VERSION,
         "status": "pending_review",
@@ -233,6 +247,7 @@ def submit_manual_crypto_txid(
             f"Email {review_email} with workspace_id, invoice_id, and txid for faster pilot review."
         ),
         "review_email": review_email,
+        "operator_notice": email_result,
     }
 
 

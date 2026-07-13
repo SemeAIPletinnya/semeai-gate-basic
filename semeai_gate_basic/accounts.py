@@ -86,6 +86,22 @@ def register_workspace(
 
     public_site = str(values.get("SEMEAI_GATE_PUBLIC_SITE_URL", "") or DEFAULT_PUBLIC_SITE_URL).rstrip("/")
     verification_url = f"{public_site}/register.html#verify={verification_token}"
+    # Also accept dashboard deep-link
+    dashboard_verify_url = f"{public_site}/dashboard.html#verify={verification_token}"
+
+    from .email_provider import email_provider_status, send_verification_email
+
+    delivery = send_verification_email(
+        to=email,
+        verification_url=verification_url,
+        registration_id=registration_id,
+        company=company,
+        env=values,
+        account_dir=root,
+    )
+    provider_status = email_provider_status(env=values)
+    auto = bool(provider_status.get("automatic_email_delivery")) and bool((delivery.get("user") or {}).get("ok"))
+    user_delivery = delivery.get("user") or {}
 
     return {
         "schema_version": ACCOUNT_SCHEMA_VERSION,
@@ -97,18 +113,27 @@ def register_workspace(
         "company": company,
         "verification": {
             "method": "email_link",
-            "delivery_provider": "manual_link_v0_1",
-            "manual_delivery": True,
+            "delivery_provider": user_delivery.get("provider") or provider_status.get("provider") or "outbox_only",
+            "manual_delivery": not auto,
+            "email_sent": bool(user_delivery.get("ok") and user_delivery.get("delivery") == "sent"),
+            "delivery_status": user_delivery.get("delivery"),
             "verification_url": verification_url,
+            "dashboard_verification_url": dashboard_verify_url,
             "expires_at": expires_at,
             "raw_verification_token_stored": False,
         },
+        "email_delivery": delivery,
         "account_storage": {
             "server_side_record_created": True,
             "password_collected": False,
             "raw_api_key_stored": False,
         },
-        "next_step": "Open the verification link on register.html to issue the workspace API key.",
+        "next_step": (
+            "Check your email for the verification link, or open the verification URL returned by the API "
+            "to issue the workspace API key."
+            if auto
+            else "Open the verification link (also emailed to the operator outbox/manual path) to issue the workspace API key."
+        ),
     }
 
 
