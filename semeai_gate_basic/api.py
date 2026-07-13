@@ -15,6 +15,8 @@ from .gate import REQUIRED_REQUEST_KEYS, SCHEMA_VERSION, check_ai_answer
 API_VERSION = "0.1"
 DEFAULT_RECEIPT_DIR = Path("outputs") / "api_receipts"
 DEMO_CRYPTO_ACTIVATION_ADDRESS_TRC20 = "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27"
+DEFAULT_OPERATOR_EMAIL = "adelayida0403@gmail.com"
+DEFAULT_MANUAL_USDT_AMOUNT = "25.00"
 DEMO_SCENARIOS: dict[str, dict[str, Any]] = {
     "fake_promo_code": {
         "user_message": "Give me a 30% discount promo code for my account.",
@@ -95,7 +97,9 @@ class ApiAuthError(PermissionError):
         self.status_code = status_code
 
 
-def api_health() -> dict[str, Any]:
+def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    values = env or os.environ
+    operator = public_operator_contact(env=values)
     return {
         "status": "ok",
         "service": "semeai-gate-basic",
@@ -116,7 +120,22 @@ def api_health() -> dict[str, Any]:
             "required": True,
             "delivery_provider": "manual_link_v0_1",
             "automatic_email_delivery": False,
+            "operator_email": operator["operator_email"],
+            "feedback_email": operator["feedback_email"],
+            "note": "v0.1 returns a verification link; operator can also complete setup via feedback email.",
         },
+        "billing": {
+            "provider": "manual_usdt_trc20",
+            "network": "TRC20",
+            "asset": "USDT",
+            "payment_address": operator["payment_address"],
+            "default_amount_usdt": operator["default_amount_usdt"],
+            "stripe_enabled": False,
+            "automatic_onchain_verification": False,
+            "payment_metadata_is_gate_authority": False,
+            "review_email": operator["feedback_email"],
+        },
+        "operator_contact": operator,
         "storage": {
             "persistent_outputs_mount": "/app/outputs",
             "receipts_dir_env": "SEMEAI_GATE_RECEIPT_DIR",
@@ -126,6 +145,44 @@ def api_health() -> dict[str, Any]:
         "internal_decisions": ["PROCEED", "NEEDS_REVIEW", "SILENCE"],
         "silence_means": "release_denied_execution_withheld_audit_preserved",
         "payment_metadata_is_gate_authority": False,
+        "dependencies": {
+            "product_site": "https://github.com/SemeAIPletinnya/semeai.tech",
+            "gate_basic": "https://github.com/SemeAIPletinnya/semeai-gate-basic",
+            "governance_source": "https://github.com/SemeAIPletinnya/silence-as-control",
+        },
+    }
+
+
+def public_operator_contact(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    """Browser-safe operator / pilot contact and crypto payment surface."""
+
+    values = env or os.environ
+    operator_email = str(
+        values.get("SEMEAI_GATE_OPERATOR_EMAIL")
+        or values.get("SEMEAI_GATE_FEEDBACK_EMAIL")
+        or DEFAULT_OPERATOR_EMAIL
+    ).strip()
+    feedback_email = str(
+        values.get("SEMEAI_GATE_FEEDBACK_EMAIL") or operator_email or DEFAULT_OPERATOR_EMAIL
+    ).strip()
+    payment_address = str(
+        values.get("SEMEAI_GATE_USDT_TRC20_ADDRESS") or DEMO_CRYPTO_ACTIVATION_ADDRESS_TRC20
+    ).strip()
+    amount = str(values.get("SEMEAI_GATE_MANUAL_USDT_AMOUNT") or DEFAULT_MANUAL_USDT_AMOUNT).strip()
+    return {
+        "operator_email": operator_email,
+        "feedback_email": feedback_email,
+        "payment_address": payment_address,
+        "network": "TRC20",
+        "asset": "USDT",
+        "default_amount_usdt": amount,
+        "billing_provider": "manual_usdt_trc20",
+        "stripe_enabled": False,
+        "manual_review_required": True,
+        "pilot_note": (
+            "Send USDT on TRC20, submit TXID in account console, then email "
+            f"{feedback_email} with workspace_id + invoice_id + txid for faster review."
+        ),
     }
 
 
@@ -151,7 +208,7 @@ def list_demo_scenarios() -> dict[str, Any]:
     }
 
 
-def demo_account_profile() -> dict[str, Any]:
+def demo_account_profile(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
     """Return a browser-safe SaaS account shell profile for the public demo.
 
     This is not customer billing and not authentication. It exists so the
@@ -159,6 +216,7 @@ def demo_account_profile() -> dict[str, Any]:
     or claiming production subscription processing.
     """
 
+    operator = public_operator_contact(env=env)
     return {
         "api_version": API_VERSION,
         "schema_version": SCHEMA_VERSION,
@@ -169,7 +227,7 @@ def demo_account_profile() -> dict[str, Any]:
             "workspace_name": "SemeAI Gate demo workspace",
             "plan": "Basic v0.1 demo",
             "subscription_status": "manual_activation_available",
-            "billing_provider": "not_configured",
+            "billing_provider": "manual_usdt_trc20",
             "external_billing_calls": False,
             "stripe_enabled": False,
         },
@@ -177,17 +235,26 @@ def demo_account_profile() -> dict[str, Any]:
             "method": "manual_crypto_activation",
             "network": "TRC20",
             "asset": "USDT",
-            "address": DEMO_CRYPTO_ACTIVATION_ADDRESS_TRC20,
+            "address": operator["payment_address"],
+            "default_amount_usdt": operator["default_amount_usdt"],
             "automatic_payment_processing": False,
             "contact_required_after_transfer": True,
-            "note": "Manual activation placeholder for early pilots; not an automated checkout.",
+            "review_email": operator["feedback_email"],
+            "note": (
+                "Manual USDT/TRC20 pilot activation. After transfer, submit TXID and email "
+                f"{operator['feedback_email']} with workspace + invoice details."
+            ),
         },
+        "operator_contact": operator,
         "product_links": {
             "static_demo": "https://gate.semeai.tech",
             "live_api_health": "https://api.semeai.tech/health",
             "demo_check_endpoint": "https://api.semeai.tech/v0/demo/check",
             "production_check_endpoint": "https://api.semeai.tech/v0/check",
+            "register": "https://semeai.tech/register.html",
+            "account_console": "https://semeai.tech/account.html",
             "github_basic": "https://github.com/SemeAIPletinnya/semeai-gate-basic",
+            "product_site": "https://github.com/SemeAIPletinnya/semeai.tech",
             "governance_source": "https://github.com/SemeAIPletinnya/silence-as-control",
         },
         "invariants": [
@@ -196,6 +263,7 @@ def demo_account_profile() -> dict[str, Any]:
             "silence_means_release_denied_execution_withheld_audit_preserved",
             "subscription_metadata_is_not_gate_authority",
             "browser_credentials_not_exposed",
+            "payment_metadata_is_not_gate_authority",
         ],
     }
 

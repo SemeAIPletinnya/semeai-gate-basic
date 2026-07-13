@@ -70,12 +70,14 @@ def create_manual_crypto_intent(
 
     values = env or os.environ
     request = payload or {}
+    crypto = _manual_crypto_config(env=env)
     plan = _clean_field(request.get("plan") or values.get("SEMEAI_GATE_MANUAL_BILLING_PLAN") or "pilot")
     amount_usdt = _normalize_amount(request.get("amount_usdt") or values.get("SEMEAI_GATE_MANUAL_USDT_AMOUNT") or "25.00")
     invoice_id = "inv_" + secrets.token_hex(8)
     created_at = _now()
     due_at = None
-    address = _manual_crypto_config(env=env)["payment_address"]
+    address = crypto["payment_address"]
+    review_email = crypto.get("feedback_email")
 
     intent = {
         "schema_version": BILLING_SCHEMA_VERSION,
@@ -98,7 +100,11 @@ def create_manual_crypto_intent(
         "audit_preserved": True,
         "created_at": created_at,
         "due_at": due_at,
-        "next_step": "Send USDT on TRC20, then submit the transaction id for manual review.",
+        "next_step": (
+            "Send USDT on TRC20, submit the transaction id for manual review, then email "
+            f"{review_email} with workspace_id + invoice_id + txid."
+        ),
+        "review_email": review_email,
         "invariants": _billing_invariants(),
     }
 
@@ -211,6 +217,7 @@ def submit_manual_crypto_txid(
         },
     )
     _append_billing_event(root, {"event_type": "manual_crypto_txid_submitted", **_event_projection(proof)})
+    review_email = _manual_crypto_config(env=env).get("feedback_email")
     return {
         "schema_version": BILLING_SCHEMA_VERSION,
         "status": "pending_review",
@@ -221,12 +228,22 @@ def submit_manual_crypto_txid(
         "manual_review_required": True,
         "automatic_onchain_verification": False,
         "audit_preserved": True,
-        "next_step": "Do not assume paid activation until the operator verifies this transaction.",
+        "next_step": (
+            "Do not assume paid activation until the operator verifies this transaction. "
+            f"Email {review_email} with workspace_id, invoice_id, and txid for faster pilot review."
+        ),
+        "review_email": review_email,
     }
 
 
 def _manual_crypto_config(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
     values = env or os.environ
+    operator_email = str(
+        values.get("SEMEAI_GATE_OPERATOR_EMAIL")
+        or values.get("SEMEAI_GATE_FEEDBACK_EMAIL")
+        or "adelayida0403@gmail.com"
+    ).strip()
+    feedback_email = str(values.get("SEMEAI_GATE_FEEDBACK_EMAIL") or operator_email).strip()
     return {
         "billing_provider": "manual_usdt_trc20",
         "network": "TRC20",
@@ -237,6 +254,13 @@ def _manual_crypto_config(*, env: Mapping[str, str] | None = None) -> dict[str, 
         "external_billing_calls": False,
         "private_keys_stored": False,
         "manual_review_required": True,
+        "stripe_enabled": False,
+        "operator_email": operator_email,
+        "feedback_email": feedback_email,
+        "review_instructions": (
+            f"After submitting TXID, email {feedback_email} with workspace_id, invoice_id, "
+            "and the TRC20 transaction hash for manual pilot activation review."
+        ),
     }
 
 

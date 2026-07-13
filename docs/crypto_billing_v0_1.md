@@ -42,6 +42,20 @@ BLOCK  = SILENCE
 ```text
 SEMEAI_GATE_USDT_TRC20_ADDRESS=TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27
 SEMEAI_GATE_MANUAL_USDT_AMOUNT=25.00
+SEMEAI_GATE_OPERATOR_EMAIL=adelayida0403@gmail.com
+SEMEAI_GATE_FEEDBACK_EMAIL=adelayida0403@gmail.com
+
+Operator review contact (feedback / pilot activation):
+`adelayida0403@gmail.com`
+
+After a pilot sends USDT on TRC20 and submits the TXID in the account console,
+they should also email that address with:
+
+- workspace_id
+- invoice_id
+- TRC20 txid
+
+Stripe is not configured in this pilot path. Payment metadata is never gate authority.
 ```
 
 The address is public payment metadata. It is not a secret.

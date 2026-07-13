@@ -11,6 +11,10 @@ primary_region = "arn"
   SEMEAI_GATE_ACCOUNT_DIR = "/app/outputs/api_accounts"
   SEMEAI_GATE_PUBLIC_SITE_URL = "https://semeai.tech"
   SEMEAI_GATE_CORS_ORIGINS = "https://semeai.tech,https://www.semeai.tech,https://gate.semeai.tech"
+  SEMEAI_GATE_USDT_TRC20_ADDRESS = "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27"
+  SEMEAI_GATE_MANUAL_USDT_AMOUNT = "25.00"
+  SEMEAI_GATE_OPERATOR_EMAIL = "adelayida0403@gmail.com"
+  SEMEAI_GATE_FEEDBACK_EMAIL = "adelayida0403@gmail.com"
 
 [http_service]
   internal_port = 8787
