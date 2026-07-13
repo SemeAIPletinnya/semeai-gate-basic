@@ -221,11 +221,27 @@ def _detect_provider(values: Mapping[str, str]) -> str:
 
 
 def _from_email(values: Mapping[str, str]) -> str:
-    return str(
+    raw = str(
         values.get("SEMEAI_GATE_EMAIL_FROM")
         or values.get("SEMEAI_GATE_FROM_EMAIL")
         or DEFAULT_FROM_EMAIL
     ).strip()
+    # Accept either bare email or "Name <email@domain>" and return bare address.
+    if "<" in raw and ">" in raw:
+        inner = raw.split("<", 1)[1].split(">", 1)[0].strip()
+        if "@" in inner:
+            return inner
+    return raw
+
+
+def _from_header(payload: Mapping[str, Any]) -> str:
+    """Build a Resend-compatible From header."""
+    address = str(payload.get("from_email") or DEFAULT_FROM_EMAIL).strip()
+    # If already formatted, keep as-is.
+    if "<" in address and ">" in address:
+        return address
+    name = str(payload.get("from_name") or DEFAULT_FROM_NAME).strip() or DEFAULT_FROM_NAME
+    return f"{name} <{address}>"
 
 
 def _operator_email(values: Mapping[str, str]) -> str:
@@ -270,7 +286,7 @@ def _send_resend(payload: dict[str, Any], values: Mapping[str, str]) -> dict[str
     if not api_key:
         raise EmailDeliveryError("Resend API key missing")
     body = {
-        "from": f"{payload['from_name']} <{payload['from_email']}>",
+        "from": _from_header(payload),
         "to": [payload["to"]],
         "subject": payload["subject"],
         "text": payload["text"],
@@ -312,7 +328,7 @@ def _send_smtp(payload: dict[str, Any], values: Mapping[str, str]) -> str:
 
     msg = EmailMessage()
     msg["Subject"] = payload["subject"]
-    msg["From"] = f"{payload['from_name']} <{payload['from_email']}>"
+    msg["From"] = _from_header(payload)
     msg["To"] = payload["to"]
     if payload.get("reply_to"):
         msg["Reply-To"] = payload["reply_to"]

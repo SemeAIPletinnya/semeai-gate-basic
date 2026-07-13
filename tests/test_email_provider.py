@@ -2,7 +2,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from semeai_gate_basic.email_provider import email_provider_status, send_verification_email
+from semeai_gate_basic.email_provider import (
+    _from_email,
+    _from_header,
+    email_provider_status,
+    send_verification_email,
+)
+
+
+def test_from_header_formats_and_parses_named_addresses() -> None:
+    assert _from_email({"SEMEAI_GATE_EMAIL_FROM": "SemeAI Gate <onboarding@resend.dev>"}) == "onboarding@resend.dev"
+    assert _from_email({"SEMEAI_GATE_EMAIL_FROM": "onboarding@resend.dev"}) == "onboarding@resend.dev"
+    header = _from_header({"from_name": "SemeAI Gate", "from_email": "onboarding@resend.dev"})
+    assert header == "SemeAI Gate <onboarding@resend.dev>"
+    # Do not double-wrap already-formatted values accidentally fed as from_email.
+    header2 = _from_header({"from_name": "SemeAI Gate", "from_email": "SemeAI Gate <onboarding@resend.dev>"})
+    assert header2 == "SemeAI Gate <onboarding@resend.dev>"
 
 
 def test_outbox_email_delivery_without_provider(tmp_path: Path) -> None:
