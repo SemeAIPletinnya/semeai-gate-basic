@@ -289,6 +289,12 @@ self-hosted path. Deployment mode does not change the canonical gate semantics:
 
 See [deployment modes](docs/deployment_modes.md).
 
+## Pilot & architecture docs
+
+- [Pilot packet (1-pager)](docs/pilot_packet.md) — send to design partners
+- [Integration checklist](docs/integration_checklist.md) — wire middleware end-to-end
+- [Architecture ADR v0.1](docs/architecture_adr_v0_1.md) — decisions + technical debt
+
 ## Publish / SaaS Path
 
 - [GitHub publish checklist](docs/github_publish_checklist.md)

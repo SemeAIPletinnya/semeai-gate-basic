@@ -1,61 +1,82 @@
-# Pilot Packet
+# SemeAI Gate · Pilot Packet (1-pager)
 
-This is the short packet to send after a potential design partner asks,
-"What exactly would we test?"
+**Send this** after a design partner asks: *“What exactly would we test?”*  
+**Owner:** support@semeai.tech · founder anton_semenenko@semeai.tech  
+**Version:** 2026-07-16
 
-## Product
+---
 
-SemeAI Gate Basic is a local release-control adapter for AI answers.
+## One sentence
 
-It sits between an existing chatbot and the user:
-
-```text
-existing chatbot -> SemeAI Gate -> SHOW / REVIEW / BLOCK -> customer/operator
-```
-
-## Problem
-
-Production chatbots can confidently invent unsupported business facts:
-
-- fake promo codes;
-- unsupported product or account terms;
-- unsupported financial/product claims;
-- risky actions;
-- answers that drift away from the current support context.
-
-If the answer reaches a user, the user may try it, fail, complain, escalate, or
-lose trust.
-
-## Pilot Goal
-
-Prove one narrow thing:
+SemeAI Gate is a **runtime release-control layer** for existing LLM chatbots:
+after generation, before the user sees the answer — **SHOW / REVIEW / BLOCK** with audit.
 
 ```text
-One class of unsupported AI answer can be stopped before customer release while
-an audit id is preserved.
+existing chatbot → SemeAI Gate → SHOW | REVIEW | BLOCK → customer / operator / receipt
 ```
 
-Recommended first class:
+---
+
+## Problem (why this exists)
+
+Production bots invent fluent but unsupported facts:
+
+| Risk class | Example |
+| --- | --- |
+| Fake promo / refund | “Use SAVE30 for 30% off” when no code exists |
+| Unsupported finance / product claim | “Guaranteed 12% return” |
+| Unsafe action | “Bypass approval and deploy” |
+| Context drift | Billing question → investment pitch |
+
+**Generation is not release authority.**
+
+---
+
+## Pilot goal (narrow on purpose)
+
+Prove **one** class of unsupported answer can be stopped before release, with an audit id.
+
+**Recommended first class:** fake promo-code prevention.
+
+Success metric example:
 
 ```text
-fake promo-code prevention
+On N promo-related candidate answers:
+  false accepts (SHOW when code not in business data) → near zero
+  operator REVIEW queue stays usable
+  every BLOCK/REVIEW leaves a receipt id
 ```
 
-## What You Provide
+---
 
-For a first pilot, the partner provides:
+## What you provide (partner)
 
-- 20 to 50 representative user messages;
-- generated chatbot answers for those messages, if available;
-- current business data, such as active promo codes;
-- business rules, such as "only show confirmed promo codes";
-- safe fallback copy;
-- expected route for `REVIEW` cases.
+| Item | Notes |
+| --- | --- |
+| 20–50 sample user messages | real or redacted |
+| Candidate AI answers | from current bot, if available |
+| Business data | e.g. `active_promo_codes: [...]` |
+| Business rules | e.g. only show confirmed promos |
+| Safe fallback copy | what users see on BLOCK |
+| REVIEW routing | who handles ambiguous cases |
 
-No customer secrets are required for the first demo. Use redacted or synthetic
-examples when needed.
+**No production secrets required** for week-1 demo — synthetic data is fine.
 
-## What SemeAI Gate Returns
+---
+
+## What SemeAI provides
+
+| Asset | Link / note |
+| --- | --- |
+| Live API | `https://api.semeai.tech` · `POST /v0/check` |
+| Free browser demo | [semeai.tech](https://semeai.tech) (5 free checks) |
+| Product console | [gate.semeai.tech/demo](https://gate.semeai.tech/demo/saas_visible.html) |
+| Register workspace | [semeai.tech/register](https://semeai.tech/register.html) |
+| Dashboard | keys · checks · receipts · USDT pilot |
+| Open source | [semeai-gate-basic](https://github.com/SemeAIPletinnya/semeai-gate-basic) |
+| Contract semantics | SHOW=PROCEED · REVIEW=NEEDS_REVIEW · BLOCK=SILENCE |
+
+### Example response
 
 ```json
 {
@@ -64,75 +85,52 @@ examples when needed.
   "show_to_user": false,
   "reason": "The promo code SAVE30 is not found in business data.",
   "business_risk": "fake_promo_code",
-  "next_step": "Do not show this answer. Show a safe fallback or transfer to a human operator.",
-  "audit_id": "example_audit_id",
-  "audit_preserved": true
+  "audit_id": "…",
+  "audit_preserved": true,
+  "safe_fallback": "I can't confirm that promo code from current business data."
 }
 ```
 
-Public action mapping:
+---
 
-```text
-SHOW   = PROCEED
-REVIEW = NEEDS_REVIEW
-BLOCK  = SILENCE
-```
+## Pilot commercial shape
 
-`SILENCE` means release denied, execution withheld, and audit preserved. It
-does not mean deletion.
+| Item | Default |
+| --- | --- |
+| Fee | **25 USDT** (TRC20) pilot |
+| Address | `TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27` |
+| Activation | TXID in dashboard + email support@semeai.tech |
+| Invariant | **Payment is not gate authority** |
 
-## Pilot Success Criteria
+Self-hosted / open-source evaluation is free (you run the binary).
 
-The pilot is useful if:
+---
 
-- fake promo-code answers are not shown to users;
-- `REVIEW` is routed separately from `BLOCK`;
-- safe fallback does not repeat the unsupported claim;
-- each result has an `audit_id`;
-- the result is understandable to support/product teams;
-- no cloud/API/network behavior is required by the basic package.
+## Timeline (suggested 2 weeks)
 
-## Local Demo Commands
+| Day | Activity |
+| --- | --- |
+| 0 | 15-min call · pick risk class · share 10 samples |
+| 1–2 | Wire `POST /v0/check` or local package (see integration checklist) |
+| 3–5 | Run batch on 20–50 cases · export receipts |
+| 6–8 | Tune business_data feed + fallback copy |
+| 9–10 | Review false accepts / false blocks · go/no-go |
 
-```powershell
-python examples\fake_promo_code.py
-python examples\middleware_boundary.py
-node examples\middleware_boundary.js
-python tools\check_contract.py
-python tools\run_benchmark.py
-python -m pytest
-```
+---
 
-Expected current signal:
+## What this is **not**
 
-```text
-contract_check=passed
-cases=100 passed=100 failed=0 accuracy=1.0
-11 passed
-```
+- Not a replacement LLM  
+- Not universal hallucination detection  
+- Not SOC2 certification  
+- Not “pay to unlock SHOW”
 
-## Pilot Timeline
+---
 
-```text
-Day 1: scope one risk class
-Day 2: collect sample messages and business data
-Day 3: run local integration
-Day 4: batch evaluate examples
-Day 5: review disagreements
-Day 6: tighten business data/rules/fallback text
-Day 7: readout and next-risk decision
-```
+## Next step
 
-## What This Is Not
+1. Try [live demo](https://gate.semeai.tech/demo/saas_visible.html)  
+2. [Register](https://semeai.tech/register.html) for API key  
+3. Follow **[Integration checklist](integration_checklist.md)** (middleware in ~10 lines)
 
-This pilot is not:
-
-- a production SLA;
-- a compliance certification;
-- legal proof;
-- universal hallucination detection;
-- a replacement for human review;
-- a new model runtime;
-- fine-tuning or model training.
-
-It is a narrow local release-control pilot.
+Questions: **support@semeai.tech**

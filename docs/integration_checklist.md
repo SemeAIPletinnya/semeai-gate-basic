@@ -1,221 +1,192 @@
-# Integration Readiness Checklist
+# Integration checklist · SemeAI Gate pilot
 
-Use this checklist before connecting SemeAI Gate Basic to an existing chatbot
-or support assistant.
+Use this after the [pilot packet](pilot_packet.md). Goal: first protected check in production-shaped code, not a slide deck.
 
-The goal is simple:
+---
 
-```text
-existing chatbot -> SemeAI Gate -> SHOW / REVIEW / BLOCK -> customer or operator
+## 0. Choose deployment mode
+
+| Mode | When | Path |
+| --- | --- | --- |
+| **A. Hosted API** | Fast pilot, data policy allows scoped payloads | `https://api.semeai.tech` |
+| **B. Local package** | Offline / VPC first | `pip install -e .` · `check_ai_answer(...)` |
+| **C. Self-hosted API** | Same contract inside your network | Docker / Fly clone |
+
+Most design partners start with **A**, then optionally move to **B/C**.
+
+---
+
+## 1. Get credentials (hosted)
+
+- [ ] Open https://semeai.tech/register.html  
+- [ ] Submit work email + use case  
+- [ ] Verify email (or paste token)  
+- [ ] **Copy API key once** → store in secret manager  
+- [ ] Open dashboard → **Load workspace**  
+- [ ] Confirm `GET /health` shows `status: ok`
+
+```bash
+curl -s https://api.semeai.tech/health | head
 ```
 
-## 1. Host Product Boundary
+---
 
-Confirm the host product has a clear release boundary:
+## 2. Confirm public demo works (no key)
 
-- [ ] The chatbot/LLM produces an `ai_answer`.
-- [ ] The answer is checked before the customer sees it.
-- [ ] The host product can choose what to do with `SHOW`, `REVIEW`, or `BLOCK`.
-- [ ] The host product can show a safe fallback when release is blocked.
-- [ ] The host product can route `REVIEW` to a human/operator path.
+```bash
+curl -s https://api.semeai.tech/v0/demo/check \
+  -H "Content-Type: application/json" \
+  -d "{\"scenario_id\":\"fake_promo_code\"}"
+```
 
-Do not wire `REVIEW` and `BLOCK` into the same silent fallback path. `REVIEW`
-means manual inspection before release. `BLOCK` means do not release the answer.
+Expect: `"action":"BLOCK"` (or equivalent for that scenario).
 
-## 2. Minimum Request Fields
+- [ ] Demo check returns SHOW / REVIEW / BLOCK  
+- [ ] Browser console: https://gate.semeai.tech/demo/saas_visible.html  
 
-Every gate call should provide:
+---
 
-- [ ] `user_message`
-- [ ] `ai_answer`
-- [ ] `business_data`
-- [ ] `business_rules`
-- [ ] `business_risk`
+## 3. Middleware shape (required)
 
-Optional but recommended:
+Insert the gate **after** LLM generation, **before** returning text to the user:
 
-- [ ] `business_context`
-- [ ] `expected_answer_scope`
-- [ ] `metadata`
+```text
+user message
+  → your LLM → ai_answer (candidate)
+  → SemeAI Gate
+  → if SHOW: return ai_answer
+  → if REVIEW: hold / queue human
+  → if BLOCK: return safe_fallback (or fixed template)
+```
 
-Example:
+### Python (local package)
+
+```python
+from semeai_gate_basic import check_ai_answer
+
+result = check_ai_answer({
+    "user_message": user_message,
+    "ai_answer": ai_answer,
+    "business_data": {"active_promo_codes": active_codes},  # from your DB
+    "business_rules": {"only_show_confirmed_promos": True},
+    "business_risk": "fake_promo_code",
+})
+
+if result["action"] == "SHOW":
+    customer_response = ai_answer
+elif result["action"] == "REVIEW":
+    customer_response = "A support operator should review this before release."
+else:
+    customer_response = result.get("safe_fallback") or "I can't confirm that from current business data."
+```
+
+### Hosted API
+
+```bash
+curl -s https://api.semeai.tech/v0/check \
+  -H "Authorization: Bearer $SEMEAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @payload.json
+```
+
+Node remote helper: `sdks/node/remote.js`  
+Python examples: `examples/middleware_boundary.py`, `examples/fake_promo_code.py`
+
+- [ ] Middleware branch implemented for SHOW / REVIEW / BLOCK  
+- [ ] Safe fallback copy approved by support lead  
+
+---
+
+## 4. Supply real business facts (critical)
+
+The gate does **not** invent your catalog. You must pass evidence.
+
+| Field | Responsibility |
+| --- | --- |
+| `business_data` | Your system of record (promos, products, policies) |
+| `business_rules` | Flags like `only_show_confirmed_promos` |
+| `business_context` | Optional topic/scope for drift checks |
+| `business_risk` | Risk class for this check (start with `fake_promo_code`) |
+
+- [ ] Promo (or other) list loaded from live DB / cache, not hard-coded forever  
+- [ ] Empty list means “no active promos” → fake codes should BLOCK  
+- [ ] No customer secrets / PII in pilot payloads if avoidable  
+
+---
+
+## 5. First vertical pack (recommended)
+
+Start with **fake_promo_code** only.
+
+Payload skeleton:
 
 ```json
 {
-  "user_message": "Give me a 30% discount promo code for my account.",
-  "ai_answer": "Use promo code SAVE30 to get 30% off.",
-  "business_data": {
-    "active_promo_codes": []
-  },
-  "business_rules": {
-    "only_show_confirmed_promos": true
-  },
+  "user_message": "…",
+  "ai_answer": "…",
+  "business_data": { "active_promo_codes": [] },
+  "business_rules": { "only_show_confirmed_promos": true },
   "business_risk": "fake_promo_code"
 }
 ```
 
-## 3. Business Data Readiness
+- [ ] 10 known-bad answers → expect BLOCK  
+- [ ] 5 known-good answers (code in data) → expect SHOW  
+- [ ] 5 vague answers → expect REVIEW or team decision  
 
-The gate is only as useful as the business data and rules supplied to it.
+Expand later: `unsafe_action`, financial claims, context drift.
 
-Prepare the local data needed for your first use case:
+---
 
-- [ ] active promo codes;
-- [ ] supported product/account claims;
-- [ ] known account product or subscription tier;
-- [ ] approval-required actions;
-- [ ] topics/scopes where the answer is allowed to stay;
-- [ ] business rules that should block unsupported claims.
+## 6. Audit & operations
 
-Do not treat the chatbot answer itself as business data.
+- [ ] Store `audit_id` / receipt id with your conversation id  
+- [ ] Dashboard → Receipts / Review queue for REVIEW+BLOCK  
+- [ ] Document who owns the REVIEW queue (support / ops)  
+- [ ] Confirm raw prompt/answer storage policy (gate receipts hash by default)
 
-## 4. Action Handling
+---
 
-Implement explicit host-app behavior:
+## 7. Usage limits & pilot billing
 
-```python
-if gate_result["action"] == "SHOW":
-    customer_response = ai_answer
-elif gate_result["action"] == "REVIEW":
-    customer_response = "A support operator should review this answer before release."
-else:
-    customer_response = gate_result["safe_fallback"]
-```
+- [ ] Read usage in dashboard (daily limits by tier)  
+- [ ] If converting to paid pilot: 25 USDT TRC20, create intent, submit TXID  
+- [ ] Email support@semeai.tech with workspace_id + invoice_id + txid  
+- [ ] Remember: **payment ≠ SHOW permission**
 
-Mapping remains stable:
+---
 
-```text
-SHOW   = PROCEED
-REVIEW = NEEDS_REVIEW
-BLOCK  = SILENCE
-```
+## 8. Go / no-go (end of pilot)
 
-Machine payload values must not be translated.
+| Question | Pass if… |
+| --- | --- |
+| Did false promo SHOW drop on the test set? | Yes, material reduction |
+| Is REVIEW volume operable? | Team can process in SLA |
+| Is integration latency acceptable? | Gate p95 typically ≪ model latency |
+| Can you refresh business_data? | Automated or daily job exists |
+| Do receipts satisfy audit need? | Yes for pilot scope |
 
-## 5. Context Integrity
+---
 
-Context integrity is not a secret keyword and not a prompt trick.
+## 9. Support & links
 
-It is a deterministic consistency check between:
+| Need | Where |
+| --- | --- |
+| Email | support@semeai.tech |
+| Health | https://api.semeai.tech/health |
+| Contract | [contract.md](contract.md) |
+| Architecture / debt | [architecture_adr_v0_1.md](architecture_adr_v0_1.md) |
+| 5-min demo script | [demo_script_5_min.md](demo_script_5_min.md) |
+| Outreach templates | [partner_outreach_templates.md](partner_outreach_templates.md) |
 
-- current business context;
-- expected answer scope;
-- generated AI answer.
+---
 
-Prepare:
+## Minimal “done” definition
 
-- [ ] `business_context.conversation_topic`
-- [ ] `business_context.known_account_product`
-- [ ] `expected_answer_scope`
-- [ ] rules for unsupported financial/product claims
+You are integrated when:
 
-Example signal:
+1. Every candidate answer for the chosen risk class hits the gate.  
+2. SHOW / REVIEW / BLOCK drive real user-visible behavior.  
+3. At least one BLOCK case has a preserved `audit_id` you can look up.  
 
-```text
-AI answer does not match the current billing support context.
-```
-
-## 6. Safe Fallback and Human Review
-
-Before shipping any integration, decide:
-
-- [ ] What should the user see when action is `BLOCK`?
-- [ ] Where should a `REVIEW` item go?
-- [ ] Who owns the review queue?
-- [ ] Is the fallback honest and non-promissory?
-- [ ] Does the fallback avoid repeating the unsupported claim?
-
-Safe fallback example:
-
-```text
-I can't confirm that promo code from current business data. Please check
-current offers or contact support.
-```
-
-## 7. Audit Handling
-
-Every result includes audit metadata.
-
-Store or log at least:
-
-- [ ] `audit_id`
-- [ ] `action`
-- [ ] `internal_decision`
-- [ ] `business_risk`
-- [ ] `reason`
-- [ ] `risk_details`
-- [ ] timestamp/host request id if your system has one
-
-Receipts preserve decision evidence. They are not a compliance certification
-and should not be represented as legal proof without a separate review process.
-
-## 8. Local Validation Commands
-
-Run:
-
-```powershell
-python tools\check_contract.py
-python tools\run_benchmark.py
-python -m pytest
-python examples\middleware_boundary.py
-node examples\middleware_boundary.js
-```
-
-Expected basic signal:
-
-```text
-contract_check=passed
-cases=100 passed=100 failed=0 accuracy=1.0
-11 passed
-```
-
-## 9. First Pilot Scope
-
-Pick one narrow business risk for the first integration:
-
-- [ ] fake promo code;
-- [ ] unsupported product/account claim;
-- [ ] unsupported financial claim;
-- [ ] unsafe action;
-- [ ] context drift.
-
-Do not start with all chatbot risks at once.
-
-Recommended first pilot:
-
-```text
-fake promo code prevention for support/chatbot answers
-```
-
-## 10. Production Boundaries
-
-Do not claim:
-
-- [ ] universal hallucination detection;
-- [ ] compliance certification;
-- [ ] legal guarantee;
-- [ ] autonomous approval authority;
-- [ ] replacement for human review;
-- [ ] model-level safety proof.
-
-Current basic package does not:
-
-- call cloud APIs;
-- call external LLM APIs;
-- run a model;
-- fine-tune weights;
-- provide a hosted SaaS.
-
-## Integration Definition of Done
-
-A first integration is ready when:
-
-- [ ] the host app checks every candidate answer before customer release;
-- [ ] `SHOW`, `REVIEW`, and `BLOCK` are handled separately;
-- [ ] fake promo code case blocks correctly;
-- [ ] safe fallback is shown for `BLOCK`;
-- [ ] `REVIEW` routes to a human/operator path;
-- [ ] audit id is preserved;
-- [ ] contract checker passes;
-- [ ] benchmark passes locally;
-- [ ] no unsupported production or compliance claims are made.
+Everything else is optimization.
