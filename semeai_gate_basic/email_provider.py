@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
-DEFAULT_OPERATOR_EMAIL = "adelayida0403@gmail.com"
+DEFAULT_OPERATOR_EMAIL = "anton_semenenko@semeai.tech"
 DEFAULT_FROM_NAME = "SemeAI Gate"
 DEFAULT_FROM_EMAIL = "onboarding@resend.dev"  # Resend sandbox default; override in prod
 

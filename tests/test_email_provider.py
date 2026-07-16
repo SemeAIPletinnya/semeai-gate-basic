@@ -23,8 +23,8 @@ def test_from_header_formats_and_parses_named_addresses() -> None:
 def test_outbox_email_delivery_without_provider(tmp_path: Path) -> None:
     env = {
         "SEMEAI_GATE_ACCOUNT_DIR": str(tmp_path),
-        "SEMEAI_GATE_OPERATOR_EMAIL": "adelayida0403@gmail.com",
-        "SEMEAI_GATE_FEEDBACK_EMAIL": "adelayida0403@gmail.com",
+        "SEMEAI_GATE_OPERATOR_EMAIL": "anton_semenenko@semeai.tech",
+        "SEMEAI_GATE_FEEDBACK_EMAIL": "support@semeai.tech",
     }
     status = email_provider_status(env=env)
     assert status["provider"] == "outbox_only"

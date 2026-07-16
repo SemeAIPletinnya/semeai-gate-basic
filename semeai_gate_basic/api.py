@@ -15,7 +15,7 @@ from .gate import REQUIRED_REQUEST_KEYS, SCHEMA_VERSION, check_ai_answer
 API_VERSION = "0.1"
 DEFAULT_RECEIPT_DIR = Path("outputs") / "api_receipts"
 DEMO_CRYPTO_ACTIVATION_ADDRESS_TRC20 = "TJmrrUrpsRpG3u9H4FE9oVyCRPYQYEpG27"
-DEFAULT_OPERATOR_EMAIL = "adelayida0403@gmail.com"
+DEFAULT_OPERATOR_EMAIL = "anton_semenenko@semeai.tech"
 DEFAULT_MANUAL_USDT_AMOUNT = "25.00"
 DEMO_SCENARIOS: dict[str, dict[str, Any]] = {
     "fake_promo_code": {

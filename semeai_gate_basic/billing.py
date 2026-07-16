@@ -279,7 +279,7 @@ def _manual_crypto_config(*, env: Mapping[str, str] | None = None) -> dict[str, 
     operator_email = str(
         values.get("SEMEAI_GATE_OPERATOR_EMAIL")
         or values.get("SEMEAI_GATE_FEEDBACK_EMAIL")
-        or "adelayida0403@gmail.com"
+        or "anton_semenenko@semeai.tech"
     ).strip()
     feedback_email = str(values.get("SEMEAI_GATE_FEEDBACK_EMAIL") or operator_email).strip()
     return {
