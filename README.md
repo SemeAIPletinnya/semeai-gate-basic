@@ -292,7 +292,9 @@ See [deployment modes](docs/deployment_modes.md).
 ## Pilot & architecture docs
 
 - [Pilot packet (1-pager)](docs/pilot_packet.md) — send to design partners
+- [Outreach emails](docs/outreach_emails.md) — cold / follow-up / LinkedIn copy
 - [Integration checklist](docs/integration_checklist.md) — wire middleware end-to-end
+- [Operator TXID activation runbook](docs/operator_txid_activation_runbook.md) — verify payment + activate
 - [Architecture ADR v0.1](docs/architecture_adr_v0_1.md) — decisions + technical debt
 
 ## Publish / SaaS Path

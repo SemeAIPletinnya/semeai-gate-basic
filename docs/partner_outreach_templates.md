@@ -3,6 +3,10 @@
 Use these templates to start conversations with teams that already have an
 LLM/chatbot and care about unsupported answers reaching users.
 
+**Primary short emails (recommended):** [outreach_emails.md](outreach_emails.md)  
+**Pilot 1-pager:** [pilot_packet.md](pilot_packet.md)  
+**After they pay:** [operator_txid_activation_runbook.md](operator_txid_activation_runbook.md)
+
 Keep the ask narrow:
 
 ```text
