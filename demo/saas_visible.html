@@ -11,26 +11,33 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         color-scheme: dark;
-        --bg: #070b10;
-        --panel: rgba(14, 20, 28, 0.94);
-        --line: rgba(148, 173, 196, 0.16);
-        --text: #e8eef6;
+        --bg: #030306;
+        --panel: rgba(12, 12, 18, 0.82);
+        --line: rgba(255, 255, 255, 0.09);
+        --text: #f4f4f5;
         --strong: #fff;
-        --muted: #93a4b8;
-        --muted-2: #6d7f94;
-        --teal: #7fd3d0;
-        --teal-2: #4ba3a7;
-        --green: #34d399;
+        --muted: #a1a1aa;
+        --muted-2: #71717a;
+        --accent: #22d3ee;
+        --accent-2: #06b6d4;
+        --accent-soft: #67e8f9;
+        --green: #4ade80;
         --amber: #fbbf24;
-        --red: #fb7185;
+        --red: #f87171;
         --blue: #60a5fa;
         --violet: #a78bfa;
-        --shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --mono: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
+        --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
       }
       * { box-sizing: border-box; }
       body {
@@ -38,18 +45,25 @@
         min-height: 100vh;
         font-family: var(--sans);
         color: var(--text);
-        background:
-          radial-gradient(1000px 520px at 88% -8%, rgba(75, 163, 167, 0.22), transparent 55%),
-          radial-gradient(720px 420px at 0% 18%, rgba(96, 165, 250, 0.12), transparent 50%),
-          radial-gradient(600px 360px at 50% 100%, rgba(167, 139, 250, 0.06), transparent 55%),
-          linear-gradient(180deg, #070b10, #0a1017 60%, #0c141c);
+        background: #030306;
         -webkit-font-smoothing: antialiased;
+      }
+      #bg-canvas {
+        position: fixed; inset: 0; width: 100%; height: 100%;
+        z-index: 0; pointer-events: none;
+      }
+      .vignette {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background:
+          radial-gradient(ellipse 90% 60% at 50% -10%, rgba(34, 211, 238, 0.07), transparent 50%),
+          linear-gradient(180deg, rgba(3, 3, 6, 0.2) 0%, rgba(3, 3, 6, 0.65) 55%, rgba(3, 3, 6, 0.95) 100%);
       }
       a { color: inherit; text-decoration: none; }
       button, input, textarea, select { font: inherit; color: inherit; }
       button { cursor: pointer; }
 
       .app {
+        position: relative; z-index: 1;
         display: grid;
         grid-template-columns: 268px minmax(0, 1fr);
         min-height: 100vh;
@@ -57,7 +71,7 @@
 
       .sidebar {
         border-right: 1px solid var(--line);
-        background: rgba(8, 12, 18, 0.96);
+        background: rgba(3, 3, 6, 0.88);
         backdrop-filter: blur(16px);
         padding: 16px 12px 24px;
         position: sticky;
@@ -72,11 +86,11 @@
         margin-bottom: 14px;
       }
       .mark {
-        width: 40px; height: 40px; border-radius: 13px;
+        width: 40px; height: 40px; border-radius: 12px;
         display: grid; place-items: center;
-        font-weight: 900; color: #042f2e;
-        background: linear-gradient(135deg, var(--teal), var(--blue));
-        box-shadow: 0 0 28px rgba(127, 211, 208, 0.28);
+        font-weight: 900; font-size: 13px; color: #030306;
+        background: linear-gradient(135deg, #67e8f9, #22d3ee 55%, #06b6d4);
+        box-shadow: 0 0 28px rgba(34, 211, 238, 0.4);
       }
       .brand strong { display: block; color: var(--strong); font-size: 15px; }
       .brand span { color: var(--muted-2); font-size: 11px; font-weight: 650; }
@@ -98,15 +112,15 @@
       .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
       .nav-item.active {
         color: var(--strong);
-        border-color: rgba(127,211,208,0.32);
-        background: linear-gradient(90deg, rgba(127,211,208,0.14), rgba(127,211,208,0.04));
-        box-shadow: inset 3px 0 0 var(--teal);
+        border-color: rgba(34, 211, 238, 0.35);
+        background: linear-gradient(90deg, rgba(34, 211, 238, 0.12), rgba(34, 211, 238, 0.03));
+        box-shadow: inset 3px 0 0 var(--accent);
       }
       .nav-item .ico {
         width: 24px; height: 24px; border-radius: 8px;
         display: grid; place-items: center;
         font-size: 11px; font-weight: 800;
-        background: rgba(255,255,255,0.05); color: var(--teal);
+        background: rgba(255,255,255,0.05); color: var(--accent);
       }
 
       .eco-mini {
@@ -126,15 +140,15 @@
       .eco-link:hover { background: rgba(255,255,255,0.04); color: var(--text); }
       .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
       .dot.sac { background: var(--violet); }
-      .dot.gate { background: var(--teal); }
+      .dot.gate { background: var(--accent); }
       .dot.site { background: var(--blue); }
 
       .side-cta {
         margin-top: 14px; padding: 14px;
         border-radius: 14px;
-        border: 1px solid rgba(127,211,208,0.28);
+        border: 1px solid rgba(34, 211, 238, 0.28);
         background:
-          radial-gradient(180px 80px at 20% 0%, rgba(127,211,208,0.18), transparent 70%),
+          radial-gradient(180px 80px at 20% 0%, rgba(34, 211, 238, 0.14), transparent 70%),
           rgba(255,255,255,0.02);
       }
       .side-cta p { margin: 0 0 10px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
@@ -148,7 +162,7 @@
       }
       .topbar h1 {
         margin: 0; font-size: clamp(24px, 3.2vw, 32px);
-        color: var(--strong); letter-spacing: -0.03em;
+        color: var(--strong); letter-spacing: -0.03em; font-weight: 800;
       }
       .topbar p { margin: 6px 0 0; color: var(--muted); font-size: 14.5px; max-width: 58ch; line-height: 1.5; }
       .pills { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -158,24 +172,26 @@
         border: 1px solid var(--line); background: rgba(255,255,255,0.03);
         color: var(--muted); font-size: 12px; font-weight: 700;
       }
-      .pill.ok { color: var(--green); border-color: rgba(52,211,153,0.35); }
-      .pill.warn { color: var(--amber); border-color: rgba(251,191,36,0.35); }
-      .pill.bad { color: var(--red); border-color: rgba(251,113,133,0.35); }
-      .pill.info { color: var(--blue); border-color: rgba(96,165,250,0.35); }
+      .pill.ok { color: var(--green); border-color: rgba(74, 222, 128, 0.35); background: rgba(74, 222, 128, 0.1); }
+      .pill.warn { color: var(--amber); border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.1); }
+      .pill.bad { color: var(--red); border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.1); }
+      .pill.info { color: var(--accent-soft); border-color: rgba(34, 211, 238, 0.35); background: rgba(34, 211, 238, 0.1); }
       .live-dot {
         width: 7px; height: 7px; border-radius: 50%; background: var(--green);
-        box-shadow: 0 0 0 0 rgba(52,211,153,0.55);
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55);
         animation: pulse 1.8s infinite;
       }
       @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
-        70% { box-shadow: 0 0 0 10px rgba(52,211,153,0); }
-        100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+        0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+        70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
       }
 
       .panel {
         border: 1px solid var(--line); border-radius: 20px;
-        background: var(--panel); box-shadow: var(--shadow);
+        background: var(--panel);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset, var(--shadow);
+        backdrop-filter: blur(14px);
         padding: 18px; margin-bottom: 14px;
         position: relative;
         overflow: hidden;
@@ -183,10 +199,10 @@
       .panel::before {
         content: "";
         position: absolute; inset: 0 0 auto 0; height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(127,211,208,0.45), transparent);
+        background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.45), transparent);
         opacity: 0.7;
       }
-      .panel h2 { margin: 0 0 6px; font-size: 19px; color: var(--strong); letter-spacing: -0.02em; }
+      .panel h2 { margin: 0 0 6px; font-size: 19px; color: var(--strong); letter-spacing: -0.02em; font-weight: 700; }
       .panel .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; line-height: 1.55; }
       .hidden { display: none !important; }
 
@@ -201,7 +217,7 @@
         min-height: 110px;
         transition: 0.2s ease;
       }
-      .stat:hover { border-color: rgba(127,211,208,0.35); transform: translateY(-2px); }
+      .stat:hover { border-color: rgba(34, 211, 238, 0.35); transform: translateY(-2px); box-shadow: 0 0 28px rgba(34, 211, 238, 0.06); }
       .stat .k {
         font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
         text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px;
@@ -217,13 +233,13 @@
         background: rgba(255,255,255,0.025); padding: 16px;
         transition: 0.2s ease;
       }
-      .card:hover { border-color: rgba(127,211,208,0.32); transform: translateY(-2px); }
+      .card:hover { border-color: rgba(34, 211, 238, 0.32); transform: translateY(-2px); }
       .card strong { display: block; color: var(--strong); margin-bottom: 6px; font-size: 15px; }
       .card span, .card p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0; }
       .card .tagline {
         display: inline-flex; margin-top: 10px; padding: 4px 9px; border-radius: 999px;
         font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
-        background: rgba(127,211,208,0.1); color: var(--teal);
+        background: rgba(34, 211, 238, 0.1); color: var(--accent);
       }
 
       .pipeline {
@@ -240,20 +256,20 @@
         transition: 0.25s ease;
       }
       .pipe-node.active {
-        border-color: rgba(127,211,208,0.55);
-        background: rgba(127,211,208,0.1);
-        box-shadow: 0 0 30px rgba(127,211,208,0.12);
+        border-color: rgba(34, 211, 238, 0.55);
+        background: rgba(34, 211, 238, 0.1);
+        box-shadow: 0 0 30px rgba(34, 211, 238, 0.12);
       }
       .pipe-node .n {
         display: inline-flex; width: 26px; height: 26px; border-radius: 50%;
         align-items: center; justify-content: center;
-        font-size: 12px; font-weight: 800; color: #042f2e;
-        background: var(--teal); margin-bottom: 8px;
+        font-size: 12px; font-weight: 800; color: #030306;
+        background: linear-gradient(180deg, #67e8f9, #22d3ee); margin-bottom: 8px;
       }
       .pipe-node strong { display: block; color: var(--strong); font-size: 13px; margin-bottom: 4px; }
       .pipe-node span { color: var(--muted-2); font-size: 11.5px; line-height: 1.35; }
       .pipe-arrow {
-        display: grid; place-items: center; color: var(--teal);
+        display: grid; place-items: center; color: var(--accent);
         font-weight: 900; font-size: 18px; opacity: 0.7;
       }
       .pipe-arrow.pulse { animation: arrowPulse 1.2s ease infinite; }
@@ -269,27 +285,36 @@
         padding: 14px; border-radius: 14px; border: 1px solid var(--line);
         text-align: center; transition: 0.2s ease;
       }
-      .decision.show { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.08); }
-      .decision.review { border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08); }
-      .decision.block { border-color: rgba(251,113,133,0.45); background: rgba(251,113,133,0.1); }
+      .decision.show { border-color: rgba(74, 222, 128, 0.4); background: rgba(74, 222, 128, 0.08); }
+      .decision.review { border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.08); }
+      .decision.block { border-color: rgba(248, 113, 113, 0.45); background: rgba(248, 113, 113, 0.1); }
       .decision b { display: block; font-size: 18px; letter-spacing: 0.06em; margin-bottom: 4px; }
+      .decision.show b { color: var(--green); }
+      .decision.review b { color: var(--amber); }
+      .decision.block b { color: var(--red); }
       .decision span { font-size: 12px; color: var(--muted); }
 
       .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
       .btn {
-        min-height: 42px; padding: 0 16px; border-radius: 12px;
-        border: 1px solid var(--line); background: rgba(255,255,255,0.04);
+        min-height: 42px; padding: 0 16px; border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255,255,255,0.04);
         color: var(--text); font-weight: 700; font-size: 13px;
         transition: 0.15s ease;
       }
-      .btn:hover { border-color: rgba(148,173,196,0.4); transform: translateY(-1px); }
+      .btn:hover { border-color: rgba(34, 211, 238, 0.5); background: rgba(34, 211, 238, 0.08); transform: translateY(-1px); }
       .btn.primary {
-        color: #042f2e; border-color: transparent;
-        background: linear-gradient(180deg, #b8f0ed, var(--teal));
-        box-shadow: 0 8px 24px rgba(127,211,208,0.22);
+        color: #030306; border-color: transparent;
+        background: linear-gradient(180deg, #67e8f9, #22d3ee 55%, #06b6d4);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 12px 40px rgba(34, 211, 238, 0.35);
+      }
+      .btn.primary:hover {
+        filter: brightness(1.08);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) inset, 0 16px 48px rgba(34, 211, 238, 0.45);
       }
       .btn.active {
-        color: #042f2e; background: var(--teal); border-color: transparent;
+        color: #030306; background: var(--accent); border-color: transparent;
+        box-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
       }
       .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
@@ -300,15 +325,15 @@
       }
       textarea, input, select {
         width: 100%; border: 1px solid var(--line); border-radius: 12px;
-        background: #0a1018; padding: 11px 12px; outline: none;
+        background: rgba(3, 3, 6, 0.65); padding: 11px 12px; outline: none;
       }
       textarea {
         min-height: 88px; resize: vertical;
         font-family: var(--mono); font-size: 12.5px;
       }
       textarea:focus, input:focus, select:focus {
-        border-color: var(--teal-2);
-        box-shadow: 0 0 0 3px rgba(75,163,167,0.2);
+        border-color: rgba(34, 211, 238, 0.45);
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
       }
 
       .result {
@@ -316,13 +341,16 @@
         padding: 16px; border-radius: 16px; border: 1px solid var(--line);
         transition: 0.3s ease;
       }
-      .result.SHOW { border-color: rgba(52,211,153,0.45); background: rgba(52,211,153,0.1); }
-      .result.REVIEW { border-color: rgba(251,191,36,0.45); background: rgba(251,191,36,0.1); }
-      .result.BLOCK { border-color: rgba(251,113,133,0.5); background: rgba(251,113,133,0.12); }
+      .result.SHOW { border-color: rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.1); }
+      .result.REVIEW { border-color: rgba(251, 191, 36, 0.45); background: rgba(251, 191, 36, 0.1); }
+      .result.BLOCK { border-color: rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.12); }
       .result .big {
         font-size: 30px; font-weight: 900; letter-spacing: 0.05em;
         animation: popIn 0.35s ease;
       }
+      .result.SHOW .big { color: var(--green); }
+      .result.REVIEW .big { color: var(--amber); }
+      .result.BLOCK .big { color: var(--red); }
       @keyframes popIn {
         from { transform: scale(0.92); opacity: 0.4; }
         to { transform: scale(1); opacity: 1; }
@@ -330,9 +358,10 @@
       .result .meta { color: var(--muted); font-size: 13px; line-height: 1.5; }
       pre {
         margin: 0; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
-        background: #070c12; color: #dbe7f3; font-family: var(--mono);
+        background: rgba(3, 3, 6, 0.7); color: #d4d4d8; font-family: var(--mono);
         font-size: 12px; white-space: pre-wrap; max-height: 280px; overflow: auto;
       }
+      code { color: var(--accent); font-family: var(--mono); font-size: 0.92em; }
 
       .layer-stack { display: grid; gap: 10px; }
       .layer {
@@ -341,13 +370,13 @@
         border: 1px solid var(--line); background: rgba(255,255,255,0.025);
         transition: 0.2s ease;
       }
-      .layer:hover { border-color: rgba(127,211,208,0.35); }
+      .layer:hover { border-color: rgba(34, 211, 238, 0.35); }
       .layer .role {
         font-size: 11px; font-weight: 900; letter-spacing: 0.08em;
         text-align: center; padding: 8px 6px; border-radius: 10px;
       }
       .role.governance { background: rgba(167,139,250,0.15); color: var(--violet); }
-      .role.runtime { background: rgba(127,211,208,0.15); color: var(--teal); }
+      .role.runtime { background: rgba(34, 211, 238, 0.12); color: var(--accent); }
       .role.product { background: rgba(96,165,250,0.15); color: var(--blue); }
       .role.audit { background: rgba(251,191,36,0.12); color: var(--amber); }
       .layer h3 { margin: 0 0 4px; color: var(--strong); font-size: 15px; }
@@ -358,7 +387,7 @@
         border: 1px solid var(--line); background: rgba(255,255,255,0.025);
         min-height: 180px; transition: 0.2s ease;
       }
-      .repo-card:hover { border-color: rgba(127,211,208,0.35); transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.25); }
+      .repo-card:hover { border-color: rgba(34, 211, 238, 0.35); transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.25), 0 0 32px rgba(34, 211, 238, 0.06); }
       .repo-card h3 { margin: 0; color: var(--strong); font-size: 16px; }
       .repo-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
       .repo-card .role {
@@ -375,7 +404,7 @@
       }
       .emblem:hover {
         transform: translateY(-2px);
-        border-color: rgba(127,211,208,0.35);
+        border-color: rgba(34, 211, 238, 0.35);
         box-shadow: 0 10px 28px rgba(0,0,0,0.25);
       }
       .emblem .badge {
@@ -399,7 +428,8 @@
       .value-list .n {
         width: 28px; height: 28px; border-radius: 8px;
         display: grid; place-items: center;
-        font-size: 12px; font-weight: 800; color: #042f2e; background: var(--teal);
+        font-size: 12px; font-weight: 800; color: #030306;
+        background: linear-gradient(180deg, #67e8f9, #22d3ee);
       }
       .value-list strong { display: block; color: var(--strong); font-size: 13.5px; margin-bottom: 2px; }
       .value-list span { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
@@ -420,6 +450,9 @@
     </style>
   </head>
   <body>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+
     <div class="app">
       <aside class="sidebar">
         <div class="brand">
@@ -448,7 +481,7 @@
           <a class="eco-link" href="https://github.com/SemeAIPletinnya/semeai.tech" target="_blank" rel="noopener">
             <span class="dot site"></span> Product surface
           </a>
-          <a class="eco-link" href="https://semeai.tech/" target="_blank" rel="noopener">
+          <a class="eco-link" href="https://semeai.tech/?v=20260716r" target="_blank" rel="noopener">
             <span class="dot site"></span> semeai.tech →
           </a>
         </div>
@@ -456,7 +489,7 @@
         <div class="side-cta">
           <strong>Ship safer AI answers</strong>
           <p>Register a pilot workspace, get an API key, and gate every candidate before users see it.</p>
-          <a class="btn primary" style="display:inline-flex;align-items:center" href="https://semeai.tech/register.html?v=20260716a" target="_blank" rel="noopener">Start free pilot</a>
+          <a class="btn primary" style="display:inline-flex;align-items:center" href="https://semeai.tech/register.html?v=20260716r" target="_blank" rel="noopener">Start free pilot</a>
         </div>
       </aside>
 
@@ -469,7 +502,7 @@
           <div class="pills">
             <span class="pill ok"><span class="live-dot"></span> api.semeai.tech</span>
             <span class="pill info" id="health-pill">health …</span>
-            <a class="pill" href="https://semeai.tech/dashboard.html?v=20260716a" target="_blank" rel="noopener">Dashboard ↗</a>
+            <a class="pill" href="https://semeai.tech/dashboard.html?v=20260716r" target="_blank" rel="noopener">Dashboard ↗</a>
           </div>
         </div>
 
@@ -536,7 +569,7 @@
             </div>
             <div class="btn-row" style="margin-top:16px">
               <button class="btn primary" type="button" data-goto="gate">Try live scenarios →</button>
-              <a class="btn" href="https://semeai.tech/" target="_blank" rel="noopener">Open product site</a>
+              <a class="btn" href="https://semeai.tech/?v=20260716r" target="_blank" rel="noopener">Open product site</a>
             </div>
           </div>
 
@@ -586,7 +619,7 @@
           <div class="panel">
             <h2>Live Gate playground</h2>
             <p class="sub">
-              Calls public <code style="color:var(--teal)">POST https://api.semeai.tech/v0/demo/check</code> —
+              Calls public <code>POST https://api.semeai.tech/v0/demo/check</code> —
               no API key required for demo scenarios. Edit payloads and re-run.
             </p>
             <div class="btn-row" style="margin-bottom: 14px">
@@ -619,7 +652,7 @@
           </div>
         </section>
 
-        <!-- ARCHITECTURE (public product layers — no host filesystem) -->
+        <!-- ARCHITECTURE -->
         <section class="view hidden fade" id="view-architecture">
           <div class="panel">
             <h2>Public product architecture</h2>
@@ -726,8 +759,8 @@
               </a>
             </div>
             <div class="btn-row" style="margin-top: 18px">
-              <a class="btn primary" href="https://semeai.tech/" target="_blank" rel="noopener">Open semeai.tech</a>
-              <a class="btn" href="https://semeai.tech/register.html?v=20260716a" target="_blank" rel="noopener">Register pilot</a>
+              <a class="btn primary" href="https://semeai.tech/?v=20260716r" target="_blank" rel="noopener">Open semeai.tech</a>
+              <a class="btn" href="https://semeai.tech/register.html?v=20260716r" target="_blank" rel="noopener">Register pilot</a>
               <a class="btn" href="https://semeai.tech/article.html" target="_blank" rel="noopener">Thesis article</a>
             </div>
           </div>
@@ -736,6 +769,86 @@
     </div>
 
     <script>
+      /* Canvas — same language as landing / register */
+      (function () {
+        const canvas = document.getElementById("bg-canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        let w = 0, h = 0, particles = [], raf = 0;
+        let mx = 0.5, my = 0.3, tmx = 0.5, tmy = 0.3;
+        const COUNT = 48, LINK = 110;
+
+        function resize() {
+          w = canvas.width = window.innerWidth;
+          h = canvas.height = window.innerHeight;
+        }
+        function seed() {
+          particles = Array.from({ length: COUNT }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.22,
+            vy: (Math.random() - 0.5) * 0.22,
+            r: Math.random() * 1.3 + 0.4,
+            a: Math.random() * 0.45 + 0.2,
+          }));
+        }
+        function frame() {
+          mx += (tmx - mx) * 0.04;
+          my += (tmy - my) * 0.04;
+          const mpx = mx * w, mpy = my * h;
+          ctx.clearRect(0, 0, w, h);
+          for (const p of particles) {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > w) p.vx *= -1;
+            if (p.y < 0 || p.y > h) p.vy *= -1;
+            const dx = p.x - mpx, dy = p.y - mpy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 200) {
+              const pull = (1 - dist / 200) * 0.025;
+              p.vx += (-dx / (dist || 1)) * pull;
+              p.vy += (-dy / (dist || 1)) * pull;
+            }
+            p.vx *= 0.996; p.vy *= 0.996;
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(244, 244, 245, ${p.a * 0.5})`;
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+              const a = particles[i], b = particles[j];
+              const dx = a.x - b.x, dy = a.y - b.y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < LINK * LINK) {
+                const alpha = 0.055 * (1 - Math.sqrt(d2) / LINK);
+                ctx.strokeStyle = `rgba(34, 211, 238, ${alpha})`;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+          }
+          const core = ctx.createRadialGradient(mpx, mpy, 0, mpx, mpy, 90);
+          core.addColorStop(0, "rgba(34, 211, 238, 0.1)");
+          core.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = core;
+          ctx.fillRect(mpx - 100, mpy - 100, 200, 200);
+          raf = requestAnimationFrame(frame);
+        }
+        window.addEventListener("resize", () => { resize(); seed(); });
+        window.addEventListener("pointermove", (e) => {
+          tmx = e.clientX / Math.max(w, 1);
+          tmy = e.clientY / Math.max(h, 1);
+        }, { passive: true });
+        resize(); seed();
+        raf = requestAnimationFrame(frame);
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) cancelAnimationFrame(raf);
+          else raf = requestAnimationFrame(frame);
+        });
+      })();
+
       const API = "https://api.semeai.tech";
       const SCENARIOS = {
         fake_promo_code: {
