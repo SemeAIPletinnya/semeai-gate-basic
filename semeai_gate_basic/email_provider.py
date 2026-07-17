@@ -212,6 +212,103 @@ def send_billing_review_email(
     )
 
 
+def send_pilot_invoice_email(
+    *,
+    to: str,
+    workspace_id: str,
+    workspace_name: str,
+    invoice_id: str,
+    amount_usdt: str,
+    payment_address: str,
+    network: str = "TRC20",
+    asset: str = "USDT",
+    integrate_url: str = "https://semeai.tech/integrate.html",
+    env: Mapping[str, str] | None = None,
+    account_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Email a pilot USDT invoice to the customer (integrate / pay step)."""
+
+    values = env or os.environ
+    feedback = _feedback_email(values)
+    subject = f"SemeAI Gate invoice {invoice_id} · {amount_usdt} {asset}"
+    text = (
+        f"Your SemeAI Gate pilot invoice\n\n"
+        f"Workspace: {workspace_name or workspace_id}\n"
+        f"Workspace id: {workspace_id}\n"
+        f"Invoice id: {invoice_id}\n\n"
+        f"Amount: {amount_usdt} {asset}\n"
+        f"Network: {network}\n"
+        f"Pay to address:\n{payment_address}\n\n"
+        f"Steps:\n"
+        f"1) Send exactly {amount_usdt} {asset} on {network} to the address above.\n"
+        f"2) Open {integrate_url} and paste the transaction id (TXID).\n"
+        f"3) Confirm payment — we auto-verify on-chain when possible.\n\n"
+        f"Payment is never gate authority (SHOW / REVIEW / BLOCK stay independent).\n"
+        f"Questions: {feedback}\n\n"
+        f"— SemeAI Gate\n"
+    )
+    html = f"""
+    <div style="font-family:Inter,Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;color:#0f1720">
+      <h1 style="font-size:22px;margin:0 0 8px">Pilot invoice</h1>
+      <p style="color:#475569;margin:0 0 16px">SemeAI Gate · after your free checks</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin:0 0 18px">
+        <tr><td style="padding:8px 0;color:#64748b">Invoice</td>
+            <td style="padding:8px 0;text-align:right"><code>{_esc(invoice_id)}</code></td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Workspace</td>
+            <td style="padding:8px 0;text-align:right">{_esc(workspace_name or workspace_id)}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Amount</td>
+            <td style="padding:8px 0;text-align:right;font-weight:800">{_esc(amount_usdt)} {_esc(asset)}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Network</td>
+            <td style="padding:8px 0;text-align:right">{_esc(network)}</td></tr>
+      </table>
+      <div style="background:#f1f5f9;border-radius:12px;padding:14px 16px;margin:0 0 18px">
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">Pay to (TRC20)</div>
+        <div style="font-family:ui-monospace,Consolas,monospace;font-size:13px;word-break:break-all;color:#0f1720">
+          {_esc(payment_address)}
+        </div>
+      </div>
+      <ol style="color:#475569;line-height:1.55;padding-left:18px">
+        <li>Send exactly <strong>{_esc(amount_usdt)} {_esc(asset)}</strong> on {_esc(network)}.</li>
+        <li>Open integrate and paste TXID.</li>
+        <li>We auto-verify on-chain when possible.</li>
+      </ol>
+      <p style="margin:22px 0">
+        <a href="{_esc(integrate_url)}"
+           style="display:inline-block;background:#0891b2;color:#fff;text-decoration:none;
+                  padding:12px 18px;border-radius:999px;font-weight:700">
+          Open integrate &amp; pay
+        </a>
+      </p>
+      <p style="color:#94a3b8;font-size:12px;line-height:1.5">
+        Payment is never gate authority. Support: {_esc(feedback)}
+      </p>
+    </div>
+    """
+    user_result = send_email(
+        to=to,
+        subject=subject,
+        text=text,
+        html=html,
+        tags=["invoice", "pilot_billing"],
+        env=values,
+        account_dir=account_dir,
+    )
+    operator_result = send_email(
+        to=_operator_email(values),
+        subject=f"[SemeAI] Invoice emailed {invoice_id} → {to}",
+        text=(
+            f"Pilot invoice sent to customer.\n\n"
+            f"to: {to}\nworkspace_id: {workspace_id}\ninvoice_id: {invoice_id}\n"
+            f"amount: {amount_usdt} {asset}\naddress: {payment_address}\n"
+            f"user_delivery: {user_result.get('delivery')} ({user_result.get('provider')})\n"
+        ),
+        tags=["operator_notice", "invoice"],
+        env=values,
+        account_dir=account_dir,
+    )
+    return {"user": user_result, "operator": operator_result}
+
+
 def _detect_provider(values: Mapping[str, str]) -> str:
     if str(values.get("SEMEAI_GATE_RESEND_API_KEY") or values.get("RESEND_API_KEY") or "").strip():
         return "resend"

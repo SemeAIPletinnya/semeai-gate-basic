@@ -323,19 +323,101 @@ def one_click_usdt_pay(
     account_dir: str | Path | None = None,
     env: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Create a one-click USDT/TRC20 pilot payment package for the configured wallet."""
+    """Create a one-click USDT/TRC20 pilot payment package and email the invoice."""
 
     request = dict(payload or {})
     request.setdefault("plan", "pilot")
     values = env or os.environ
     crypto = _manual_crypto_config(env=values)
     request.setdefault("amount_usdt", crypto.get("default_amount_usdt") or "25.00")
-    created = create_manual_crypto_intent(auth, request, account_dir=account_dir, env=values)
-    invoice = created.get("invoice") or {}
-    address = str(crypto.get("payment_address") or DEFAULT_USDT_TRC20_ADDRESS)
+    send_email_flag = str(request.pop("email_invoice", True)).lower() not in {"0", "false", "no"}
+
+    root = _account_root(account_dir=account_dir, env=values)
+    workspace_path, workspace = _load_workspace(root, auth)
+    # Reuse open invoice if still pending (avoid spam on integrate page reload)
+    reused = False
+    invoice: dict[str, Any] = {}
+    latest_id = ""
+    if workspace is not None:
+        billing = workspace.get("billing") if isinstance(workspace.get("billing"), dict) else {}
+        latest_id = str(billing.get("latest_invoice_id") or "")
+        if latest_id and billing.get("payment_status") in {
+            "pending_payment",
+            "unpaid",
+            None,
+            "",
+        }:
+            existing = _read_invoice(root, latest_id)
+            if existing and existing.get("payment_status") in {"pending_payment", None, ""}:
+                invoice = existing
+                reused = True
+
+    if not invoice:
+        created = create_manual_crypto_intent(auth, request, account_dir=account_dir, env=values)
+        invoice = created.get("invoice") or {}
+
+    address = str(
+        invoice.get("payment_address")
+        or crypto.get("payment_address")
+        or DEFAULT_USDT_TRC20_ADDRESS
+    )
     amount = str(invoice.get("amount_usdt") or crypto.get("default_amount_usdt") or "25.00")
-    # TronLink / wallet deeplink (best-effort; works when wallet app handles it)
+    invoice_id = str(invoice.get("invoice_id") or latest_id)
     deeplink = f"tronlink://transfer?to={address}&amount={amount}&token=USDT"
+
+    # Resolve customer email
+    email_to = str(
+        request.get("email")
+        or auth.get("email")
+        or (workspace or {}).get("email")
+        or ""
+    ).strip()
+    public_site = str(values.get("SEMEAI_GATE_PUBLIC_SITE_URL") or "https://semeai.tech").rstrip("/")
+    integrate_url = f"{public_site}/integrate.html"
+
+    email_result: dict[str, Any] = {"skipped": True}
+    if send_email_flag and email_to and "@" in email_to:
+        # Avoid re-emailing same invoice too often unless force_email
+        force = str(request.get("force_email") or "").lower() in {"1", "true", "yes"}
+        already = bool(invoice.get("invoice_email_sent_at")) and reused and not force
+        if not already:
+            try:
+                from .email_provider import send_pilot_invoice_email
+
+                email_result = send_pilot_invoice_email(
+                    to=email_to,
+                    workspace_id=str(auth.get("workspace_id") or ""),
+                    workspace_name=str(
+                        auth.get("workspace_name")
+                        or (workspace or {}).get("workspace_name")
+                        or ""
+                    ),
+                    invoice_id=invoice_id,
+                    amount_usdt=amount,
+                    payment_address=address,
+                    network="TRC20",
+                    asset="USDT",
+                    integrate_url=integrate_url,
+                    env=values,
+                    account_dir=root,
+                )
+                # mark on invoice file
+                inv = _read_invoice(root, invoice_id) or dict(invoice)
+                inv["invoice_email_sent_at"] = _now()
+                inv["invoice_email_to"] = email_to
+                inv["invoice_email_delivery"] = (email_result.get("user") or {}).get("delivery")
+                _write_invoice(root, inv)
+                invoice = inv
+            except Exception as exc:  # noqa: BLE001
+                email_result = {"ok": False, "error": str(exc)}
+        else:
+            email_result = {
+                "skipped": True,
+                "reason": "invoice_already_emailed",
+                "invoice_email_sent_at": invoice.get("invoice_email_sent_at"),
+            }
+
+    user_ok = bool((email_result.get("user") or {}).get("ok")) if isinstance(email_result, dict) else False
     return {
         "schema_version": BILLING_SCHEMA_VERSION,
         "status": "ready_to_pay",
@@ -344,12 +426,19 @@ def one_click_usdt_pay(
         "asset": "USDT",
         "amount_usdt": amount,
         "payment_address": address,
-        "invoice_id": invoice.get("invoice_id"),
+        "invoice_id": invoice_id,
+        "invoice_reused": reused,
+        "email_to": email_to or None,
+        "invoice_emailed": user_ok or (
+            isinstance(email_result, dict)
+            and email_result.get("reason") == "invoice_already_emailed"
+        ),
+        "invoice_email": email_result,
         "copy_text": f"{amount} USDT TRC20 → {address}",
         "wallet_deeplink": deeplink,
         "steps": [
-            "1. Copy the TRC20 address (or open wallet deeplink).",
-            f"2. Send exactly {amount} USDT on TRC20.",
+            "1. Check your email for the invoice (also shown here).",
+            "2. Send exactly the amount on TRC20 to the wallet address.",
             "3. Paste TXID and confirm — auto-verify when possible.",
         ],
         "submit_txid_path": "/v0/billing/submit-txid",
