@@ -17,6 +17,17 @@ from .accounts import (
     register_workspace,
     verify_registration,
 )
+from .users import request_password_reset, reset_password_with_token
+from .teams import accept_invite, get_team, invite_member, remove_member
+from .plans import list_plans
+from .oauth_google import google_callback, google_start_url, oauth_status
+from .stripe_billing import (
+    StripeError,
+    create_checkout_session,
+    create_portal_session,
+    handle_webhook,
+    stripe_status,
+)
 from .api import (
     API_VERSION,
     ApiAuthError,
@@ -74,6 +85,64 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
         if path == "/v0/status":
             self._send_json(public_status())
+            return
+
+        if path == "/v0/plans":
+            self._send_json(list_plans(env=os.environ))
+            return
+
+        if path == "/v0/auth/providers":
+            self._send_json(
+                {
+                    "password": True,
+                    "oauth": oauth_status(env=os.environ),
+                    "stripe": stripe_status(env=os.environ),
+                }
+            )
+            return
+
+        if path == "/v0/oauth/google/start":
+            try:
+                result = google_start_url(env=os.environ)
+            except AccountError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            # browser redirect for competitors-style "Continue with Google"
+            if (parse_qs(parsed.query).get("redirect") or ["1"])[0] != "0":
+                self.send_response(HTTPStatus.FOUND)
+                self.send_header("Location", result["authorize_url"])
+                self.end_headers()
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/oauth/google/callback":
+            query = parse_qs(parsed.query)
+            code = (query.get("code") or [""])[0]
+            state = (query.get("state") or [""])[0]
+            try:
+                result = google_callback(code=code, state=state, env=os.environ)
+            except AccountError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            public_site = os.environ.get("SEMEAI_GATE_PUBLIC_SITE_URL", "https://semeai.tech").rstrip("/")
+            # hand session to frontend via fragment (not sent to servers in Referer as path)
+            loc = (
+                f"{public_site}/dashboard.html#oauth=google"
+                f"&session={result.get('session_token')}"
+                f"&email={result.get('email')}"
+            )
+            self.send_response(HTTPStatus.FOUND)
+            self.send_header("Location", loc)
+            self.end_headers()
+            return
+
+        if path == "/v0/team":
+            try:
+                auth = authenticate_headers(self.headers)
+                self._send_json(get_team(auth, env=os.environ))
+            except (ApiAuthError, AccountError) as exc:
+                self._send_json({"error": str(exc)}, status=getattr(exc, "status_code", 401))
             return
 
         if path == "/v0/demo/scenarios":
@@ -271,6 +340,95 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             self._send_json(result)
             return
 
+        if path == "/v0/password/forgot":
+            try:
+                payload = self._read_json_body()
+                result = request_password_reset(str(payload.get("email") or ""), env=os.environ)
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/password/reset":
+            try:
+                payload = self._read_json_body()
+                result = reset_password_with_token(
+                    str(payload.get("token") or payload.get("reset_token") or ""),
+                    str(payload.get("password") or ""),
+                    payload.get("password_confirm"),
+                    env=os.environ,
+                )
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/team/invite":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body()
+                self._send_json(invite_member(auth, payload, env=os.environ), status=HTTPStatus.CREATED)
+            except (ApiAuthError, AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+            return
+
+        if path == "/v0/team/accept":
+            try:
+                payload = self._read_json_body()
+                self._send_json(accept_invite(payload, env=os.environ))
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+            return
+
+        if path == "/v0/team/remove":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body()
+                self._send_json(remove_member(auth, payload, env=os.environ))
+            except (ApiAuthError, AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+            return
+
+        if path == "/v0/billing/stripe/checkout":
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body()
+                self._send_json(create_checkout_session(auth, payload, env=os.environ), status=HTTPStatus.CREATED)
+            except (ApiAuthError, StripeError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+            return
+
+        if path == "/v0/billing/stripe/portal":
+            try:
+                auth = authenticate_headers(self.headers)
+                self._send_json(create_portal_session(auth, env=os.environ))
+            except (ApiAuthError, StripeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+            return
+
+        if path == "/v0/billing/stripe/webhook":
+            try:
+                raw = self._read_raw_body(max_bytes=256 * 1024)
+                sig = self.headers.get("Stripe-Signature") or self.headers.get("stripe-signature") or ""
+                result = handle_webhook(raw, sig, env=os.environ)
+            except StripeError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except (TypeError, ValueError) as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            self._send_json(result)
+            return
+
         if path == "/v0/demo/check":
             try:
                 payload = self._read_json_body()
@@ -386,12 +544,15 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
         if os.environ.get("SEMEAI_GATE_ACCESS_LOG", "").lower() in {"1", "true", "yes"}:
             super().log_message(format, *args)
 
-    def _read_json_body(self) -> dict[str, Any]:
+    def _read_raw_body(self, *, max_bytes: int = 64 * 1024) -> bytes:
         length = _safe_int(self.headers.get("content-length", "0"), default=0)
-        if length > 64 * 1024:
+        if length > max_bytes:
             raise ValueError("request body too large")
-        raw = self.rfile.read(length)
-        payload = json.loads(raw.decode("utf-8"))
+        return self.rfile.read(length)
+
+    def _read_json_body(self) -> dict[str, Any]:
+        raw = self._read_raw_body()
+        payload = json.loads(raw.decode("utf-8")) if raw else {}
         if not isinstance(payload, dict):
             raise TypeError("request body must be a JSON object")
         return payload

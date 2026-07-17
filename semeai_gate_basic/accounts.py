@@ -284,6 +284,30 @@ def verify_registration(
     # Also mint a browser session so cabinet can open immediately after verify.
     session = _create_session(workspace_path, workspace, env=values)
 
+    try:
+        from .users import create_or_update_user_from_workspace
+
+        # password already on workspace; re-hash is avoided by passing None if we only link
+        create_or_update_user_from_workspace(
+            email=str(record.get("email") or ""),
+            password=None,
+            workspace_id=workspace_id,
+            role="owner",
+            account_dir=root,
+            env=values,
+        )
+        # ensure user has password from pending (stored only on workspace at this point)
+        from .users import load_user_by_email, save_user
+
+        found = load_user_by_email(str(record.get("email") or ""), account_dir=root, env=values)
+        if found and password_record:
+            upath, user = found
+            if not user.get("password"):
+                user["password"] = password_record
+                save_user(upath, user)
+    except Exception:
+        pass
+
     return {
         "schema_version": ACCOUNT_SCHEMA_VERSION,
         "api_version": ACCOUNT_API_VERSION,

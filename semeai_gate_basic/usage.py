@@ -15,10 +15,14 @@ _LOCK = Lock()
 # Per-day check limits by subscription tier / plan.
 TIER_DAILY_LIMITS = {
     "unpaid": 100,
+    "free": 100,
     "pilot": 1_000,
+    "starter": 1_000,
     "developer": 10_000,
+    "growth": 10_000,
+    "enterprise_review": 50_000,
+    "scale": 50_000,
     "enterprise": 100_000,
-    "enterprise_review": 5_000,
 }
 
 
