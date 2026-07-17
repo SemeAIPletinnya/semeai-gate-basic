@@ -105,7 +105,17 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
         "service": "semeai-gate-basic",
         "api_version": API_VERSION,
         "schema_version": SCHEMA_VERSION,
-        "account_endpoints": ["/v0/register", "/v0/verify", "/v0/account", "/v0/usage", "/v0/keys"],
+        "account_endpoints": [
+            "/v0/register",
+            "/v0/verify",
+            "/v0/login",
+            "/v0/logout",
+            "/v0/account",
+            "/v0/usage",
+            "/v0/keys",
+        ],
+        "password_auth": True,
+        "session_auth": True,
         "key_endpoints": [
             "/v0/keys",
             "/v0/keys/rotate",

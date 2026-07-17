@@ -10,7 +10,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from .accounts import AccountError, register_workspace, verify_registration
+from .accounts import (
+    AccountError,
+    login_with_password,
+    logout_session,
+    register_workspace,
+    verify_registration,
+)
 from .api import (
     API_VERSION,
     ApiAuthError,
@@ -226,6 +232,38 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                 payload = self._read_json_body()
                 token = str(payload.get("verification_token") or payload.get("token") or "")
                 result = verify_registration(token)
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/login":
+            try:
+                payload = self._read_json_body()
+                result = login_with_password(payload)
+            except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/logout":
+            try:
+                auth_header = ""
+                for key, value in self.headers.items():
+                    if str(key).lower() == "authorization":
+                        auth_header = str(value)
+                        break
+                token = ""
+                if auth_header.lower().startswith("bearer "):
+                    token = auth_header[7:].strip()
+                if not token:
+                    payload = self._read_json_body() if int(self.headers.get("content-length") or 0) else {}
+                    token = str((payload or {}).get("session_token") or (payload or {}).get("token") or "")
+                result = logout_session(token)
             except (AccountError, TypeError, ValueError, json.JSONDecodeError) as exc:
                 status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
                 self._send_json({"error": str(exc)}, status=status)

@@ -37,6 +37,7 @@ def test_register_workspace_creates_pending_record_without_raw_token(tmp_path: P
     result = register_workspace(
         {
             "email": "Founder@Example.com",
+            "password": "secure-pass-99",
             "company": "Pilot Workspace",
             "use_case": "support",
             "expected_monthly_checks": "1000",
@@ -63,7 +64,10 @@ def test_register_workspace_creates_pending_record_without_raw_token(tmp_path: P
 
 
 def test_verify_registration_issues_api_key_once_without_storing_raw_key(tmp_path: Path) -> None:
-    registration = register_workspace({"email": "pilot@example.com", "company": "Pilot"}, account_dir=tmp_path)
+    registration = register_workspace(
+        {"email": "pilot@example.com", "password": "secure-pass-99", "company": "Pilot"},
+        account_dir=tmp_path,
+    )
     token = _token_from_url(registration["verification"]["verification_url"])
 
     verified = verify_registration(token, account_dir=tmp_path)
@@ -88,7 +92,10 @@ def test_verify_registration_issues_api_key_once_without_storing_raw_key(tmp_pat
 
 
 def test_issued_api_key_authenticates_gate_without_static_browser_secret(tmp_path: Path) -> None:
-    registration = register_workspace({"email": "pilot@example.com", "company": "Pilot"}, account_dir=tmp_path)
+    registration = register_workspace(
+        {"email": "pilot@example.com", "password": "secure-pass-99", "company": "Pilot"},
+        account_dir=tmp_path,
+    )
     token = _token_from_url(registration["verification"]["verification_url"])
     verified = verify_registration(token, account_dir=tmp_path)
     api_key = verified["api_key"]
@@ -137,7 +144,11 @@ def test_http_register_verify_and_check_flow(tmp_path: Path, monkeypatch: pytest
         base = f"http://127.0.0.1:{server.server_address[1]}"
         registration = _post_json(
             f"{base}/v0/register",
-            {"email": "browser@example.com", "company": "Browser Pilot"},
+            {
+                "email": "browser@example.com",
+                "password": "secure-pass-99",
+                "company": "Browser Pilot",
+            },
             headers={"Origin": "https://semeai.tech"},
             expected_status=201,
         )
