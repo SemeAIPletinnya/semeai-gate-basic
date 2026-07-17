@@ -187,58 +187,93 @@ def submit_manual_crypto_txid(
             "automatic_onchain_verification": False,
         }
 
+    auto_ok = bool(onchain.get("ok"))
+    payment_status = "paid" if auto_ok else "pending_review"
+    billing_status = "active" if auto_ok else "pending_review"
     proof = {
         "schema_version": BILLING_SCHEMA_VERSION,
         "invoice_id": invoice_id,
         "workspace_id": auth.get("workspace_id"),
         "api_key_fingerprint": auth.get("api_key_fingerprint"),
-        "payment_status": "pending_review",
-        "billing_status": "pending_review",
+        "payment_status": payment_status,
+        "billing_status": billing_status,
         "txid": txid,
         "txid_hash": txid_hash,
         "raw_txid_stored": True,
-        "manual_review_required": True,
+        "manual_review_required": not auto_ok,
         "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
+        "auto_activated": auto_ok,
         "onchain": onchain,
         "external_billing_calls": bool(onchain.get("provider") == "trongrid"),
         "audit_preserved": True,
         "submitted_at": submitted_at,
         "operator_note": _clean_field(payload.get("operator_note") or payload.get("note") or "", max_len=500),
-        "next_step": "Operator must verify the transaction on-chain before activating paid access.",
+        "next_step": (
+            "Payment matched on-chain. Pilot access activated (1,000 checks/day)."
+            if auto_ok
+            else "Operator must verify the transaction on-chain before activating paid access."
+        ),
         "invariants": _billing_invariants(),
     }
 
     invoice.update(
         {
-            "payment_status": "pending_review",
-            "billing_status": "pending_review",
+            "payment_status": payment_status,
+            "billing_status": billing_status,
             "submitted_txid_hash": txid_hash,
             "raw_txid_stored": True,
-            "manual_review_required": True,
+            "manual_review_required": not auto_ok,
+            "auto_activated": auto_ok,
             "submitted_at": submitted_at,
             "onchain_verification_status": onchain.get("verification_status"),
         }
     )
     _write_invoice(root, invoice)
     _write_payment_proof(root, proof)
-    _update_workspace_billing(
-        workspace_path,
-        workspace,
-        {
-            "status": "pending_review",
-            "payment_status": "pending_review",
+
+    billing_update = {
+        "status": billing_status,
+        "payment_status": payment_status,
+        "billing_provider": "manual_usdt_trc20",
+        "plan": "pilot" if auto_ok else (invoice.get("plan") or "pilot"),
+        "latest_invoice_id": invoice_id,
+        "latest_txid_hash": txid_hash,
+        "latest_txid_submitted_at": submitted_at,
+        "manual_review_required": not auto_ok,
+        "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
+        "onchain_verification_status": onchain.get("verification_status"),
+        "external_billing_calls": bool(onchain.get("provider") == "trongrid"),
+        "private_keys_stored": False,
+        "payment_address": crypto_cfg.get("payment_address"),
+        "default_amount_usdt": crypto_cfg.get("default_amount_usdt"),
+    }
+    _update_workspace_billing(workspace_path, workspace, billing_update)
+
+    if auto_ok:
+        # Reload and activate pilot subscription after on-chain match
+        try:
+            workspace = json.loads(workspace_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            pass
+        workspace["plan"] = "pilot"
+        workspace["subscription"] = {
+            "status": "active",
+            "tier": "pilot",
+            "plan": "pilot",
             "billing_provider": "manual_usdt_trc20",
-            "latest_invoice_id": invoice_id,
-            "latest_txid_hash": txid_hash,
-            "latest_txid_submitted_at": submitted_at,
-            "manual_review_required": True,
-            "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
-            "onchain_verification_status": onchain.get("verification_status"),
-            "external_billing_calls": bool(onchain.get("provider") == "trongrid"),
-            "private_keys_stored": False,
+            "external_billing_calls": True,
+            "activated_at": submitted_at,
+            "activation_mode": "auto_onchain_usdt",
+        }
+        workspace_path.write_text(json.dumps(workspace, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    _append_billing_event(
+        root,
+        {
+            "event_type": "manual_crypto_txid_auto_activated" if auto_ok else "manual_crypto_txid_submitted",
+            **_event_projection(proof),
         },
     )
-    _append_billing_event(root, {"event_type": "manual_crypto_txid_submitted", **_event_projection(proof)})
     review_email = crypto_cfg.get("feedback_email")
     email_result: dict[str, Any] = {}
     try:
@@ -256,21 +291,70 @@ def submit_manual_crypto_txid(
         email_result = {"ok": False, "error": str(exc)}
     return {
         "schema_version": BILLING_SCHEMA_VERSION,
-        "status": "pending_review",
-        "payment_status": "pending_review",
-        "billing_status": "pending_review",
+        "status": "paid" if auto_ok else "pending_review",
+        "payment_status": payment_status,
+        "billing_status": billing_status,
+        "auto_activated": auto_ok,
         "invoice_id": invoice_id,
         "txid_hash": txid_hash,
-        "manual_review_required": True,
+        "manual_review_required": not auto_ok,
         "automatic_onchain_verification": bool(onchain.get("automatic_onchain_verification")),
         "onchain": onchain,
         "audit_preserved": True,
+        "payment_address": crypto_cfg.get("payment_address"),
+        "amount_usdt": invoice.get("amount_usdt"),
         "next_step": (
-            "Do not assume paid activation until the operator verifies this transaction. "
-            f"Email {review_email} with workspace_id, invoice_id, and txid for faster pilot review."
+            "Pilot verified on-chain. Pilot plan active (1,000 checks/day). Payment is never gate authority."
+            if auto_ok
+            else (
+                "TXID submitted. If auto-verify could not confirm, operator review is required. "
+                f"Email {review_email} with workspace_id, invoice_id, and txid."
+            )
         ),
         "review_email": review_email,
         "operator_notice": email_result,
+    }
+
+
+def one_click_usdt_pay(
+    auth: Mapping[str, Any],
+    payload: Mapping[str, Any] | None = None,
+    *,
+    account_dir: str | Path | None = None,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Create a one-click USDT/TRC20 pilot payment package for the configured wallet."""
+
+    request = dict(payload or {})
+    request.setdefault("plan", "pilot")
+    values = env or os.environ
+    crypto = _manual_crypto_config(env=values)
+    request.setdefault("amount_usdt", crypto.get("default_amount_usdt") or "25.00")
+    created = create_manual_crypto_intent(auth, request, account_dir=account_dir, env=values)
+    invoice = created.get("invoice") or {}
+    address = str(crypto.get("payment_address") or DEFAULT_USDT_TRC20_ADDRESS)
+    amount = str(invoice.get("amount_usdt") or crypto.get("default_amount_usdt") or "25.00")
+    # TronLink / wallet deeplink (best-effort; works when wallet app handles it)
+    deeplink = f"tronlink://transfer?to={address}&amount={amount}&token=USDT"
+    return {
+        "schema_version": BILLING_SCHEMA_VERSION,
+        "status": "ready_to_pay",
+        "one_click": True,
+        "network": "TRC20",
+        "asset": "USDT",
+        "amount_usdt": amount,
+        "payment_address": address,
+        "invoice_id": invoice.get("invoice_id"),
+        "copy_text": f"{amount} USDT TRC20 → {address}",
+        "wallet_deeplink": deeplink,
+        "steps": [
+            "1. Copy the TRC20 address (or open wallet deeplink).",
+            f"2. Send exactly {amount} USDT on TRC20.",
+            "3. Paste TXID and confirm — auto-verify when possible.",
+        ],
+        "submit_txid_path": "/v0/billing/submit-txid",
+        "payment_is_never_gate_authority": True,
+        "invoice": invoice,
     }
 
 

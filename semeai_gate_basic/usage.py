@@ -14,8 +14,10 @@ _LOCK = Lock()
 
 # Per-day check limits by subscription tier / plan.
 TIER_DAILY_LIMITS = {
-    "unpaid": 100,
-    "free": 100,
+    # Product path: 5 free API checks, then USDT pilot / paid plan
+    "unpaid": 5,
+    "free": 5,
+    "trial": 5,
     "pilot": 1_000,
     "starter": 1_000,
     "developer": 10_000,
@@ -67,11 +69,17 @@ def daily_limit_for(auth: Mapping[str, Any], *, env: Mapping[str, str] | None = 
     if override and str(override).isdigit():
         return int(override)
     sub = auth.get("subscription") if isinstance(auth.get("subscription"), dict) else {}
-    tier = str(sub.get("tier") or sub.get("plan") or "developer").lower()
-    status = str(sub.get("status") or "active").lower()
-    if status in {"unpaid", "pending_payment", "pending_review"}:
-        return TIER_DAILY_LIMITS["unpaid"]
-    return TIER_DAILY_LIMITS.get(tier, TIER_DAILY_LIMITS["developer"])
+    tier = str(sub.get("tier") or sub.get("plan") or "free").lower()
+    status = str(sub.get("status") or "trial").lower()
+    provider = str(sub.get("billing_provider") or "").lower()
+    # Not paid yet → 5 free checks
+    if status in {"unpaid", "pending_payment", "pending_review", "trial"}:
+        return TIER_DAILY_LIMITS["free"]
+    if tier in {"free", "unpaid", "trial"}:
+        return TIER_DAILY_LIMITS["free"]
+    if provider in {"", "not_configured"} and tier not in {"pilot", "starter", "growth", "scale", "enterprise", "developer"}:
+        return TIER_DAILY_LIMITS["free"]
+    return TIER_DAILY_LIMITS.get(tier, TIER_DAILY_LIMITS["pilot"])
 
 
 def get_usage(

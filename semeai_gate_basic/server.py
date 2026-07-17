@@ -57,6 +57,7 @@ from .billing import (
     BillingError,
     billing_status,
     create_manual_crypto_intent,
+    one_click_usdt_pay,
     submit_manual_crypto_txid,
 )
 
@@ -444,6 +445,21 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                 auth = authenticate_headers(self.headers)
                 payload = self._read_json_body()
                 result = create_manual_crypto_intent(auth, payload, env=os.environ)
+            except ApiAuthError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except (BillingError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                status = getattr(exc, "status_code", HTTPStatus.BAD_REQUEST)
+                self._send_json({"error": str(exc)}, status=status)
+                return
+            self._send_json(result, status=HTTPStatus.CREATED)
+            return
+
+        if path in {"/v0/billing/one-click-pay", "/v0/billing/pay"}:
+            try:
+                auth = authenticate_headers(self.headers)
+                payload = self._read_json_body() if int(self.headers.get("content-length") or 0) else {}
+                result = one_click_usdt_pay(auth, payload or {}, env=os.environ)
             except ApiAuthError as exc:
                 self._send_json({"error": str(exc)}, status=exc.status_code)
                 return
