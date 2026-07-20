@@ -46,7 +46,9 @@ def test_verified_workspace_has_manual_billing_metadata(tmp_path: Path) -> None:
     assert verified["billing"]["network"] == "TRC20"
     assert verified["billing"]["asset"] == "USDT"
     assert verified["billing"]["manual_review_required"] is True
-    assert verified["billing"]["automatic_onchain_verification"] is False
+    assert verified["billing"]["automatic_onchain_verification"] is True
+    workspace = _load_only_workspace(tmp_path)
+    assert "payment_is_never_gate_authority" in workspace["invariants"]
     assert verified["billing"]["external_billing_calls"] is False
     assert verified["billing"]["private_keys_stored"] is False
 
@@ -102,7 +104,9 @@ def test_submit_txid_moves_to_pending_review_not_paid_active(tmp_path: Path) -> 
     workspace = _load_only_workspace(tmp_path)
     assert workspace["billing"]["status"] == "pending_review"
     assert workspace["billing"]["payment_status"] == "pending_review"
-    assert workspace["subscription"]["status"] == "active"
+    assert workspace["subscription"]["status"] == "trial"
+    assert workspace["subscription"]["tier"] == "free"
+    assert workspace["billing"]["manual_review_required"] is True
 
 
 def test_invalid_txid_is_rejected_without_activation(tmp_path: Path) -> None:
@@ -159,7 +163,11 @@ def test_http_billing_endpoints_are_scoped_and_pending_review(tmp_path: Path, mo
     thread.start()
     try:
         base = f"http://127.0.0.1:{server.server_address[1]}"
-        registration = _post_json(f"{base}/v0/register", {"email": "pilot@example.com", "company": "Pilot"}, expected_status=201)
+        registration = _post_json(
+            f"{base}/v0/register",
+            {"email": "pilot@example.com", "password": "secure-pass-99", "company": "Pilot"},
+            expected_status=201,
+        )
         verified = _post_json(f"{base}/v0/verify", {"verification_token": _token_from_url(registration["verification"]["verification_url"])})
         headers = {"Authorization": f"Bearer {verified['api_key']}"}
 
@@ -192,7 +200,10 @@ def test_http_billing_endpoints_are_scoped_and_pending_review(tmp_path: Path, mo
 
 
 def _verified_workspace(root: Path) -> dict[str, Any]:
-    registration = register_workspace({"email": "pilot@example.com", "company": "Pilot"}, account_dir=root)
+    registration = register_workspace(
+        {"email": "pilot@example.com", "password": "secure-pass-99", "company": "Pilot"},
+        account_dir=root,
+    )
     return verify_registration(_token_from_url(registration["verification"]["verification_url"]), account_dir=root)
 
 

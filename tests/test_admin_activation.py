@@ -96,7 +96,15 @@ def test_http_admin_review_and_activation_flow(tmp_path: Path, monkeypatch: Any)
     thread.start()
     try:
         base = f"http://127.0.0.1:{server.server_address[1]}"
-        registration = _post_json(f"{base}/v0/register", {"email": "operator@example.com", "company": "Operator Pilot"}, expected_status=201)
+        registration = _post_json(
+            f"{base}/v0/register",
+            {
+                "email": "operator@example.com",
+                "password": "secure-pass-99",
+                "company": "Operator Pilot",
+            },
+            expected_status=201,
+        )
         token = registration["verification"]["verification_url"].split("#verify=", 1)[1]
         verified = _post_json(f"{base}/v0/verify", {"verification_token": token})
         api_headers = {"Authorization": f"Bearer {verified['api_key']}"}
@@ -126,7 +134,10 @@ def test_http_admin_review_and_activation_flow(tmp_path: Path, monkeypatch: Any)
 
 
 def _verified_workspace(root: Path) -> dict[str, Any]:
-    registration = register_workspace({"email": "pilot@example.com", "company": "Pilot"}, account_dir=root)
+    registration = register_workspace(
+        {"email": "pilot@example.com", "password": "secure-pass-99", "company": "Pilot"},
+        account_dir=root,
+    )
     token = registration["verification"]["verification_url"].split("#verify=", 1)[1]
     return verify_registration(token, account_dir=root)
 

@@ -9,3 +9,9 @@ outputs/
 node_modules/
 npm-debug.log*
 .DS_Store
+
+# Local operator/debug scripts may contain invoice ids, emails, or host details.
+# Keep them out of the public package unless explicitly sanitized.
+tools/_remote_*.py
+tools/force_resend_invoice.sh
+tools/inspect_invoice_email.py

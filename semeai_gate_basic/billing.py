@@ -376,10 +376,14 @@ def one_click_usdt_pay(
     integrate_url = f"{public_site}/integrate.html"
 
     email_result: dict[str, Any] = {"skipped": True}
+    # Accept bool True from JSON as well as string flags
+    raw_force = request.get("force_email")
+    force = raw_force is True or str(raw_force or "").strip().lower() in {"1", "true", "yes"}
     if send_email_flag and email_to and "@" in email_to:
-        # Avoid re-emailing same invoice too often unless force_email
-        force = str(request.get("force_email") or "").lower() in {"1", "true", "yes"}
-        already = bool(invoice.get("invoice_email_sent_at")) and reused and not force
+        # Only skip re-send when a *successful* delivery was recorded
+        prior_delivery = str(invoice.get("invoice_email_delivery") or "")
+        prior_ok = prior_delivery in {"sent", "delivered"} and bool(invoice.get("invoice_email_sent_at"))
+        already = reused and prior_ok and not force
         if not already:
             try:
                 from .email_provider import send_pilot_invoice_email
@@ -401,23 +405,43 @@ def one_click_usdt_pay(
                     env=values,
                     account_dir=root,
                 )
-                # mark on invoice file
                 inv = _read_invoice(root, invoice_id) or dict(invoice)
-                inv["invoice_email_sent_at"] = _now()
+                user_delivery = (email_result.get("user") or {}) if isinstance(email_result, dict) else {}
                 inv["invoice_email_to"] = email_to
-                inv["invoice_email_delivery"] = (email_result.get("user") or {}).get("delivery")
+                inv["invoice_email_delivery"] = user_delivery.get("delivery")
+                inv["invoice_email_provider"] = user_delivery.get("provider")
+                inv["invoice_email_message_id"] = user_delivery.get("message_id")
+                inv["invoice_email_error"] = user_delivery.get("error")
+                # CRITICAL: only mark sent on real provider success
+                if user_delivery.get("ok") and user_delivery.get("delivery") == "sent":
+                    inv["invoice_email_sent_at"] = _now()
+                    inv["invoice_email_ok"] = True
+                else:
+                    inv["invoice_email_ok"] = False
+                    inv["invoice_email_attempted_at"] = _now()
+                    # clear false-positive sent marker from older buggy deploys
+                    if inv.get("invoice_email_delivery") not in {"sent", "delivered"}:
+                        inv.pop("invoice_email_sent_at", None)
                 _write_invoice(root, inv)
                 invoice = inv
             except Exception as exc:  # noqa: BLE001
-                email_result = {"ok": False, "error": str(exc)}
+                email_result = {"ok": False, "error": str(exc), "user": {"ok": False, "error": str(exc)}}
         else:
             email_result = {
                 "skipped": True,
                 "reason": "invoice_already_emailed",
                 "invoice_email_sent_at": invoice.get("invoice_email_sent_at"),
+                "invoice_email_delivery": invoice.get("invoice_email_delivery"),
+                "invoice_email_message_id": invoice.get("invoice_email_message_id"),
             }
 
-    user_ok = bool((email_result.get("user") or {}).get("ok")) if isinstance(email_result, dict) else False
+    user_meta = (email_result.get("user") or {}) if isinstance(email_result, dict) else {}
+    user_ok = bool(user_meta.get("ok") and user_meta.get("delivery") == "sent")
+    previously_ok = (
+        isinstance(email_result, dict)
+        and email_result.get("reason") == "invoice_already_emailed"
+        and str(email_result.get("invoice_email_delivery") or "") == "sent"
+    )
     return {
         "schema_version": BILLING_SCHEMA_VERSION,
         "status": "ready_to_pay",
@@ -429,10 +453,8 @@ def one_click_usdt_pay(
         "invoice_id": invoice_id,
         "invoice_reused": reused,
         "email_to": email_to or None,
-        "invoice_emailed": user_ok or (
-            isinstance(email_result, dict)
-            and email_result.get("reason") == "invoice_already_emailed"
-        ),
+        "invoice_emailed": user_ok or previously_ok,
+        "invoice_email_ok": user_ok or previously_ok,
         "invoice_email": email_result,
         "copy_text": f"{amount} USDT TRC20 → {address}",
         "wallet_deeplink": deeplink,

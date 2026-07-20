@@ -289,11 +289,23 @@ self-hosted path. Deployment mode does not change the canonical gate semantics:
 
 See [deployment modes](docs/deployment_modes.md).
 
+## Ecosystem Contract
+
+SemeAI is split into dependent layers:
+
+- [silence-as-control](https://github.com/SemeAIPletinnya/silence-as-control) — governance source context and benchmark evidence.
+- [semeai-gate-basic](https://github.com/SemeAIPletinnya/semeai-gate-basic) — open-source adapter, API contract, examples, receipts, and pilot runtime.
+- [semeai.tech](https://github.com/SemeAIPletinnya/semeai.tech) — public landing, registration, account shell, and live demo surface.
+
+Large personal archives and exported ChatGPT archives are raw source evidence,
+not admitted memory by default. See [ecosystem contract](docs/ecosystem_contract.md).
+
 ## Pilot & architecture docs
 
 - [Pilot packet (1-pager)](docs/pilot_packet.md) — send to design partners
 - [Outreach emails](docs/outreach_emails.md) — cold / follow-up / LinkedIn copy
 - [Integration checklist](docs/integration_checklist.md) — wire middleware end-to-end
+- [Ecosystem contract](docs/ecosystem_contract.md) — repo roles and data-boundary rules
 - [Operator TXID activation runbook](docs/operator_txid_activation_runbook.md) — verify payment + activate
 - [Architecture ADR v0.1](docs/architecture_adr_v0_1.md) — decisions + technical debt
 
