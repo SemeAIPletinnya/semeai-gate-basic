@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 from semeai_gate_basic.github_workspace import (
@@ -19,7 +20,9 @@ from semeai_gate_basic.repository_benchmark import (
 )
 
 
-FRONTEND_ROOT = Path(r"D:\SemeAi\from git\semeai.tech")
+FRONTEND_ROOT = Path(
+    os.getenv("SEMEAI_FRONTEND_ROOT", r"D:\SemeAi\from git\semeai.tech")
+)
 
 
 def test_analyzer_configuration_requires_exact_available_canonical_core() -> None:

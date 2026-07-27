@@ -13,6 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout canonical public benchmark authority
+        uses: actions/checkout@v4
+        with:
+          repository: SemeAIPletinnya/semeai.tech
+          ref: 2d9b5d548e9b10e994c5ff3b70db98bac1722d6c
+          path: _authority/semeai.tech
+          persist-credentials: false
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -23,13 +31,16 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          python -m pip install --upgrade pip pytest
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest
 
       - name: Python compile
         run: |
           python -m py_compile semeai_gate_basic\gate.py semeai_gate_basic\api.py semeai_gate_basic\server.py semeai_gate_basic\__main__.py tools\run_benchmark.py tools\check_contract.py examples\existing_chatbot_integration.py examples\middleware_boundary.py tests\test_gate_basic.py
 
       - name: Python tests
+        env:
+          SEMEAI_FRONTEND_ROOT: ${{ github.workspace }}/_authority/semeai.tech
         run: |
           python -m pytest
 
