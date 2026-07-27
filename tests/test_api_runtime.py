@@ -273,6 +273,31 @@ def test_http_server_rejects_missing_key(tmp_path: Path, monkeypatch: pytest.Mon
         thread.join(timeout=5)
 
 
+def test_http_public_demo_rate_limit_returns_429(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SEMEAI_GATE_PUBLIC_DEMO_RATE_LIMIT_PER_MINUTE", "1")
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), SemeAIGateHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        headers = {"x-forwarded-for": "203.0.113.77"}
+
+        first = _post_json(f"{base}/v0/demo/check", {"scenario_id": "fake_promo_code"}, headers=headers)
+        assert first["action"] == "BLOCK"
+        assert first["api"]["rate_limit"]["limit"] == 1
+        assert first["api"]["rate_limit"]["remaining"] == 0
+        assert first["api"]["rate_limit"]["raw_client_identity_stored"] is False
+
+        with pytest.raises(urllib.error.HTTPError) as exc_info:
+            _post_json(f"{base}/v0/demo/check", {"scenario_id": "fake_promo_code"}, headers=headers)
+        assert exc_info.value.code == 429
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
 def test_http_server_head_health_returns_security_headers() -> None:
     server = ThreadingHTTPServer(("127.0.0.1", 0), SemeAIGateHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)

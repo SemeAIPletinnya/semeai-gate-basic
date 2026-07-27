@@ -7,12 +7,16 @@ name = "semeai-gate-basic"
 version = "0.2.0"
 description = "Local release-control gate for AI answers"
 requires-python = ">=3.10"
+dependencies = ["cryptography>=42"]
 authors = [{ name = "Anton Semenenko" }, { name = "SemeAI" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
 
 [tool.setuptools.packages.find]
 include = ["semeai_gate_basic*"]
+
+[tool.setuptools.package-data]
+semeai_gate_basic = ["*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

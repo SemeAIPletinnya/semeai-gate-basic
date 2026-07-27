@@ -44,7 +44,7 @@ from .api import (
 )
 from .keys import KeyError_ as KeyManageError
 from .keys import list_keys, revoke_key, rotate_key
-from .usage import RateLimitError, get_usage
+from .usage import RateLimitError, get_usage, record_public_demo_check
 from .admin import (
     AdminActionError,
     AdminAuthError,
@@ -60,6 +60,7 @@ from .billing import (
     one_click_usdt_pay,
     submit_manual_crypto_txid,
 )
+from .github_workspace_http import handle_workspace_get, handle_workspace_post
 
 
 class SemeAIGateHandler(BaseHTTPRequestHandler):
@@ -79,6 +80,9 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler naming
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+
+        if handle_workspace_get(self, path, parse_qs(parsed.query)):
+            return
 
         if path in {"/", "/health"}:
             self._send_json(api_health())
@@ -286,6 +290,9 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
 
+        if handle_workspace_post(self, path):
+            return
+
         if path == "/v0/register":
             try:
                 payload = self._read_json_body()
@@ -432,8 +439,16 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
         if path == "/v0/demo/check":
             try:
+                rate_limit = record_public_demo_check(_client_identity(self), env=os.environ)
                 payload = self._read_json_body()
                 result = check_demo_answer(payload)
+                result.setdefault("api", {})["rate_limit"] = rate_limit
+            except RateLimitError as exc:
+                self._send_json(
+                    {"error": str(exc), "retry_after": exc.retry_after},
+                    status=exc.status_code,
+                )
+                return
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
                 return
@@ -558,7 +573,14 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format: str, *args: Any) -> None:
         if os.environ.get("SEMEAI_GATE_ACCESS_LOG", "").lower() in {"1", "true", "yes"}:
-            super().log_message(format, *args)
+            safe_args = list(args)
+            if safe_args and any(
+                callback in str(safe_args[0])
+                for callback in ("/v0/oauth/github/callback", "/v0/github/install/callback")
+            ):
+                callback_path = str(safe_args[0]).split("?", 1)[0].removeprefix("GET ")
+                safe_args[0] = f"GET {callback_path}?[redacted] HTTP/1.1"
+            super().log_message(format, *safe_args)
 
     def _read_raw_body(self, *, max_bytes: int = 64 * 1024) -> bytes:
         length = _safe_int(self.headers.get("content-length", "0"), default=0)
@@ -579,6 +601,8 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
         *,
         status: int | HTTPStatus = HTTPStatus.OK,
         include_body: bool = True,
+        cookies: list[str] | None = None,
+        cache_control: str | None = None,
     ) -> None:
         data = b"" if int(status) == HTTPStatus.NO_CONTENT else json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(int(status))
@@ -587,13 +611,18 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
         self.send_header("Strict-Transport-Security", "max-age=31536000")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
+        if cache_control:
+            self.send_header("Cache-Control", cache_control)
         origin = self.headers.get("origin", "").strip()
         allowed_origin = _allowed_cors_origin(origin, env=os.environ)
         if allowed_origin:
             self.send_header("Access-Control-Allow-Origin", allowed_origin)
+            self.send_header("Access-Control-Allow-Credentials", "true")
             self.send_header("Vary", "Origin")
             self.send_header("Access-Control-Allow-Headers", "authorization, x-api-key, x-admin-key, content-type")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        for cookie in cookies or []:
+            self.send_header("Set-Cookie", cookie)
         self.end_headers()
         if data and include_body:
             self.wfile.write(data)
@@ -663,6 +692,17 @@ def validate_server_auth_config(host: str, *, env: dict[str, str] | None = None)
 def _is_public_bind_host(host: str) -> bool:
     normalized = str(host or "").strip().lower()
     return normalized not in {"127.0.0.1", "localhost", "::1", "[::1]"}
+
+
+def _client_identity(handler: BaseHTTPRequestHandler) -> str:
+    """Return a non-secret client identity hint for process-local rate limiting."""
+
+    for header in ("fly-client-ip", "cf-connecting-ip", "x-real-ip", "x-forwarded-for"):
+        value = handler.headers.get(header)
+        if value:
+            return str(value).split(",")[0].strip()
+    host = handler.client_address[0] if handler.client_address else "unknown"
+    return str(host or "unknown")
 
 
 if __name__ == "__main__":

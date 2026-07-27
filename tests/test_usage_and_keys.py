@@ -3,7 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from semeai_gate_basic.keys import list_keys, rotate_key
-from semeai_gate_basic.usage import RateLimitError, get_usage, record_check
+from semeai_gate_basic.usage import (
+    RateLimitError,
+    get_usage,
+    public_limits,
+    record_check,
+    record_public_demo_check,
+)
 
 
 def test_usage_meter_and_rate_limit(tmp_path: Path) -> None:
@@ -24,6 +30,22 @@ def test_usage_meter_and_rate_limit(tmp_path: Path) -> None:
         pass
     snap = get_usage(auth, env=env)
     assert snap["daily_limit"] == 2
+
+
+def test_public_demo_rate_limit_is_separate_and_does_not_store_raw_identity() -> None:
+    env = {"SEMEAI_GATE_PUBLIC_DEMO_RATE_LIMIT_PER_MINUTE": "1"}
+    first = record_public_demo_check("test-client-demo-rate-limit", env=env)
+
+    assert first["limit"] == 1
+    assert first["remaining"] == 0
+    assert first["raw_client_identity_stored"] is False
+    assert public_limits(env=env)["demo_rate_limit"]["limit"] == 1
+
+    try:
+        record_public_demo_check("test-client-demo-rate-limit", env=env)
+        assert False, "expected public demo rate limit"
+    except RateLimitError as exc:
+        assert exc.status_code == 429
 
 
 def test_key_rotate_flow(tmp_path: Path) -> None:

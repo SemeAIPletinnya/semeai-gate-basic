@@ -230,8 +230,9 @@ POST https://api.semeai.tech/v0/demo/check
 ```
 
 The browser demo does not expose an API key and does not persist customer
-receipts. Production and pilot integrations should use the authenticated
-endpoint:
+receipts. It has a small process-local abuse guard for demo traffic, separate
+from workspace quota. Production and pilot integrations should use the
+authenticated endpoint:
 
 ```text
 POST https://api.semeai.tech/v0/check

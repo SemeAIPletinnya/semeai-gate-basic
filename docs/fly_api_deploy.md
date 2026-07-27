@@ -32,7 +32,9 @@ The public API still requires an API key. Do not deploy a public API without
 
 Exception: `/v0/demo/check` is a browser-safe public demo endpoint. It does not
 require an API key, does not persist receipts, and is not the production/pilot
-integration endpoint.
+integration endpoint. It has a small process-local rate limit controlled by
+`SEMEAI_GATE_PUBLIC_DEMO_RATE_LIMIT_PER_MINUTE`; raw client identities are not
+persisted.
 
 `/v0/demo/account` is also public demo metadata only. It returns the SaaS
 account-shell labels and manual activation placeholder for `gate.semeai.tech`.

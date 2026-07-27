@@ -39,6 +39,8 @@ Demo endpoint guarantees:
 - no API key is required or exposed in browser JavaScript;
 - receipts are not persisted for public demo calls;
 - raw prompt/answer text is not stored by default;
+- demo traffic has a separate process-local rate limit and does not count
+  against workspace quota;
 - output still uses the canonical `SHOW` / `REVIEW` / `BLOCK` contract.
 
 `GET /v0/demo/account` returns browser-safe product/account shell metadata for

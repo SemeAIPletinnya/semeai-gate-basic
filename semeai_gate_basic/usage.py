@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -11,6 +12,8 @@ from typing import Any, Mapping
 
 DEFAULT_ACCOUNT_DIR = Path("outputs") / "api_accounts"
 _LOCK = Lock()
+_PUBLIC_DEMO_LOCK = Lock()
+_PUBLIC_DEMO_BUCKETS: dict[str, dict[str, int]] = {}
 
 # Per-day check limits by subscription tier / plan.
 TIER_DAILY_LIMITS = {
@@ -72,7 +75,7 @@ def daily_limit_for(auth: Mapping[str, Any], *, env: Mapping[str, str] | None = 
     tier = str(sub.get("tier") or sub.get("plan") or "free").lower()
     status = str(sub.get("status") or "trial").lower()
     provider = str(sub.get("billing_provider") or "").lower()
-    # Not paid yet → 5 free checks
+    # Not paid yet -> 5 free checks
     if status in {"unpaid", "pending_payment", "pending_review", "trial"}:
         return TIER_DAILY_LIMITS["free"]
     if tier in {"free", "unpaid", "trial"}:
@@ -151,10 +154,78 @@ def record_check(
 
 
 def public_limits(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    values = env or os.environ
     return {
         "daily_limits_by_tier": TIER_DAILY_LIMITS,
         "window": "UTC day",
         "endpoint": "POST /v0/check",
         "demo_endpoint": "POST /v0/demo/check (not counted against workspace quota)",
+        "demo_rate_limit": {
+            "window": "1 minute per client identity",
+            "limit": public_demo_limit(env=values),
+            "configured_override_env": "SEMEAI_GATE_PUBLIC_DEMO_RATE_LIMIT_PER_MINUTE",
+            "raw_client_identity_stored": False,
+            "enforced": True,
+        },
         "configured_override_env": "SEMEAI_GATE_DAILY_CHECK_LIMIT",
+    }
+
+
+def public_demo_limit(*, env: Mapping[str, str] | None = None) -> int:
+    values = env or os.environ
+    raw = str(values.get("SEMEAI_GATE_PUBLIC_DEMO_RATE_LIMIT_PER_MINUTE") or "60").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 60
+
+
+def record_public_demo_check(client_identity: str, *, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    """Apply a tiny in-memory abuse guard to the public demo endpoint.
+
+    This does not count against workspace quota and does not persist raw IPs.
+    It is deliberately process-local: enough to prevent accidental demo floods,
+    while keeping the browser-safe demo free of customer/account state.
+    """
+
+    limit = public_demo_limit(env=env)
+    if limit <= 0:
+        return {
+            "endpoint": "POST /v0/demo/check",
+            "window": "1 minute per client identity",
+            "limit": 0,
+            "remaining": None,
+            "enforced": False,
+            "raw_client_identity_stored": False,
+        }
+
+    now = time.time()
+    minute = str(int(now // 60))
+    retry_after = max(1, 60 - int(now % 60))
+    identity_hash = hashlib.sha256(str(client_identity or "anonymous").encode("utf-8")).hexdigest()[:16]
+
+    with _PUBLIC_DEMO_LOCK:
+        # Keep only the active minute and the previous minute to bound memory.
+        for stale in list(_PUBLIC_DEMO_BUCKETS):
+            if stale not in {minute, str(int(minute) - 1)}:
+                _PUBLIC_DEMO_BUCKETS.pop(stale, None)
+        bucket = _PUBLIC_DEMO_BUCKETS.setdefault(minute, {})
+        used = int(bucket.get(identity_hash) or 0)
+        if used >= limit:
+            raise RateLimitError(
+                f"public demo rate limit reached ({limit}/minute). Try again shortly.",
+                retry_after=retry_after,
+            )
+        used += 1
+        bucket[identity_hash] = used
+
+    return {
+        "endpoint": "POST /v0/demo/check",
+        "window": "1 minute per client identity",
+        "limit": limit,
+        "used": used,
+        "remaining": max(0, limit - used),
+        "retry_after": retry_after,
+        "enforced": True,
+        "raw_client_identity_stored": False,
     }
