@@ -100,6 +100,8 @@ class ApiAuthError(PermissionError):
 def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
     values = env or os.environ
     operator = public_operator_contact(env=values)
+    from .skill_registry import skill_registry_configuration
+
     return {
         "status": "ok",
         "service": "semeai-gate-basic",
@@ -123,6 +125,8 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "/v0/auth/providers",
             "/v0/oauth/google/start",
             "/v0/oauth/google/callback",
+            "/v0/workspace/skills",
+            "/v0/workspace/skills/{skill_record_id}",
             "/v0/billing/one-click-pay",
             "/v0/billing/pay",
             "/v0/billing/manual-crypto-intent",
@@ -152,6 +156,16 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "/v0/admin/billing-reviews",
             "/v0/admin/workspaces/{workspace_id}/activate",
         ],
+        "skill_registry": {
+            **skill_registry_configuration(env=values),
+            "workspace_endpoints": [
+                "/v0/workspace/skills",
+                "/v0/workspace/skills/{skill_record_id}",
+            ],
+            "operator_decision_endpoint": (
+                "/v0/operator/workspaces/{workspace_id}/skills/{skill_record_id}/decision"
+            ),
+        },
         "email_verification": {
             **_email_status(values),
             "required": True,

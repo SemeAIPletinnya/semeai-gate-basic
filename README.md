@@ -309,6 +309,7 @@ not admitted memory by default. See [ecosystem contract](docs/ecosystem_contract
 - [Ecosystem contract](docs/ecosystem_contract.md) — repo roles and data-boundary rules
 - [Operator TXID activation runbook](docs/operator_txid_activation_runbook.md) — verify payment + activate
 - [Architecture ADR v0.1](docs/architecture_adr_v0_1.md) — decisions + technical debt
+- [Governed Workspace Skill Registry v0.1](docs/skill_registry_v0_1.md) — bounded candidate evidence, operator decisions, and separate skill receipts
 
 ## Publish / SaaS Path
 

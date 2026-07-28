@@ -61,6 +61,7 @@ from .billing import (
     submit_manual_crypto_txid,
 )
 from .github_workspace_http import handle_workspace_get, handle_workspace_post
+from .skill_registry_http import handle_skill_get, handle_skill_post
 
 
 class SemeAIGateHandler(BaseHTTPRequestHandler):
@@ -80,6 +81,9 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler naming
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+
+        if handle_skill_get(self, path, parse_qs(parsed.query)):
+            return
 
         if handle_workspace_get(self, path, parse_qs(parsed.query)):
             return
@@ -289,6 +293,9 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802 - stdlib handler naming
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+
+        if handle_skill_post(self, path):
+            return
 
         if handle_workspace_post(self, path):
             return
@@ -619,7 +626,10 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", allowed_origin)
             self.send_header("Access-Control-Allow-Credentials", "true")
             self.send_header("Vary", "Origin")
-            self.send_header("Access-Control-Allow-Headers", "authorization, x-api-key, x-admin-key, content-type")
+            self.send_header(
+                "Access-Control-Allow-Headers",
+                "authorization, x-api-key, x-admin-key, x-semeai-skill-authority, content-type",
+            )
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         for cookie in cookies or []:
             self.send_header("Set-Cookie", cookie)
