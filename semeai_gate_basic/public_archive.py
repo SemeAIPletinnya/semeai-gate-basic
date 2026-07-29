@@ -225,6 +225,7 @@ def release_public_archive_answer(
         },
         "business_risk": "unsupported_product_claim",
         "metadata": {
+            "trace_contract": "semeai.axiom-release-trace.v0.1",
             "candidate_id": candidate["candidateId"],
             "candidate_hash": candidate["candidateHash"],
             "route_context": bundle["routeContext"],

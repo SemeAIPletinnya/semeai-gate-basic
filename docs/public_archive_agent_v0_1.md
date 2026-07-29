@@ -41,6 +41,9 @@ must be from 1 through 8.
 - No fallback or warning text substitutes for a held candidate.
 - The release-decision receipt ID is returned as both `decisionReceiptId` and
   legacy-compatible `receipt_id`.
+- The persisted decision receipt carries an allowlisted `candidate_trace` with
+  candidate ID/hash, route context, and public source IDs. This trace metadata
+  is explicitly not Gate authority and stores no raw question or answer.
 - `executionReceiptId` remains separate and `null` because this endpoint does
   not execute a downstream action.
 

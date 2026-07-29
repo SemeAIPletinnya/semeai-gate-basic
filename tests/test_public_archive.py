@@ -122,6 +122,17 @@ def test_gate_releases_exact_candidate_and_writes_decision_receipt(tmp_path: Pat
     assert receipt["raw_text_stored"] is False
     assert receipt["release_allowed"] is True
     assert receipt["execution_status"] == "RELEASED"
+    assert receipt["candidate_trace"] == {
+        "schema_version": "semeai.axiom-release-trace.v0.1",
+        "candidate_id": result["candidate"]["candidateId"],
+        "candidate_hash": result["candidate"]["candidateHash"],
+        "route_context": "gate",
+        "source_ids": [
+            item["sourceId"] for item in result["evidenceBundle"]["evidence"]
+        ],
+        "metadata_is_gate_authority": False,
+        "candidate_is_released_answer": False,
+    }
 
     public_json = json.dumps(result, ensure_ascii=False)
     assert "receipt_path" not in public_json
@@ -165,6 +176,9 @@ def test_gate_withholds_unsafe_candidate_without_fallback_or_post_gate_substitut
     assert receipt["execution_status"] == "WITHHELD"
     assert receipt["audit_preserved"] is True
     assert receipt["raw_text_stored"] is False
+    assert receipt["candidate_trace"]["candidate_id"] == result["candidate"]["candidateId"]
+    assert receipt["candidate_trace"]["candidate_hash"] == result["candidate"]["candidateHash"]
+    assert receipt["candidate_trace"]["metadata_is_gate_authority"] is False
 
 
 def test_prompt_injection_markup_remains_untrusted_data(tmp_path: Path) -> None:

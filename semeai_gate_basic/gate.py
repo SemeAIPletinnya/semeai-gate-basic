@@ -298,12 +298,44 @@ def _write_receipt(
         "answer_hash": answer_hash,
         "raw_text_stored": False,
     }
+    candidate_trace = _candidate_trace(request.get("metadata"), answer_hash=answer_hash)
+    if candidate_trace:
+        receipt["candidate_trace"] = candidate_trace
     path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
     return {
         "receipt_id": receipt_id,
         "path": str(path),
         "prompt_hash": prompt_hash,
         "answer_hash": answer_hash,
+    }
+
+
+def _candidate_trace(metadata: Any, *, answer_hash: str) -> dict[str, Any] | None:
+    """Persist only the bounded Axiom linkage fields; metadata never changes the decision."""
+
+    if (
+        not isinstance(metadata, dict)
+        or metadata.get("trace_contract") != "semeai.axiom-release-trace.v0.1"
+    ):
+        return None
+    candidate_id = str(metadata.get("candidate_id") or "").strip()[:128]
+    route_context = str(metadata.get("route_context") or "").strip()[:64] or None
+    raw_sources = metadata.get("source_ids")
+    source_ids = (
+        [str(item).strip()[:256] for item in raw_sources[:8] if str(item).strip()]
+        if isinstance(raw_sources, list)
+        else []
+    )
+    if not candidate_id or not source_ids:
+        return None
+    return {
+        "schema_version": "semeai.axiom-release-trace.v0.1",
+        "candidate_id": candidate_id,
+        "candidate_hash": answer_hash,
+        "route_context": route_context,
+        "source_ids": source_ids,
+        "metadata_is_gate_authority": False,
+        "candidate_is_released_answer": False,
     }
 
 
