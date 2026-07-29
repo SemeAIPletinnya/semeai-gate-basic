@@ -16,7 +16,7 @@ license = { text = "Apache-2.0" }
 include = ["semeai_gate_basic*"]
 
 [tool.setuptools.package-data]
-semeai_gate_basic = ["*.js"]
+semeai_gate_basic = ["*.js", "data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

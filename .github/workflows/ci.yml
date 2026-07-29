@@ -36,7 +36,7 @@ jobs:
 
       - name: Python compile
         run: |
-          python -m py_compile semeai_gate_basic\gate.py semeai_gate_basic\api.py semeai_gate_basic\server.py semeai_gate_basic\skill_registry.py semeai_gate_basic\skill_registry_http.py semeai_gate_basic\__main__.py tools\run_benchmark.py tools\check_contract.py examples\existing_chatbot_integration.py examples\middleware_boundary.py tests\test_gate_basic.py tests\test_skill_registry.py
+          python -m py_compile semeai_gate_basic\gate.py semeai_gate_basic\api.py semeai_gate_basic\server.py semeai_gate_basic\public_archive.py semeai_gate_basic\skill_registry.py semeai_gate_basic\skill_registry_http.py semeai_gate_basic\__main__.py tools\run_benchmark.py tools\run_public_archive_pilot.py tools\check_contract.py examples\existing_chatbot_integration.py examples\middleware_boundary.py tests\test_gate_basic.py tests\test_public_archive.py tests\test_public_archive_pilot.py tests\test_skill_registry.py
 
       - name: Python tests
         env:

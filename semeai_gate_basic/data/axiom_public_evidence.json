@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "semeai.axiom-public-evidence-index.v0.1",
+  "indexId": "axiom-public-evidence",
+  "indexVersion": "0.1.0",
+  "capturedAt": "2026-07-29T00:00:00Z",
+  "visibilityPolicy": {
+    "allowed": ["PUBLIC"],
+    "privateArchiveIncluded": false,
+    "rawArchiveIncluded": false,
+    "onlineIngestionEnabled": false
+  },
+  "authority": {
+    "retrievalIsTruth": false,
+    "retrievalIsReleaseAuthority": false,
+    "candidateIsReleasedAnswer": false,
+    "releaseAuthority": "SaC/PoR Gate"
+  },
+  "entries": [
+    {
+      "sourceId": "public:gate:runtime-decision-contract:v0.1",
+      "title": "Runtime release-decision contract",
+      "summary": "Generation creates a candidate; the Gate separately decides whether release may proceed, requires review, or is withheld with its audit preserved.",
+      "evidenceType": "PUBLIC_CONTRACT",
+      "visibility": "PUBLIC",
+      "admissionState": "PUBLIC_CONTRACT",
+      "date": "2026-07-29",
+      "version": "0.1",
+      "keywords": ["gate", "release", "candidate", "proceed", "needs_review", "silence", "show", "review", "block", "receipt"],
+      "routeContexts": ["home", "gate", "benchmark", "workspace"],
+      "route": "/gate.html#semantics-title",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "docs/runtime_decision_contract.md",
+        "sha256": "077efbbf6e6937fc72d008e1df1138aabfbf502ddd95174138d1c714221696b5",
+        "identity": "semeai.tech:docs/runtime_decision_contract.md@0.1"
+      },
+      "facts": {
+        "publicReleaseStates": ["PROCEED", "NEEDS_REVIEW", "SILENCE"],
+        "clientActions": ["SHOW", "REVIEW", "BLOCK"],
+        "silenceDeletesAudit": false
+      }
+    },
+    {
+      "sourceId": "public:genesis:chronicle:account-workspace",
+      "title": "Account and governed Workspace became distinct surfaces",
+      "summary": "Account and Workspace became separate product routes while Dashboard remained the operator Gate console; unsupported persistence surfaces remain explicitly unconnected.",
+      "evidenceType": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "visibility": "PUBLIC",
+      "admissionState": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "date": "2026-07-26",
+      "version": "chronicle-v1",
+      "keywords": ["account", "workspace", "dashboard", "identity", "governed context", "persistence"],
+      "routeContexts": ["genesis", "workspace", "home"],
+      "route": "/genesis/#chronicle",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "genesis/data/chronicle.json",
+        "sha256": "dedb7d147c7a163c3ea90a67dd71b6c1603bc063faef6ba5e22ad1a0c8720e3e",
+        "identity": "semeai.tech:genesis/data/chronicle.json#2026-07-account-workspace"
+      },
+      "facts": {
+        "chronicleEntryId": "2026-07-account-workspace",
+        "status": "ADMITTED PUBLIC COMMIT EVIDENCE",
+        "generalPersistenceConnected": false
+      }
+    },
+    {
+      "sourceId": "public:genesis:chronicle:product-roadmap",
+      "title": "Dependency-gated product roadmap",
+      "summary": "The product roadmap was published with a source hash and status ledger; publication does not implement later phases or satisfy their exit gates.",
+      "evidenceType": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "visibility": "PUBLIC",
+      "admissionState": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "date": "2026-07-27",
+      "version": "chronicle-v1",
+      "keywords": ["roadmap", "dependency", "phase", "exit gate", "publication", "implementation"],
+      "routeContexts": ["genesis", "home"],
+      "route": "/genesis/#chronicle",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "genesis/data/chronicle.json",
+        "sha256": "dedb7d147c7a163c3ea90a67dd71b6c1603bc063faef6ba5e22ad1a0c8720e3e",
+        "identity": "semeai.tech:genesis/data/chronicle.json#2026-07-roadmap"
+      },
+      "facts": {
+        "chronicleEntryId": "2026-07-roadmap",
+        "status": "ADMITTED PUBLIC COMMIT EVIDENCE",
+        "publicationIsImplementation": false
+      }
+    },
+    {
+      "sourceId": "public:genesis:chronicle:v03",
+      "title": "Documentary Genesis v03",
+      "summary": "Genesis was rebuilt from structured historical artifacts, repository facts, curated conceptual lineage, twelve eras, and admitted milestones.",
+      "evidenceType": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "visibility": "PUBLIC",
+      "admissionState": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "date": "2026-07-27",
+      "version": "chronicle-v1",
+      "keywords": ["genesis", "history", "artifacts", "repositories", "lineage", "eras", "milestones"],
+      "routeContexts": ["genesis"],
+      "route": "/genesis/#chronicle",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "genesis/data/chronicle.json",
+        "sha256": "dedb7d147c7a163c3ea90a67dd71b6c1603bc063faef6ba5e22ad1a0c8720e3e",
+        "identity": "semeai.tech:genesis/data/chronicle.json#2026-07-genesis-v03"
+      },
+      "facts": {
+        "chronicleEntryId": "2026-07-genesis-v03",
+        "status": "ADMITTED PUBLIC COMMIT EVIDENCE",
+        "eras": 12
+      }
+    },
+    {
+      "sourceId": "public:genesis:chronicle:benchmark-roadmap",
+      "title": "Benchmark audit to evidence roadmap",
+      "summary": "Missing fixed criteria produce a bounded evidence roadmap from the existing policy and admitted snapshot; production Workspace retention remains dependency-held.",
+      "evidenceType": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "visibility": "PUBLIC",
+      "admissionState": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "date": "2026-07-27",
+      "version": "chronicle-v1",
+      "keywords": ["benchmark", "evidence roadmap", "fixed policy", "snapshot", "github app", "workspace"],
+      "routeContexts": ["genesis", "benchmark", "workspace"],
+      "route": "/genesis/#chronicle",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "genesis/data/chronicle.json",
+        "sha256": "dedb7d147c7a163c3ea90a67dd71b6c1603bc063faef6ba5e22ad1a0c8720e3e",
+        "identity": "semeai.tech:genesis/data/chronicle.json#2026-07-benchmark-roadmap"
+      },
+      "facts": {
+        "chronicleEntryId": "2026-07-benchmark-roadmap",
+        "status": "ADMITTED PUBLIC COMMIT EVIDENCE",
+        "githubProductionAuthorityAvailable": false
+      }
+    },
+    {
+      "sourceId": "public:genesis:chronicle:v04",
+      "title": "Genesis historical archaeology and admission",
+      "summary": "Genesis v04 added deterministic historical-admission policy, separate timelines, evidence-backed lineage, deduplication, and a sanitized public manifest.",
+      "evidenceType": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "visibility": "PUBLIC",
+      "admissionState": "ADMITTED_PUBLIC_COMMIT_EVIDENCE",
+      "date": "2026-07-28",
+      "version": "chronicle-v1",
+      "keywords": ["genesis", "archaeology", "admission", "timeline", "lineage", "deduplication", "privacy"],
+      "routeContexts": ["genesis"],
+      "route": "/genesis/#historical-provenance",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "genesis/data/chronicle.json",
+        "sha256": "dedb7d147c7a163c3ea90a67dd71b6c1603bc063faef6ba5e22ad1a0c8720e3e",
+        "identity": "semeai.tech:genesis/data/chronicle.json#2026-07-genesis-v04"
+      },
+      "facts": {
+        "chronicleEntryId": "2026-07-genesis-v04",
+        "status": "ADMITTED PUBLIC COMMIT EVIDENCE",
+        "privateArchiveAutoAdmitted": false
+      }
+    },
+    {
+      "sourceId": "public:benchmark:canonical-fallback:v1",
+      "title": "Canonical Repository Evidence Benchmark fallback fixture",
+      "summary": "The frozen fallback fixture scores visible repository evidence under analyzer 1.0.0 and remains REVIEW because it is not a current live capture.",
+      "evidenceType": "PUBLIC_GOLDEN_FIXTURE",
+      "visibility": "PUBLIC",
+      "admissionState": "PUBLIC_GOLDEN_FIXTURE",
+      "date": "2026-07-26",
+      "version": "semeai.repository-evidence.score.v1",
+      "keywords": ["benchmark", "repository", "fallback", "score", "review", "receipt", "analyzer", "golden fixture"],
+      "routeContexts": ["benchmark", "gate", "home"],
+      "route": "/benchmark/",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "benchmark/tests/fixtures/canonical-authority.expected.json",
+        "sha256": "812d55288945d9941a2ea2d5d0229e821882ea052709cd29d67e9f6895836f88",
+        "identity": "semeai.tech:benchmark/canonical-authority.expected.json@analyzer-1.0.0"
+      },
+      "facts": {
+        "analyzerVersion": "1.0.0",
+        "scoringPolicyVersion": "semeai.repository-evidence.score.v1",
+        "score": 99,
+        "presentationDecision": "REVIEW",
+        "universalQualityClaim": false
+      }
+    },
+    {
+      "sourceId": "public:skills:registry:v0.1",
+      "title": "Skill Forge public candidate registry",
+      "summary": "GET JOB and GET VIS are public REVIEW candidates with bounded evaluation evidence; zero skills are admitted, installable, or marketplace-ready.",
+      "evidenceType": "PUBLIC_CANDIDATE_EVIDENCE",
+      "visibility": "PUBLIC",
+      "admissionState": "PUBLIC_CANDIDATE_EVIDENCE",
+      "date": "2026-07-28",
+      "version": "semeai.skill-registry.v0.1",
+      "keywords": ["skill forge", "get job", "get vis", "candidate", "review", "admission", "marketplace", "registry"],
+      "routeContexts": ["skills", "workspace"],
+      "route": "/skills/#registry",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "skills/data/registry.json",
+        "sha256": "81a859f7540b3fa4afe37ba87130f7ed2d8ea5f8680b2bc9066cf06e460407b2",
+        "identity": "semeai.tech:skills/data/registry.json@0.1"
+      },
+      "facts": {
+        "candidates": 2,
+        "inReview": 2,
+        "admitted": 0,
+        "installable": 0,
+        "marketplaceReady": false
+      }
+    },
+    {
+      "sourceId": "public:book:engineering:v0.1",
+      "title": "SemeAI Engineering Book",
+      "summary": "The 24-chapter Engineering Book records the system path from generation through release authority, evidence, receipts, replay, limitations, and future design.",
+      "evidenceType": "PUBLIC_PUBLICATION",
+      "visibility": "PUBLIC",
+      "admissionState": "PUBLIC_PUBLICATION",
+      "date": "2026-07-21",
+      "version": "0.1",
+      "keywords": ["engineering book", "architecture", "gate", "receipts", "evidence", "replay", "limitations"],
+      "routeContexts": ["book", "gate", "home"],
+      "route": "/book/",
+      "source": {
+        "repository": "SemeAIPletinnya/semeai.tech",
+        "path": "assets/js/book-content.js",
+        "sha256": "4e67cf83069752c52abe3093fa4589723dd732d060abe46e322282c156a0653e",
+        "identity": "semeai.tech:assets/js/book-content.js@0.1"
+      },
+      "facts": {
+        "chapters": 24,
+        "publicationIsRuntimeAuthority": false
+      }
+    }
+  ]
+}

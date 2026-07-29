@@ -44,7 +44,12 @@ from .api import (
 )
 from .keys import KeyError_ as KeyManageError
 from .keys import list_keys, revoke_key, rotate_key
-from .usage import RateLimitError, get_usage, record_public_demo_check
+from .usage import (
+    RateLimitError,
+    get_usage,
+    record_public_archive_query,
+    record_public_demo_check,
+)
 from .admin import (
     AdminActionError,
     AdminAuthError,
@@ -62,6 +67,7 @@ from .billing import (
 )
 from .github_workspace_http import handle_workspace_get, handle_workspace_post
 from .skill_registry_http import handle_skill_get, handle_skill_post
+from .public_archive import PublicArchiveError, release_public_archive_answer
 
 
 class SemeAIGateHandler(BaseHTTPRequestHandler):
@@ -458,6 +464,36 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
                 return
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            self._send_json(result)
+            return
+
+        if path == "/v0/archive/query":
+            try:
+                rate_limit = record_public_archive_query(_client_identity(self), env=os.environ)
+                payload = self._read_json_body()
+                receipt_dir = os.environ.get("SEMEAI_GATE_RECEIPT_DIR") or None
+                result = release_public_archive_answer(payload, receipt_dir=receipt_dir)
+                result["transport"] = {
+                    "rateLimit": rate_limit
+                }
+            except RateLimitError as exc:
+                self._send_json(
+                    {"error": str(exc), "retry_after": exc.retry_after},
+                    status=exc.status_code,
+                )
+                return
+            except PublicArchiveError as exc:
+                self._send_json({"error": str(exc)}, status=exc.status_code)
+                return
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            except OSError:
+                self._send_json(
+                    {"error": "Axiom release-decision receipt could not be persisted"},
+                    status=HTTPStatus.INTERNAL_SERVER_ERROR,
+                )
                 return
             self._send_json(result)
             return
