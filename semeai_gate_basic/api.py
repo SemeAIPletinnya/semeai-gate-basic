@@ -166,6 +166,17 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
                 "/v0/operator/workspaces/{workspace_id}/skills/{skill_record_id}/decision"
             ),
         },
+        "public_archive": {
+            "endpoint": "/v0/archive/query",
+            "index_visibility": "PUBLIC_ONLY",
+            "private_archive_included": False,
+            "raw_archive_included": False,
+            "online_ingestion_enabled": False,
+            "retrieval_is_truth": False,
+            "candidate_is_released_answer": False,
+            "release_authority": "SaC/PoR Gate",
+            "decision_and_execution_receipts_are_distinct": True,
+        },
         "email_verification": {
             **_email_status(values),
             "required": True,

@@ -147,6 +147,18 @@ POST /v0/check
 The API writes receipt metadata to `outputs/api_receipts` by default and does
 not store raw prompt/answer text in receipts by default.
 
+The bounded PUBLIC-only Axiom archive path is:
+
+```text
+POST /v0/archive/query
+```
+
+It retrieves from a frozen public index, creates a deterministic candidate, and
+passes that candidate through the existing Gate. Only `SHOW` returns the exact
+candidate as `releasedAnswer`; `REVIEW` and `BLOCK` return `null` without a
+post-Gate fallback. See
+[public archive agent v0.1](docs/public_archive_agent_v0_1.md).
+
 Early account backend:
 
 ```text
@@ -310,6 +322,7 @@ not admitted memory by default. See [ecosystem contract](docs/ecosystem_contract
 - [Operator TXID activation runbook](docs/operator_txid_activation_runbook.md) — verify payment + activate
 - [Architecture ADR v0.1](docs/architecture_adr_v0_1.md) — decisions + technical debt
 - [Governed Workspace Skill Registry v0.1](docs/skill_registry_v0_1.md) — bounded candidate evidence, operator decisions, and separate skill receipts
+- [Public archive agent v0.1](docs/public_archive_agent_v0_1.md) — PUBLIC-only retrieval, candidate, Gate, and receipt boundary
 
 ## Publish / SaaS Path
 
