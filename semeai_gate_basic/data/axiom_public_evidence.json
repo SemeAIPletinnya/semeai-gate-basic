@@ -31,7 +31,7 @@
       "source": {
         "repository": "SemeAIPletinnya/semeai.tech",
         "path": "docs/runtime_decision_contract.md",
-        "sha256": "d8be3e1cbd4face80b7fd4d705ea954fd61dead0e7567ed1921117677d3f0f7c",
+        "sha256": "077efbbf6e6937fc72d008e1df1138aabfbf502ddd95174138d1c714221696b5",
         "identity": "semeai.tech:docs/runtime_decision_contract.md@0.1"
       },
       "facts": {
@@ -175,7 +175,7 @@
       "source": {
         "repository": "SemeAIPletinnya/semeai.tech",
         "path": "benchmark/tests/fixtures/canonical-authority.expected.json",
-        "sha256": "6b667fa6e1df98e880eeb38b76442c496fb4dd4965c58284782f4ee4f47590ac",
+        "sha256": "812d55288945d9941a2ea2d5d0229e821882ea052709cd29d67e9f6895836f88",
         "identity": "semeai.tech:benchmark/canonical-authority.expected.json@analyzer-1.0.0"
       },
       "facts": {
@@ -201,7 +201,7 @@
       "source": {
         "repository": "SemeAIPletinnya/semeai.tech",
         "path": "skills/data/registry.json",
-        "sha256": "6eebdfd333a751848cef960926ed011359e9079cb4e686fd1b89e3d43fa8d1ba",
+        "sha256": "81a859f7540b3fa4afe37ba87130f7ed2d8ea5f8680b2bc9066cf06e460407b2",
         "identity": "semeai.tech:skills/data/registry.json@0.1"
       },
       "facts": {
@@ -227,7 +227,7 @@
       "source": {
         "repository": "SemeAIPletinnya/semeai.tech",
         "path": "assets/js/book-content.js",
-        "sha256": "6cc8637f0df89ca7c5599490263c7fde6365fb750a3882a3f72c351557917dd5",
+        "sha256": "4e67cf83069752c52abe3093fa4589723dd732d060abe46e322282c156a0653e",
         "identity": "semeai.tech:assets/js/book-content.js@0.1"
       },
       "facts": {

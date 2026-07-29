@@ -24,7 +24,7 @@ from semeai_gate_basic.public_archive import (
 from semeai_gate_basic.server import SemeAIGateHandler
 
 
-INDEX_SHA256 = "62eb0078bc1cf431daafc2f622336600b5528438bb373b2a87fc45f25c9959cc"
+INDEX_SHA256 = "b2c681a99141ca69125cf3704f3517a00ef8770575cf7ac69371f0ae7a29b9cf"
 
 
 def _post_json(

@@ -55,7 +55,7 @@ an answer or receipt.
 
 The packaged `semeai_gate_basic/data/axiom_public_evidence.json` mirrors the
 public-site index with SHA-256
-`62eb0078bc1cf431daafc2f622336600b5528438bb373b2a87fc45f25c9959cc`.
+`b2c681a99141ca69125cf3704f3517a00ef8770575cf7ac69371f0ae7a29b9cf`.
 Runtime validation rejects private entries, raw-archive inclusion, online
 ingestion, duplicate source IDs, incomplete provenance, or authority drift.
 
