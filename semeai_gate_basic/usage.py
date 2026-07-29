@@ -160,6 +160,7 @@ def public_limits(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
         "window": "UTC day",
         "endpoint": "POST /v0/check",
         "demo_endpoint": "POST /v0/demo/check (not counted against workspace quota)",
+        "archive_endpoint": "POST /v0/archive/query (not counted against workspace quota)",
         "demo_rate_limit": {
             "window": "1 minute per client identity",
             "limit": public_demo_limit(env=values),
@@ -188,10 +189,33 @@ def record_public_demo_check(client_identity: str, *, env: Mapping[str, str] | N
     while keeping the browser-safe demo free of customer/account state.
     """
 
+    return _record_public_request(
+        client_identity,
+        endpoint="POST /v0/demo/check",
+        env=env,
+    )
+
+
+def record_public_archive_query(client_identity: str, *, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    """Apply the same non-persistent public abuse guard to Axiom queries."""
+
+    return _record_public_request(
+        client_identity,
+        endpoint="POST /v0/archive/query",
+        env=env,
+    )
+
+
+def _record_public_request(
+    client_identity: str,
+    *,
+    endpoint: str,
+    env: Mapping[str, str] | None,
+) -> dict[str, Any]:
     limit = public_demo_limit(env=env)
     if limit <= 0:
         return {
-            "endpoint": "POST /v0/demo/check",
+            "endpoint": endpoint,
             "window": "1 minute per client identity",
             "limit": 0,
             "remaining": None,
@@ -213,14 +237,14 @@ def record_public_demo_check(client_identity: str, *, env: Mapping[str, str] | N
         used = int(bucket.get(identity_hash) or 0)
         if used >= limit:
             raise RateLimitError(
-                f"public demo rate limit reached ({limit}/minute). Try again shortly.",
+                f"public endpoint rate limit reached ({limit}/minute). Try again shortly.",
                 retry_after=retry_after,
             )
         used += 1
         bucket[identity_hash] = used
 
     return {
-        "endpoint": "POST /v0/demo/check",
+        "endpoint": endpoint,
         "window": "1 minute per client identity",
         "limit": limit,
         "used": used,

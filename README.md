@@ -323,6 +323,7 @@ not admitted memory by default. See [ecosystem contract](docs/ecosystem_contract
 - [Architecture ADR v0.1](docs/architecture_adr_v0_1.md) — decisions + technical debt
 - [Governed Workspace Skill Registry v0.1](docs/skill_registry_v0_1.md) — bounded candidate evidence, operator decisions, and separate skill receipts
 - [Public archive agent v0.1](docs/public_archive_agent_v0_1.md) — PUBLIC-only retrieval, candidate, Gate, and receipt boundary
+- [Public archive pilot v0.1](docs/public_archive_pilot_v0_1.md) — fixed local dry run and held human-evaluation protocol
 
 ## Publish / SaaS Path
 

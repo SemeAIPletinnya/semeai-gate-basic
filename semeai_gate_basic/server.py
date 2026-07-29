@@ -44,7 +44,12 @@ from .api import (
 )
 from .keys import KeyError_ as KeyManageError
 from .keys import list_keys, revoke_key, rotate_key
-from .usage import RateLimitError, get_usage, record_public_demo_check
+from .usage import (
+    RateLimitError,
+    get_usage,
+    record_public_archive_query,
+    record_public_demo_check,
+)
 from .admin import (
     AdminActionError,
     AdminAuthError,
@@ -465,15 +470,12 @@ class SemeAIGateHandler(BaseHTTPRequestHandler):
 
         if path == "/v0/archive/query":
             try:
-                rate_limit = record_public_demo_check(_client_identity(self), env=os.environ)
+                rate_limit = record_public_archive_query(_client_identity(self), env=os.environ)
                 payload = self._read_json_body()
                 receipt_dir = os.environ.get("SEMEAI_GATE_RECEIPT_DIR") or None
                 result = release_public_archive_answer(payload, receipt_dir=receipt_dir)
                 result["transport"] = {
-                    "rateLimit": {
-                        **rate_limit,
-                        "endpoint": "POST /v0/archive/query",
-                    }
+                    "rateLimit": rate_limit
                 }
             except RateLimitError as exc:
                 self._send_json(
