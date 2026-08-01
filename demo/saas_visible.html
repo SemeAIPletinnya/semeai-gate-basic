@@ -447,9 +447,42 @@
         .pipe-arrow { display: none; }
         .layer { grid-template-columns: 1fr; }
       }
-    </style>
+          .product-surface-bridge {
+        position: relative; z-index: 5;
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: 0.55rem 1rem;
+        padding: 0.55rem 0.9rem;
+        border-bottom: 1px solid rgba(127, 211, 208, 0.18);
+        background:
+          linear-gradient(90deg, rgba(127, 211, 208, 0.08), transparent 50%),
+          rgba(3, 6, 10, 0.96);
+        font-family: Inter, system-ui, sans-serif;
+      }
+      .product-surface-bridge strong {
+        font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7fd3d0;
+      }
+      .product-surface-bridge nav { display: flex; flex-wrap: wrap; gap: 0.55rem 0.9rem; }
+      .product-surface-bridge a {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 0.72rem; color: #a8b4bf;
+        border-bottom: 1px solid transparent;
+      }
+      .product-surface-bridge a:hover { color: #e8eef6; border-bottom-color: rgba(127,211,208,0.55); }
+      .product-surface-bridge a[aria-current="true"] { color: #9be7e4; }
+</style>
   </head>
   <body>
+  <div class="product-surface-bridge" data-semeai-product-bridge>
+    <strong>SemeAI ecosystem</strong>
+    <nav aria-label="SemeAI product surfaces">
+      <a href="https://semeai.tech/" rel="noopener">semeai.tech</a>
+      <a href="https://semeai.tech/gate.html" rel="noopener">Gate contract</a>
+      <a href="https://semeai.tech/genesis/" rel="noopener">Genesis</a>
+      <a href="https://api.semeai.tech/" rel="noopener">api.semeai.tech</a>
+      <a href="https://gate.semeai.tech/" aria-current="true">gate.semeai.tech</a>
+    </nav>
+  </div>
+
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
     <div class="vignette" aria-hidden="true"></div>
 
