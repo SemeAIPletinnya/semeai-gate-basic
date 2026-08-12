@@ -12,6 +12,7 @@ import pytest
 
 from semeai_gate_basic.api import (
     ApiAuthError,
+    api_health,
     authenticate_headers,
     check_api_answer,
     check_demo_answer,
@@ -37,6 +38,16 @@ FAKE_PROMO_REQUEST = {
     },
     "business_risk": "fake_promo_code",
 }
+
+
+def test_health_exposes_ecosystem_surface_roles_without_expanding_authority() -> None:
+    contract = api_health(env={})["surface_contract"]
+
+    assert contract["role"] == "production_release_control_api"
+    assert contract["interactive_surface"] == "https://gate.semeai.tech/"
+    assert contract["public_experience"] == "https://semeai.tech/"
+    assert contract["release_authority"] == "SaC/PoR Gate"
+    assert contract["metadata_is_release_authority"] is False
 
 
 def test_parse_api_key_config() -> None:
