@@ -151,6 +151,14 @@ def api_health(*, env: Mapping[str, str] | None = None) -> dict[str, Any]:
             "/v0/billing/submit-txid",
         ],
         "status_endpoint": "/v0/status",
+        "surface_contract": {
+            "role": "production_release_control_api",
+            "interactive_surface": "https://gate.semeai.tech/",
+            "public_experience": "https://semeai.tech/",
+            "system_atlas": "https://semeai.tech/system/",
+            "release_authority": "SaC/PoR Gate",
+            "metadata_is_release_authority": False,
+        },
         "admin_endpoints": [
             "/v0/admin/workspaces",
             "/v0/admin/billing-reviews",
